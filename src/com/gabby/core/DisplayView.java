@@ -33,11 +33,11 @@ public class DisplayView extends SurfaceView implements SurfaceHolder.Callback {
 				try {
 					c = surfaceHolder.lockCanvas();
 					Paint p = new Paint();
-					p.setARGB(256, 200, 250, 100);
+					p.setARGB(255, 200, 250, 100);
 					c.drawLine(0, 256, 256, 0, p);
-					c.save();
 				} finally {
-					surfaceHolder.unlockCanvasAndPost(c);
+					if (c != null)
+						surfaceHolder.unlockCanvasAndPost(c);
 				}
 			}
 		}
