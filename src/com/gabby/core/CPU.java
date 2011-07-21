@@ -1,11 +1,14 @@
 package com.gabby.core;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+
 public class CPU {
 	private static final int INTERRUPT_PERIOD = 0;
 
 	private static final byte[] CYCLES = new byte[256];
 
-	private byte[] memory;
+	private ByteBuffer memory;
 
 	static {
 		// CYCLES[
@@ -15,8 +18,9 @@ public class CPU {
 
 	}
 
-	public CPU(byte[] mem) {
-		memory = mem;
+	public CPU() {
+		memory = ByteBuffer.allocate(0xFFFF);
+		memory.order(ByteOrder.LITTLE_ENDIAN);
 	}
 
 	public void emulate(int initialPC) {
@@ -26,7 +30,7 @@ public class CPU {
 		int counter = CPU.INTERRUPT_PERIOD;
 		
 		while(true) {
-			opc = memory[pc++];
+			opc = memory.get(pc++);
 			counter -= CYCLES[opc];
 		}
 	}
