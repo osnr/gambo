@@ -8,10 +8,12 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+
 
 public class DisplayView extends SurfaceView implements SurfaceHolder.Callback {
 
@@ -21,12 +23,16 @@ public class DisplayView extends SurfaceView implements SurfaceHolder.Callback {
 	public static final int WINDOW_HEIGHT = 144;
 	
 	public static final int OAM = 0xFE00;
+	public static final int LCDC = 0xFF40;
+	public static final int SPRITE_TABLE = 0x8000;
 	
 	private Bitmap background;
 	private Bitmap window;
 	private SurfaceHolder surfaceHolder;
 	
 	private boolean running = false;
+	
+	ByteBuffer memory;
 	
 	/** 
 	 * @param i The distance from the significant bit to the target bit (from 0 to 7).
@@ -57,19 +63,48 @@ public class DisplayView extends SurfaceView implements SurfaceHolder.Callback {
 		return -1;
 	}
 	
-	/**
-	 * 
-	 * @param mem The current memory of the GameBoy.
-	 */
-	protected void drawSprite(Canvas c, ByteBuffer spriteData, int x, int y) {
+	private static int getBit(int i, byte b) {
+		switch (i) {
+		case 0:
+			return (b >> 7) & 0x1;
+		case 1:
+			return (b >> 6) & 0x1;
+		case 2:
+			return (b >> 5) & 0x1;
+		case 3:
+			return (b >> 4) & 0x1;
+		case 4:
+			return (b >> 3) & 0x1;
+		case 5:
+			return (b >> 2) & 0x1;
+		case 6:
+			return (b >> 1) & 0x1;
+		case 7:
+			return b & 0x1;
+		}
+		
+		return -1;
+	}
+	
+	protected void drawSprite(Canvas c, int spriteNumber) {
 		Paint p = new Paint();
 		p.setARGB(255, 0, 255, 255);
+		int spriteAttrib = OAM + spriteNumber * 4;
+		
+		int y = memory.get(spriteAttrib);
+		int x = memory.get(spriteAttrib + 1);
+		int patternNum = memory.get(spriteAttrib + 2);
+		byte flags = memory.get(spriteAttrib + 3); // TODO: Implement flags
+		
+		ByteBuffer spriteData = ByteBuffer.allocate(16);
+		spriteData.put(memory.array(), SPRITE_TABLE, 16);
+		
 		
 		for (int i = 0; i < 8; i++) {
 			for (int j = 0; j < 8; j++) {
 				byte color = getColorFromBytePair(j, spriteData.get(i), spriteData.get(i + 1));
 				if (color > 0)
-					c.drawPoint(x + (j * 4), y + i, p);
+					c.drawPoint(x + j, y + i, p);
 			}
 		}
 	}
@@ -83,10 +118,12 @@ public class DisplayView extends SurfaceView implements SurfaceHolder.Callback {
 				Canvas c = null;
 				try {
 					c = surfaceHolder.lockCanvas();
-					ByteBuffer b = ByteBuffer.allocate(16);
-					b.order(ByteOrder.LITTLE_ENDIAN);
-					b.put(new byte[] {0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55,});
-					drawSprite(c, b, 25, 25);
+					c.drawColor(Color.WHITE);
+					
+					if (getBit(7, memory.get(LCDC)) != 0) {
+						
+					}
+					
 				} finally {
 					if (c != null)
 						surfaceHolder.unlockCanvasAndPost(c);
@@ -95,7 +132,15 @@ public class DisplayView extends SurfaceView implements SurfaceHolder.Callback {
 		}
 	}
 	
-	DisplayThread thread;
+	private DisplayThread thread;
+	
+	public ByteBuffer getMemory() {
+		return memory;
+	}
+	
+	public void setMemory(ByteBuffer memory) {
+		this.memory = memory;
+	}
 	
 	public DisplayView(Context context) {
 		super(context);
