@@ -25,6 +25,8 @@ public class DisplayView extends SurfaceView implements SurfaceHolder.Callback {
 	public static final int OAM = 0xFE00;
 	public static final int LCDC = 0xFF40;
 	public static final int SPRITE_TABLE = 0x8000;
+	public static final int BACKGROUND_ONE = 0x9800;
+	public static final int BACKGROUND_TWO = 0x9C00;
 	
 	private Bitmap background;
 	private Bitmap window;
@@ -86,19 +88,11 @@ public class DisplayView extends SurfaceView implements SurfaceHolder.Callback {
 		return -1;
 	}
 	
-	protected void drawSprite(Canvas c, int spriteNumber) {
-		Paint p = new Paint();
-		p.setARGB(255, 0, 255, 255);
-		int spriteAttrib = OAM + spriteNumber * 4;
-		
-		int y = memory.get(spriteAttrib);
-		int x = memory.get(spriteAttrib + 1);
-		int patternNum = memory.get(spriteAttrib + 2);
-		byte flags = memory.get(spriteAttrib + 3); // TODO: Implement flags
-		
+	protected void drawTile(Canvas c, int spriteNumber, int x, int y) {
 		ByteBuffer spriteData = ByteBuffer.allocate(16);
 		spriteData.put(memory.array(), SPRITE_TABLE, 16);
-		
+		Paint p = new Paint();
+		p.setARGB(255, 0, 255, 255);
 		
 		for (int i = 0; i < 8; i++) {
 			for (int j = 0; j < 8; j++) {
@@ -107,6 +101,35 @@ public class DisplayView extends SurfaceView implements SurfaceHolder.Callback {
 					c.drawPoint(x + j, y + i, p);
 			}
 		}
+	}
+	
+	protected void drawSprite(Canvas c, int spriteNumber) {
+		int spriteAttrib = OAM + spriteNumber * 4;
+		
+		int y = memory.get(spriteAttrib);
+		int x = memory.get(spriteAttrib + 1);
+		int patternNum = memory.get(spriteAttrib + 2);
+		byte flags = memory.get(spriteAttrib + 3); // TODO: Implement flags
+		
+		drawTile(c, patternNum, x, y);
+	}
+	
+	protected void drawBackground(Canvas c) {
+		int ptrToTileData = getBit(4, memory.get(LCDC));
+		
+		if (getBit(0, memory.get(LCDC)) == 1) {
+			if (getBit(3, memory.get(LCDC)) == 0) {
+				for (int i = 0; i < 32 * 32; i++) {
+					int patternNumber = memory.get(BACKGROUND_ONE + i);
+					
+					if (patternNumber < 0)
+						patternNumber += 256;
+					
+					drawTile(c, patternNumber, i % 32, (int) Math.floor(i / 32));
+				}
+			}
+		}
+		
 	}
 	
 	class DisplayThread extends Thread {
@@ -121,6 +144,10 @@ public class DisplayView extends SurfaceView implements SurfaceHolder.Callback {
 					c.drawColor(Color.WHITE);
 					
 					if (getBit(7, memory.get(LCDC)) != 0) {
+						drawBackground(c);
+						for (int i = 0; i < 40; i++) {
+							drawSprite(c, i); // Draw all sprites always?!
+						}
 						
 					}
 					
