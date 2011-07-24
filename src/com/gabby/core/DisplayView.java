@@ -144,7 +144,7 @@ public class DisplayView extends SurfaceView implements SurfaceHolder.Callback {
 				}
 			} else {
 				for (int i = 0; i < 32 * 32; i++) {
-					int patternNumber = memory.get(BACKGROUND_ONE + i);
+					int patternNumber = memory.get(BACKGROUND_TWO + i);
 					int scx = memory.get(SCX);
 					int scy = memory.get(SCY);
 					
