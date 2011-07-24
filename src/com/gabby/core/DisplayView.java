@@ -26,6 +26,8 @@ public class DisplayView extends SurfaceView implements SurfaceHolder.Callback {
 	public static final int LCDC = 0xFF40;
 	public static final int SCX = 0xFF43;
 	public static final int SCY = 0xff42;
+	public static final int WX = 0xFF4B;
+	public static final int WY = 0xFF4A;
 	
 	public static final int TILE_TABLE_ONE = 0x8000;
 	public static final int TILE_TABLE_TWO = 0x8800;
@@ -160,6 +162,47 @@ public class DisplayView extends SurfaceView implements SurfaceHolder.Callback {
 		
 	}
 	
+	protected void drawWindow(Canvas c) {
+		if (getBit(5, memory.get(LCDC)) == 1) {
+			if (getBit(6, memory.get(LCDC)) == 0) {
+				for (int i = 0; i < 32 * 32; i++) {
+					int patternNumber = memory.get(BACKGROUND_ONE + i);
+					int wx = memory.get(WX);
+					int wy = memory.get(WY);
+					
+					if (wx < 0)
+						wx += 256;
+					if (wy < 0)
+						wy += 256;
+					if (patternNumber < 0)
+						patternNumber += 256;
+					if (getBit(4, memory.get(LCDC)) == 1)
+						drawTile(c, patternNumber, TILE_TABLE_ONE, (i % 32) + wx, (int) Math.floor(i / 32) + wy);
+					else
+						drawTile(c, patternNumber, TILE_TABLE_TWO, (i % 32) + wx, (int) Math.floor(i / 32) + wy);
+				}
+			} else {
+				for (int i = 0; i < 32 * 32; i++) {
+					int patternNumber = memory.get(BACKGROUND_TWO + i);
+					int scx = memory.get(SCX);
+					int scy = memory.get(SCY);
+					
+					if (scx < 0)
+						scx += 256;
+					if (scy < 0)
+						scy += 256;
+					if (patternNumber < 0)
+						patternNumber += 128; // since the id's are signed
+					if (getBit(4, memory.get(LCDC)) == 1)
+						drawTile(c, patternNumber, TILE_TABLE_ONE, (i % 32) + scx, (int) Math.floor(i / 32) + scy);
+					else
+						drawTile(c, patternNumber, TILE_TABLE_TWO, (i % 32) + scx, (int) Math.floor(i / 32) + scy);
+				}
+			}
+		}
+		
+	}
+	
 	class DisplayThread extends Thread {
 		
 		@Override
@@ -173,6 +216,7 @@ public class DisplayView extends SurfaceView implements SurfaceHolder.Callback {
 					
 					if (getBit(7, memory.get(LCDC)) != 0) {
 						drawBackground(c);
+						drawWindow(c);
 						for (int i = 0; i < 40; i++) {
 							drawSprite(c, i); // Draw all sprites always?!
 						}
