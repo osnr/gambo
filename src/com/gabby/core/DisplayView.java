@@ -120,12 +120,6 @@ public class DisplayView extends SurfaceView implements SurfaceHolder.Callback {
 	}
 	
 	protected void drawBackground(Canvas c) {
-		int ptrToTileData;
-		
-		if (getBit(4, memory.get(LCDC)) == 0) {
-			
-		}
-		
 		if (getBit(0, memory.get(LCDC)) == 1) {
 			if (getBit(3, memory.get(LCDC)) == 0) {
 				for (int i = 0; i < 32 * 32; i++) {
@@ -139,8 +133,10 @@ public class DisplayView extends SurfaceView implements SurfaceHolder.Callback {
 						scy += 256;
 					if (patternNumber < 0)
 						patternNumber += 256;
-					
-					drawTile(c, patternNumber, TILE_TABLE_ONE, (i % 32) + scx, (int) Math.floor(i / 32) + scy);
+					if (getBit(4, memory.get(LCDC)) == 1)
+						drawTile(c, patternNumber, TILE_TABLE_ONE, (i % 32) + scx, (int) Math.floor(i / 32) + scy);
+					else
+						drawTile(c, patternNumber, TILE_TABLE_TWO, (i % 32) + scx, (int) Math.floor(i / 32) + scy);
 				}
 			} else {
 				for (int i = 0; i < 32 * 32; i++) {
@@ -154,8 +150,10 @@ public class DisplayView extends SurfaceView implements SurfaceHolder.Callback {
 						scy += 256;
 					if (patternNumber < 0)
 						patternNumber += 128; // since the id's are signed
-					
-					drawTile(c, patternNumber, TILE_TABLE_TWO, (i % 32) + scx, (int) Math.floor(i / 32) + scy);
+					if (getBit(4, memory.get(LCDC)) == 1)
+						drawTile(c, patternNumber, TILE_TABLE_ONE, (i % 32) + scx, (int) Math.floor(i / 32) + scy);
+					else
+						drawTile(c, patternNumber, TILE_TABLE_TWO, (i % 32) + scx, (int) Math.floor(i / 32) + scy);
 				}
 			}
 		}
