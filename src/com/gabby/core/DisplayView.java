@@ -24,7 +24,12 @@ public class DisplayView extends SurfaceView implements SurfaceHolder.Callback {
 	
 	public static final int OAM = 0xFE00;
 	public static final int LCDC = 0xFF40;
-	public static final int SPRITE_TABLE = 0x8000;
+	public static final int SCX = 0xFF43;
+	public static final int SCY = 0xff42;
+	
+	public static final int TILE_TABLE_ONE = 0x8000;
+	public static final int TILE_TABLE_TWO = 0x8800;
+	public static final int SPRITE_TABLE = TILE_TABLE_ONE;
 	public static final int BACKGROUND_ONE = 0x9800;
 	public static final int BACKGROUND_TWO = 0x9C00;
 	
@@ -88,9 +93,9 @@ public class DisplayView extends SurfaceView implements SurfaceHolder.Callback {
 		return -1;
 	}
 	
-	protected void drawTile(Canvas c, int spriteNumber, int x, int y) {
+	protected void drawTile(Canvas c, int spriteNumber, int table, int x, int y) {
 		ByteBuffer spriteData = ByteBuffer.allocate(16);
-		spriteData.put(memory.array(), SPRITE_TABLE, 16);
+		spriteData.put(memory.array(), table + spriteNumber * 16, 16);
 		Paint p = new Paint();
 		p.setARGB(255, 0, 255, 255);
 		
@@ -111,21 +116,46 @@ public class DisplayView extends SurfaceView implements SurfaceHolder.Callback {
 		int patternNum = memory.get(spriteAttrib + 2);
 		byte flags = memory.get(spriteAttrib + 3); // TODO: Implement flags
 		
-		drawTile(c, patternNum, x, y);
+		drawTile(c, patternNum, SPRITE_TABLE, x, y);
 	}
 	
 	protected void drawBackground(Canvas c) {
-		int ptrToTileData = getBit(4, memory.get(LCDC));
+		int ptrToTileData;
+		
+		if (getBit(4, memory.get(LCDC)) == 0) {
+			
+		}
 		
 		if (getBit(0, memory.get(LCDC)) == 1) {
 			if (getBit(3, memory.get(LCDC)) == 0) {
 				for (int i = 0; i < 32 * 32; i++) {
 					int patternNumber = memory.get(BACKGROUND_ONE + i);
+					int scx = memory.get(SCX);
+					int scy = memory.get(SCY);
 					
+					if (scx < 0)
+						scx += 256;
+					if (scy < 0)
+						scy += 256;
 					if (patternNumber < 0)
 						patternNumber += 256;
 					
-					drawTile(c, patternNumber, i % 32, (int) Math.floor(i / 32));
+					drawTile(c, patternNumber, TILE_TABLE_ONE, (i % 32) + scx, (int) Math.floor(i / 32) + scy);
+				}
+			} else {
+				for (int i = 0; i < 32 * 32; i++) {
+					int patternNumber = memory.get(BACKGROUND_ONE + i);
+					int scx = memory.get(SCX);
+					int scy = memory.get(SCY);
+					
+					if (scx < 0)
+						scx += 256;
+					if (scy < 0)
+						scy += 256;
+					if (patternNumber < 0)
+						patternNumber += 128; // since the id's are signed
+					
+					drawTile(c, patternNumber, TILE_TABLE_TWO, (i % 32) + scx, (int) Math.floor(i / 32) + scy);
 				}
 			}
 		}
