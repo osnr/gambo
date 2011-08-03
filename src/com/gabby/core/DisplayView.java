@@ -44,59 +44,6 @@ public class DisplayView extends SurfaceView implements SurfaceHolder.Callback {
 	
 	ByteBuffer memory;
 	
-	/** 
-	 * @param i The distance from the significant bit to the target bit (from 0 to 7).
-	 * @param second The first byte.
-	 * @param first The second byte.
-	 * @return The color code for the pixel. If i is not within the specified range, then -1 is returned.
-	 */
-	public static byte getColorFromBytePair(int i, byte first, byte second) {
-		switch (i) {
-		case 0:
-			return (byte) (((second >> 6) & 0x2) | ((first >> 7) & 0x1));
-		case 1:
-			return (byte) ((((second >> 5) & 0x2) | (first >> 6) & 0x1));
-		case 2:
-			return (byte) ((((second >> 4) & 0x2) | (first >> 5) & 0x1));
-		case 3:
-			return (byte) ((((second >> 3) & 0x2) | (first >> 4) & 0x1));
-		case 4:
-			return (byte) ((((second >> 2) & 0x2) | (first >> 3) & 0x1));
-		case 5:
-			return (byte) ((((second >> 1) & 0x2) | (first >> 2) & 0x1));
-		case 6:
-			return (byte) ((((second & 0x2) | ((first >> 1) & 0x1))));
-		case 7:
-			return (byte) (((second << 1) & 0x2) | (first & 0x1));
-		}
-		
-		return -1;
-	}
-	
-	// TODO: Refactor this to somewhere else
-	public static int getBit(int i, byte b) {
-		switch (i) {
-		case 0:
-			return (b >> 7) & 0x1;
-		case 1:
-			return (b >> 6) & 0x1;
-		case 2:
-			return (b >> 5) & 0x1;
-		case 3:
-			return (b >> 4) & 0x1;
-		case 4:
-			return (b >> 3) & 0x1;
-		case 5:
-			return (b >> 2) & 0x1;
-		case 6:
-			return (b >> 1) & 0x1;
-		case 7:
-			return b & 0x1;
-		}
-		
-		return -1;
-	}
-	
 	protected void drawTile(Canvas c, int spriteNumber, int table, int x, int y) {
 		ByteBuffer spriteData = ByteBuffer.allocate(16);
 		spriteData.put(memory.array(), table + spriteNumber * 16, 16);
@@ -105,18 +52,11 @@ public class DisplayView extends SurfaceView implements SurfaceHolder.Callback {
 		
 		for (int i = 0; i < 8; i++) {
 			for (int j = 0; j < 8; j++) {
-				byte color = getColorFromBytePair(j, spriteData.get(i), spriteData.get(i + 1));
+				byte color = BitTwiddles.getColorFromBytePair(j, spriteData.get(i), spriteData.get(i + 1));
 				if (color > 0)
 					c.drawPoint(x + j, y + i, p);
 			}
 		}
-	}
-	
-	private static int unsign(byte b) {
-		if (b < 0)
-			return b + 256;
-		else
-			return b;
 	}
 	
 	protected void drawSprite(Canvas c, int spriteNumber) {
@@ -132,8 +72,8 @@ public class DisplayView extends SurfaceView implements SurfaceHolder.Callback {
 	
 	protected ArrayList<Sprite> cullSprites(ArrayList<Sprite> sprites) {
 		ArrayList<Sprite> culled = new ArrayList<Sprite>();
-		int scx = unsign(memory.get(SCX));
-		int scy = unsign(memory.get(SCY));
+		int scx = BitTwiddles.unsign(memory.get(SCX));
+		int scy = BitTwiddles.unsign(memory.get(SCY));
 		
 		for (Sprite s : sprites) {
 		//	if (s.getX() - scx < 0 || s.getX() - scx > WINDOW_WIDTH)
@@ -146,8 +86,8 @@ public class DisplayView extends SurfaceView implements SurfaceHolder.Callback {
 	}
 	
 	protected void drawBackground(Canvas c) {
-		if (getBit(0, memory.get(LCDC)) == 1) {
-			if (getBit(3, memory.get(LCDC)) == 0) {
+		if (BitTwiddles.getBit(0, memory.get(LCDC)) == 1) {
+			if (BitTwiddles.getBit(3, memory.get(LCDC)) == 0) {
 				for (int i = 0; i < 32 * 32; i++) {
 					int patternNumber = memory.get(BACKGROUND_ONE + i);
 					int scx = memory.get(SCX);
@@ -159,7 +99,7 @@ public class DisplayView extends SurfaceView implements SurfaceHolder.Callback {
 						scy += 256;
 					if (patternNumber < 0)
 						patternNumber += 256;
-					if (getBit(4, memory.get(LCDC)) == 1)
+					if (BitTwiddles.getBit(4, memory.get(LCDC)) == 1)
 						drawTile(c, patternNumber, TILE_TABLE_ONE, (i % 32) + scx, (int) Math.floor(i / 32) + scy);
 					else
 						drawTile(c, patternNumber, TILE_TABLE_TWO, (i % 32) + scx, (int) Math.floor(i / 32) + scy);
@@ -176,7 +116,7 @@ public class DisplayView extends SurfaceView implements SurfaceHolder.Callback {
 						scy += 256;
 					if (patternNumber < 0)
 						patternNumber += 128; // since the id's are signed
-					if (getBit(4, memory.get(LCDC)) == 1)
+					if (BitTwiddles.getBit(4, memory.get(LCDC)) == 1)
 						drawTile(c, patternNumber, TILE_TABLE_ONE, (i % 32) + scx, (int) Math.floor(i / 32) + scy);
 					else
 						drawTile(c, patternNumber, TILE_TABLE_TWO, (i % 32) + scx, (int) Math.floor(i / 32) + scy);
@@ -187,8 +127,8 @@ public class DisplayView extends SurfaceView implements SurfaceHolder.Callback {
 	}
 	
 	protected void drawWindow(Canvas c) {
-		if (getBit(5, memory.get(LCDC)) == 1) {
-			if (getBit(6, memory.get(LCDC)) == 0) {
+		if (BitTwiddles.getBit(5, memory.get(LCDC)) == 1) {
+			if (BitTwiddles.getBit(6, memory.get(LCDC)) == 0) {
 				for (int i = 0; i < 32 * 32; i++) {
 					int patternNumber = memory.get(BACKGROUND_ONE + i);
 					int wx = memory.get(WX);
@@ -200,7 +140,7 @@ public class DisplayView extends SurfaceView implements SurfaceHolder.Callback {
 						wy += 256;
 					if (patternNumber < 0)
 						patternNumber += 256;
-					if (getBit(4, memory.get(LCDC)) == 1)
+					if (BitTwiddles.getBit(4, memory.get(LCDC)) == 1)
 						drawTile(c, patternNumber, TILE_TABLE_ONE, (i % 32) + wx, (int) Math.floor(i / 32) + wy);
 					else
 						drawTile(c, patternNumber, TILE_TABLE_TWO, (i % 32) + wx, (int) Math.floor(i / 32) + wy);
@@ -217,7 +157,7 @@ public class DisplayView extends SurfaceView implements SurfaceHolder.Callback {
 						scy += 256;
 					if (patternNumber < 0)
 						patternNumber += 128; // since the id's are signed
-					if (getBit(4, memory.get(LCDC)) == 1)
+					if (BitTwiddles.getBit(4, memory.get(LCDC)) == 1)
 						drawTile(c, patternNumber, TILE_TABLE_ONE, (i % 32) + scx, (int) Math.floor(i / 32) + scy);
 					else
 						drawTile(c, patternNumber, TILE_TABLE_TWO, (i % 32) + scx, (int) Math.floor(i / 32) + scy);
@@ -238,7 +178,7 @@ public class DisplayView extends SurfaceView implements SurfaceHolder.Callback {
 					c = surfaceHolder.lockCanvas();
 					c.drawColor(Color.WHITE);
 					
-					if (getBit(7, memory.get(LCDC)) != 0) {
+					if (BitTwiddles.getBit(7, memory.get(LCDC)) != 0) {
 						drawBackground(c);
 						drawWindow(c);
 						for (int i = 0; i < 40; i++) {
