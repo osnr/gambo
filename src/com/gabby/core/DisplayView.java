@@ -3,6 +3,7 @@ package com.gabby.core;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.text.AttributedString;
+import java.util.ArrayList;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -72,7 +73,8 @@ public class DisplayView extends SurfaceView implements SurfaceHolder.Callback {
 		return -1;
 	}
 	
-	private static int getBit(int i, byte b) {
+	// TODO: Refactor this to somewhere else
+	public static int getBit(int i, byte b) {
 		switch (i) {
 		case 0:
 			return (b >> 7) & 0x1;
@@ -110,6 +112,13 @@ public class DisplayView extends SurfaceView implements SurfaceHolder.Callback {
 		}
 	}
 	
+	private static int unsign(byte b) {
+		if (b < 0)
+			return b + 256;
+		else
+			return b;
+	}
+	
 	protected void drawSprite(Canvas c, int spriteNumber) {
 		int spriteAttrib = OAM + spriteNumber * 4;
 		
@@ -119,6 +128,21 @@ public class DisplayView extends SurfaceView implements SurfaceHolder.Callback {
 		byte flags = memory.get(spriteAttrib + 3); // TODO: Implement flags
 		
 		drawTile(c, patternNum, SPRITE_TABLE, x, y);
+	}
+	
+	protected ArrayList<Sprite> cullSprites(ArrayList<Sprite> sprites) {
+		ArrayList<Sprite> culled = new ArrayList<Sprite>();
+		int scx = unsign(memory.get(SCX));
+		int scy = unsign(memory.get(SCY));
+		
+		for (Sprite s : sprites) {
+		//	if (s.getX() - scx < 0 || s.getX() - scx > WINDOW_WIDTH)
+		//		continue;
+			culled.add(s);
+			// TODO: Implement culling. I want to see the drawing in action without culling before I add it.
+		}
+		
+		return culled;
 	}
 	
 	protected void drawBackground(Canvas c) {
@@ -222,7 +246,6 @@ public class DisplayView extends SurfaceView implements SurfaceHolder.Callback {
 						}
 						
 					}
-					
 				} finally {
 					if (c != null)
 						surfaceHolder.unlockCanvasAndPost(c);
