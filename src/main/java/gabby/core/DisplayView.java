@@ -5,7 +5,7 @@ import java.nio.ByteOrder;
 import java.text.AttributedString;
 import java.util.ArrayList;
 
-public abstract class DisplayView {
+public class Vram {
 
     public static final int BACKGROUND_WIDTH = 256;
     public static final int BACKGROUND_HEIGHT = 256;
@@ -25,8 +25,6 @@ public abstract class DisplayView {
     public static final int BACKGROUND_ONE = 0x9800;
     public static final int BACKGROUND_TWO = 0x9C00;
 		
-    private boolean running = false;
-	
     ByteBuffer memory;
 	
     public ByteBuffer getMemory() {
