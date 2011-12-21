@@ -3,7 +3,7 @@ package com.gabby.core;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-public class CPU {
+public class Cpu {
 	private static final int INTERRUPT_PERIOD = 0;
 
 	private static final byte[] CYCLES = new byte[256];
@@ -18,7 +18,7 @@ public class CPU {
 
 	}
 
-	public CPU() {
+	public Cpu() {
 		memory = ByteBuffer.allocate(0xFFFF);
 		memory.order(ByteOrder.LITTLE_ENDIAN);
 	}
@@ -27,7 +27,7 @@ public class CPU {
 		byte opc;
 		int pc = initialPC;
 
-		int counter = CPU.INTERRUPT_PERIOD;
+		int counter = Cpu.INTERRUPT_PERIOD;
 		
 		while(true) {
 			opc = memory.get(pc++);
