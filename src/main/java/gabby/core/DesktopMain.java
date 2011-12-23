@@ -11,23 +11,23 @@ import java.nio.ByteBuffer;
 
 class DesktopMain extends Canvas {
 
-    protected Vram vram;
+    protected Ram ram;
     
     public void paint(Graphics graphics) {
         super.paint(graphics);
         Graphics2D g = (Graphics2D) graphics;
         
-        if (BitTwiddles.getBit(7, vram.getMemory().get(Vram.LCDC)) != 0) {
+        if (BitTwiddles.getBit(7, ram.getMemory().get(Ram.LCDC)) != 0) {
             drawBackground(g);
             drawWindow(g);
 
-            Sprite.drawAllSprites(vram.getMemory(), g);
+            Sprite.drawAllSprites(ram.getMemory(), g);
         }
     }
 
     protected void drawTile(Graphics g, int spriteNumber, int table, int x, int y) {
         ByteBuffer spriteData = ByteBuffer.allocate(16);
-        spriteData.put(vram.getMemory().array(), table + spriteNumber * 16, 16);
+        spriteData.put(ram.getMemory().array(), table + spriteNumber * 16, 16);
         Color c = new Color(255, 0, 255, 255);
 		
         for (int i = 0; i < 8; i++) {
@@ -40,12 +40,12 @@ class DesktopMain extends Canvas {
     }
 
     protected void drawBackground(Graphics2D g) {
-        if (BitTwiddles.getBit(0, vram.getMemory().get(Vram.LCDC)) == 1) {
-            if (BitTwiddles.getBit(3, vram.getMemory().get(Vram.LCDC)) == 0) {
+        if (BitTwiddles.getBit(0, ram.getMemory().get(Ram.LCDC)) == 1) {
+            if (BitTwiddles.getBit(3, ram.getMemory().get(Ram.LCDC)) == 0) {
                 for (int i = 0; i < 32 * 32; i++) {
-                    int patternNumber = vram.getMemory().get(Vram.BACKGROUND_ONE + i);
-                    int scx = vram.getMemory().get(Vram.SCX);
-                    int scy = vram.getMemory().get(Vram.SCY);
+                    int patternNumber = ram.getMemory().get(Ram.BACKGROUND_ONE + i);
+                    int scx = ram.getMemory().get(Ram.SCX);
+                    int scy = ram.getMemory().get(Ram.SCY);
 					
                     if (scx < 0)
                         scx += 256;
@@ -53,16 +53,16 @@ class DesktopMain extends Canvas {
                         scy += 256;
                     if (patternNumber < 0)
                         patternNumber += 256;
-                    if (BitTwiddles.getBit(4, vram.getMemory().get(Vram.LCDC)) == 1)
-                        drawTile(g, patternNumber, Vram.TILE_TABLE_ONE, (i % 32) + scx, (int) Math.floor(i / 32) + scy);
+                    if (BitTwiddles.getBit(4, ram.getMemory().get(Ram.LCDC)) == 1)
+                        drawTile(g, patternNumber, Ram.TILE_TABLE_ONE, (i % 32) + scx, (int) Math.floor(i / 32) + scy);
                     else
-                        drawTile(g, patternNumber, Vram.TILE_TABLE_TWO, (i % 32) + scx, (int) Math.floor(i / 32) + scy);
+                        drawTile(g, patternNumber, Ram.TILE_TABLE_TWO, (i % 32) + scx, (int) Math.floor(i / 32) + scy);
                 }
             } else {
                 for (int i = 0; i < 32 * 32; i++) {
-                    int patternNumber = vram.getMemory().get(Vram.BACKGROUND_TWO + i);
-                    int scx = vram.getMemory().get(Vram.SCX);
-                    int scy = vram.getMemory().get(Vram.SCY);
+                    int patternNumber = ram.getMemory().get(Ram.BACKGROUND_TWO + i);
+                    int scx = ram.getMemory().get(Ram.SCX);
+                    int scy = ram.getMemory().get(Ram.SCY);
 					
                     if (scx < 0)
                         scx += 256;
@@ -70,21 +70,21 @@ class DesktopMain extends Canvas {
                         scy += 256;
                     if (patternNumber < 0)
                         patternNumber += 128; // since the id's are signed
-                    if (BitTwiddles.getBit(4, vram.getMemory().get(Vram.LCDC)) == 1)
-                        drawTile(g, patternNumber, Vram.TILE_TABLE_ONE, (i % 32) + scx, (int) Math.floor(i / 32) + scy);
+                    if (BitTwiddles.getBit(4, ram.getMemory().get(Ram.LCDC)) == 1)
+                        drawTile(g, patternNumber, Ram.TILE_TABLE_ONE, (i % 32) + scx, (int) Math.floor(i / 32) + scy);
                     else
-                        drawTile(g, patternNumber, Vram.TILE_TABLE_TWO, (i % 32) + scx, (int) Math.floor(i / 32) + scy);
+                        drawTile(g, patternNumber, Ram.TILE_TABLE_TWO, (i % 32) + scx, (int) Math.floor(i / 32) + scy);
                 }
             }
         }
     }
     protected void drawWindow(Graphics2D g) {
-        if (BitTwiddles.getBit(5, vram.getMemory().get(Vram.LCDC)) == 1) {
-            if (BitTwiddles.getBit(6, vram.getMemory().get(Vram.LCDC)) == 0) {
+        if (BitTwiddles.getBit(5, ram.getMemory().get(Ram.LCDC)) == 1) {
+            if (BitTwiddles.getBit(6, ram.getMemory().get(Ram.LCDC)) == 0) {
                 for (int i = 0; i < 32 * 32; i++) {
-                    int patternNumber = vram.getMemory().get(Vram.BACKGROUND_ONE + i);
-                    int wx = vram.getMemory().get(Vram.WX);
-                    int wy = vram.getMemory().get(Vram.WY);
+                    int patternNumber = ram.getMemory().get(Ram.BACKGROUND_ONE + i);
+                    int wx = ram.getMemory().get(Ram.WX);
+                    int wy = ram.getMemory().get(Ram.WY);
 					
                     if (wx < 0)
                         wx += 256;
@@ -92,16 +92,16 @@ class DesktopMain extends Canvas {
                         wy += 256;
                     if (patternNumber < 0)
                         patternNumber += 256;
-                    if (BitTwiddles.getBit(4, vram.getMemory().get(Vram.LCDC)) == 1)
-                        drawTile(g, patternNumber, Vram.TILE_TABLE_ONE, (i % 32) + wx, (int) Math.floor(i / 32) + wy);
+                    if (BitTwiddles.getBit(4, ram.getMemory().get(Ram.LCDC)) == 1)
+                        drawTile(g, patternNumber, Ram.TILE_TABLE_ONE, (i % 32) + wx, (int) Math.floor(i / 32) + wy);
                     else
-                        drawTile(g, patternNumber, Vram.TILE_TABLE_TWO, (i % 32) + wx, (int) Math.floor(i / 32) + wy);
+                        drawTile(g, patternNumber, Ram.TILE_TABLE_TWO, (i % 32) + wx, (int) Math.floor(i / 32) + wy);
                 }
             } else {
                 for (int i = 0; i < 32 * 32; i++) {
-                    int patternNumber = vram.getMemory().get(Vram.BACKGROUND_TWO + i);
-                    int scx = vram.getMemory().get(Vram.SCX);
-                    int scy = vram.getMemory().get(Vram.SCY);
+                    int patternNumber = ram.getMemory().get(Ram.BACKGROUND_TWO + i);
+                    int scx = ram.getMemory().get(Ram.SCX);
+                    int scy = ram.getMemory().get(Ram.SCY);
 					
                     if (scx < 0)
                         scx += 256;
@@ -109,10 +109,10 @@ class DesktopMain extends Canvas {
                         scy += 256;
                     if (patternNumber < 0)
                         patternNumber += 128; // since the id's are signed
-                    if (BitTwiddles.getBit(4, vram.getMemory().get(Vram.LCDC)) == 1)
-                        drawTile(g, patternNumber, Vram.TILE_TABLE_ONE, (i % 32) + scx, (int) Math.floor(i / 32) + scy);
+                    if (BitTwiddles.getBit(4, ram.getMemory().get(Ram.LCDC)) == 1)
+                        drawTile(g, patternNumber, Ram.TILE_TABLE_ONE, (i % 32) + scx, (int) Math.floor(i / 32) + scy);
                     else
-                        drawTile(g, patternNumber, Vram.TILE_TABLE_TWO, (i % 32) + scx, (int) Math.floor(i / 32) + scy);
+                        drawTile(g, patternNumber, Ram.TILE_TABLE_TWO, (i % 32) + scx, (int) Math.floor(i / 32) + scy);
                 }
             }
         }	

@@ -5,7 +5,7 @@ import java.nio.ByteOrder;
 import java.text.AttributedString;
 import java.util.ArrayList;
 
-public class Vram {
+public class Ram {
 
     public static final int BACKGROUND_WIDTH = 256;
     public static final int BACKGROUND_HEIGHT = 256;

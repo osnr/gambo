@@ -42,12 +42,12 @@ public class Sprite {
     }
 	
     public Sprite(ByteBuffer mem, int spriteNum) {
-        y = BitTwiddles.unsign(mem.get(Vram.OAM + spriteNum * 4));
-        x = BitTwiddles.unsign(mem.get(Vram.OAM + spriteNum * 4 + 1));
-        tileNum = BitTwiddles.unsign(mem.get(Vram.OAM + spriteNum + 2));
-        byte flags = mem.get(Vram.OAM + spriteNum + 3);
+        y = BitTwiddles.unsign(mem.get(Ram.OAM + spriteNum * 4));
+        x = BitTwiddles.unsign(mem.get(Ram.OAM + spriteNum * 4 + 1));
+        tileNum = BitTwiddles.unsign(mem.get(Ram.OAM + spriteNum + 2));
+        byte flags = mem.get(Ram.OAM + spriteNum + 3);
         data = ByteBuffer.allocate(16);
-        data.put(mem.array(), Vram.TILE_TABLE_ONE, 16);
+        data.put(mem.array(), Ram.TILE_TABLE_ONE, 16);
 		
         aboveBackground = (BitTwiddles.getBit(7, flags) == 0);
         yFlip = (BitTwiddles.getBit(6, flags) == 1);
