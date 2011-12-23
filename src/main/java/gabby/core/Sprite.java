@@ -22,7 +22,8 @@ public class Sprite {
     static {
         c = new Color(200, 200, 200);
     }
-	
+
+    // This looks slow
     public static ArrayList<Sprite> getAllSprites(ByteBuffer mem) {
         ArrayList<Sprite> a = new ArrayList<Sprite>();
 		
@@ -31,6 +32,13 @@ public class Sprite {
         }
 		
         return a;
+    }
+
+    public static void drawAllSprites(ByteBuffer mem, Graphics2D g) {
+		
+        for (int i = 0; i < 40; i++) {
+            (new Sprite(mem, i)).draw(g);
+        }
     }
 	
     public Sprite(ByteBuffer mem, int spriteNum) {
