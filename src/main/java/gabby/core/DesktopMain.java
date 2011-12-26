@@ -10,10 +10,14 @@ import java.awt.Graphics2D;
 import java.nio.ByteBuffer;
 
 class DesktopMain extends Canvas {
-
+    Display display;
+    Ram ram;
+    
     public void paint(Graphics graphics) {
         super.paint(graphics);
         Graphics2D g = (Graphics2D) graphics;
+        display = new Display(g); // This could be nicer, but I am tired.
+        display.draw(ram);
     }
 
     
