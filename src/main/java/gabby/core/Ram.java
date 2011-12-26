@@ -26,6 +26,10 @@ public class Ram {
     public static final int BACKGROUND_TWO = 0x9C00;
 	
     ByteBuffer memory;
+
+    public Ram() {
+        memory = ByteBuffer.allocateDirect(0xFFFF);
+    }
 	
     public ByteBuffer getMemory() {
         return memory;
