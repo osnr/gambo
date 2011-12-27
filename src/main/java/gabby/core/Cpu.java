@@ -44,7 +44,7 @@ public class Cpu {
 		carry = false;
 	}
 
-	private int pc = initialPC;
+	private int pc; // = initialPC;
 
 	private int counter = Cpu.INTERRUPT_PERIOD;
 
@@ -1198,7 +1198,7 @@ public class Cpu {
 
 			}
 
-			counter -= CYCLES[opc];
+			// counter -= CYCLES[opc];
 		}
 	}
 
