@@ -70,7 +70,7 @@ public class BitTwiddles {
         case 3:
             return Color.BLACK;
         default:
-            return Color.WHITE;
+            return Color.BLACK;
         }
     }
 }
