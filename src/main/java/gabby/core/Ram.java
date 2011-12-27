@@ -5,7 +5,7 @@ import java.nio.ByteOrder;
 import java.text.AttributedString;
 import java.util.ArrayList;
 
-public class Vram {
+public class Ram {
 
     public static final int BACKGROUND_WIDTH = 256;
     public static final int BACKGROUND_HEIGHT = 256;
@@ -24,8 +24,12 @@ public class Vram {
     public static final int SPRITE_TABLE = TILE_TABLE_ONE;
     public static final int BACKGROUND_ONE = 0x9800;
     public static final int BACKGROUND_TWO = 0x9C00;
-		
+	
     ByteBuffer memory;
+
+    public Ram() {
+        memory = ByteBuffer.allocateDirect(0xFFFF);
+    }
 	
     public ByteBuffer getMemory() {
         return memory;
