@@ -17,12 +17,6 @@ public class Sprite {
     private int paletteNum;
     private ByteBuffer data;
 	
-    static private Color c;
-	
-    static {
-        c = new Color(200, 200, 200);
-    }
-
     // This looks slow
     public static ArrayList<Sprite> getAllSprites(ByteBuffer mem) {
         ArrayList<Sprite> a = new ArrayList<Sprite>();
@@ -60,18 +54,18 @@ public class Sprite {
             for (int i = 0; i < 8; i++) {
                 if (!xFlip) {
                     for (int j = 0; j < 8; j++) {
-                        byte color = BitTwiddles.getColorFromBytePair(j, data.get(i), data.get(i + 1));
+                        Color c = BitTwiddles.getColorFromBytePair(j, data.get(i), data.get(i + 1));
 						
-                        if (color > 0) {
+                        if (c != Color.WHITE) { //not necessary, but i think this might be faster?
                             g.setPaint(c);
                             g.drawLine(x + j, y + i, x + j, y + i);
                         }
                     }
                 } else {
                     for (int j = 7; j >= 0; j--) {
-                        byte color = BitTwiddles.getColorFromBytePair(j, data.get(i), data.get(i + 1));
+                        Color c = BitTwiddles.getColorFromBytePair(j, data.get(i), data.get(i + 1));
 						
-                        if (color > 0) {
+                        if (c != Color.WHITE) { 
                             g.setPaint(c);
                             g.drawLine(x + j, y + i, x + j, y + i);
                         }
@@ -82,18 +76,18 @@ public class Sprite {
             for (int i = 7; i >= 0; i++) {
                 if (!xFlip) {
                     for (int j = 0; j < 8; j++) {
-                        byte color = BitTwiddles.getColorFromBytePair(j, data.get(i), data.get(i + 1));
+                        Color c = BitTwiddles.getColorFromBytePair(j, data.get(i), data.get(i + 1));
 						
-                        if (color > 0) {
+                        if (c != Color.WHITE) {
                             g.setPaint(c);
                             g.drawLine(x + j, y + i, x + j, y + i);
                         }
                     }
                 } else {
                     for (int j = 7; j >= 0; j--) {
-                        byte color = BitTwiddles.getColorFromBytePair(j, data.get(i), data.get(i + 1));
+                        Color c = BitTwiddles.getColorFromBytePair(j, data.get(i), data.get(i + 1));
 						
-                        if (color > 0) {
+                        if (c != Color.WHITE) {
                             g.setPaint(c);
                             g.drawLine(x + j, y + i, x + j, y + i);
                         }

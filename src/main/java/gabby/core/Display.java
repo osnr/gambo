@@ -5,6 +5,12 @@ import java.awt.Color;
 import java.nio.ByteBuffer;
 
 class Display {
+    public static final int TILE_WIDTH = 8;
+    public static final int TILE_HEIGHT = 8;
+    public static final int SCREEN_WIDTH = 256;
+    public static final int SCREEN_HEIGHT = 256;
+
+    
     protected Graphics2D g;
 
     public Display(Graphics2D g) {
@@ -16,11 +22,11 @@ class Display {
         spriteData.put(ram.getMemory().array(), table + spriteNumber * 16, 16);
         Color c = new Color(255, 0, 255, 255);
 		
-        for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < 8; j++) {
-                byte color = BitTwiddles.getColorFromBytePair(j, spriteData.get(i), spriteData.get(i + 1));
-                if (color > 0)
-                    g.drawLine(x + j, y + i, x + j, y + i);
+        for (int i = 0; i < SCREEN_HEIGHT; i++) {
+            for (int j = 0; j < SCREEN_WIDTH; j++) {
+                Color color = BitTwiddles.getColorFromBytePair(j, spriteData.get(i), spriteData.get(i + 1));
+                g.setPaint(color);
+                g.drawLine(x + j, y + i, x + j, y + i);
             }
         }
     }
@@ -35,8 +41,13 @@ class Display {
 					
                     if (scx < 0)
                         scx += 256;
+                    else if (scx > 256)
+                        scx -= 256;
                     if (scy < 0)
                         scy += 256;
+                    else if (scy > 256)
+                        scy -= 256;
+                    
                     if (patternNumber < 0)
                         patternNumber += 256;
                     if (BitTwiddles.getBit(4, ram.getMemory().get(Ram.LCDC)) == 1)
@@ -52,8 +63,13 @@ class Display {
 					
                     if (scx < 0)
                         scx += 256;
+                    else if (scx > 256)
+                        scx -= 256;
                     if (scy < 0)
                         scy += 256;
+                    else if (scy > 256)
+                        scy -= 256;
+                    
                     if (patternNumber < 0)
                         patternNumber += 128; // since the id's are signed
                     if (BitTwiddles.getBit(4, ram.getMemory().get(Ram.LCDC)) == 1)
