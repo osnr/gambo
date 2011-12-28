@@ -16,7 +16,11 @@ public class Sprite {
     private boolean yFlip;
     private int paletteNum;
     private ByteBuffer data;
-	
+
+    /**
+     * @param mem The memory to parse for the sprites
+     * @return An ArrayList of all sprites
+     */
     // This looks slow
     public static ArrayList<Sprite> getAllSprites(ByteBuffer mem) {
         ArrayList<Sprite> a = new ArrayList<Sprite>();
@@ -26,6 +30,15 @@ public class Sprite {
         }
 		
         return a;
+    }
+
+    /**
+     * @param ram The ram from which the sprites are parsed
+     * @return An ArrayList of all sprites
+     */
+
+    public static ArrayList<Sprite> getAllSprites(Ram ram) {
+        return getAllSprites(ram.getMemory());
     }
 
     public static void drawAllSprites(ByteBuffer mem, Graphics2D g) {
