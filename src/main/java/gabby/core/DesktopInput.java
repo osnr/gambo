@@ -4,52 +4,60 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
 class DesktopInput extends KeyAdapter {
-    protected boolean a, b, select, start;
-    protected boolean up, down, left, right;
+    protected byte buttons;
+    protected byte dpad;
+    protected Ram ram;
+
+    public DesktopInput(Ram ram) {
+        this.ram = ram;
+        buttons = 0x20;
+        dpad = 0x10;
+    }
     
     public void keyPressed(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_Z)
-            a = true;
-        else if (e.getKeyCode() == KeyEvent.VK_X)
-            b = true;
-        else if (e.getKeyCode() == KeyEvent.VK_ENTER)
-            start = true;
+        if (e.getKeyCode() == KeyEvent.VK_X)
+            buttons |= 1;
+        else if (e.getKeyCode() == KeyEvent.VK_Z)
+            buttons |= 1 << 1;
         else if (e.getKeyCode() == KeyEvent.VK_SHIFT)
-            select = true;
-        else if (e.getKeyCode() == KeyEvent.VK_LEFT)
-            left = true;
+            buttons |= 1 << 2;
+        else if (e.getKeyCode() == KeyEvent.VK_ENTER)
+            buttons |= 1 << 3;
         else if (e.getKeyCode() == KeyEvent.VK_RIGHT)
-            right = true;
+            dpad |= 1;
+        else if (e.getKeyCode() == KeyEvent.VK_LEFT)
+            dpad |= 1 << 1;
         else if (e.getKeyCode() == KeyEvent.VK_UP)
-            up = true;
+            dpad |= 1 << 2;
         else if (e.getKeyCode() == KeyEvent.VK_DOWN)
-            down = true;
+            dpad |= 1 << 3;
     }
 
     public void keyReleased(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_Z)
-            a = false;
-        else if (e.getKeyCode() == KeyEvent.VK_X)
-            b = false;
-        else if (e.getKeyCode() == KeyEvent.VK_ENTER)
-            start = false;
+        if (e.getKeyCode() == KeyEvent.VK_X)
+            buttons &= ~(1);
+        else if (e.getKeyCode() == KeyEvent.VK_Z)
+            buttons &= ~(1 << 1);
         else if (e.getKeyCode() == KeyEvent.VK_SHIFT)
-            select = false;
-        else if (e.getKeyCode() == KeyEvent.VK_LEFT)
-            left = false;
+            buttons &= ~(1 << 2);
+        else if (e.getKeyCode() == KeyEvent.VK_ENTER)
+            buttons &= ~(1 << 3);
         else if (e.getKeyCode() == KeyEvent.VK_RIGHT)
-            right = false;
+            dpad &= ~(1);
+        else if (e.getKeyCode() == KeyEvent.VK_LEFT)
+            dpad = ~(1 << 1);
         else if (e.getKeyCode() == KeyEvent.VK_UP)
-            up = false;
+            dpad = ~(1 << 2);
         else if (e.getKeyCode() == KeyEvent.VK_DOWN)
-            down = false;        
+            dpad = ~(1 << 3);
     }
 
-    public byte getButtonByte() {
-        return 0x0;
-    }
-
-    public byte getDirectionByte() {
-        return 0x0;
+    public byte getInputByte() {
+        if (BitTwiddles.getBit(4, ram.getMemory().get(Ram.INPUT)) == 0) // check endianness
+            return dpad;
+        else if (BitTwiddles.getBit(5, ram.getMemory().get(Ram.INPUT)) == 0) // check endianness
+            return buttons;
+        else
+            return 0x0; // is this ok?    
     }
 }

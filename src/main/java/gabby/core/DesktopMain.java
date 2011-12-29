@@ -20,7 +20,7 @@ class DesktopMain extends Canvas {
 
     public DesktopMain() {
         ram = new Ram();
-        addKeyListener(new DesktopInput());
+        addKeyListener(new DesktopInput(ram));
     }
     
     public void paint(Graphics graphics) {
