@@ -7,6 +7,8 @@ import java.util.ArrayList;
 
 public class Ram {
 
+    public static final int MEMORY_SIZE = 0xFFFF;
+    
     public static final int BACKGROUND_WIDTH = 256;
     public static final int BACKGROUND_HEIGHT = 256;
     public static final int WINDOW_WIDTH = 160;

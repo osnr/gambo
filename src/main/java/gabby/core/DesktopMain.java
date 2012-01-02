@@ -17,9 +17,11 @@ import java.awt.event.ActionEvent;
 class DesktopMain extends Canvas implements ActionListener {
     Display display;
     Ram ram;
+    Cpu cpu;
 
     public DesktopMain() {
         ram = new Ram();
+        cpu = new Cpu();
         addKeyListener(new DesktopInput(ram));
     }
     
@@ -43,6 +45,22 @@ class DesktopMain extends Canvas implements ActionListener {
                     File f = fc.getSelectedFile();
                     FileOutputStream out = new FileOutputStream(f);
                     out.write(ram.getMemory().array());
+                    out.write(cpu.getA());
+                    out.write(cpu.getB());
+                    out.write(cpu.getC());
+                    out.write(cpu.getD());
+                    out.write(cpu.getE());
+                    out.write(cpu.getF());
+                    out.write(cpu.getH());
+                    out.write(cpu.getL());
+                    out.write(cpu.getSp());
+                    out.write(cpu.getZero() ? 1 : 0);
+                    out.write(cpu.getSubtract() ? 1 : 0);
+                    out.write(cpu.getHalfCarry() ? 1 : 0);
+                    out.write(cpu.getCarry() ? 1 : 0);
+                    out.write(cpu.getPc());
+                    out.write(cpu.getCounter());
+                    out.close();
                 }
             } else if ("load state".equals(e.getActionCommand())) {
                 JFileChooser fc = new JFileChooser();
@@ -52,10 +70,26 @@ class DesktopMain extends Canvas implements ActionListener {
                 if (ret == JFileChooser.APPROVE_OPTION) {
                     File f = fc.getSelectedFile();
                     FileInputStream in = new FileInputStream(f);
-                    byte[] b = new byte[(int) f.length()];
+                    byte[] b = new byte[(int) Ram.MEMORY_SIZE];
                     in.read(b);
                     ram.getMemory().clear();
                     ram.getMemory().put(b);
+                    cpu.setA(in.read());
+                    cpu.setB(in.read());
+                    cpu.setC(in.read());
+                    cpu.setD(in.read());
+                    cpu.setE(in.read());
+                    cpu.setF(in.read());
+                    cpu.setH(in.read());
+                    cpu.setL(in.read());
+                    cpu.setSp(in.read());
+                    cpu.setZero((in.read() == 1) ? true : false);
+                    cpu.setSubtract((in.read() == 1) ? true : false);
+                    cpu.setHalfCarry((in.read() == 1) ? true : false);
+                    cpu.setCarry((in.read() == 1) ? true : false);
+                    cpu.setPc(in.read());
+                    cpu.setCounter(in.read());
+                    in.close();
                 }
             }
         } catch (FileNotFoundException ex) {

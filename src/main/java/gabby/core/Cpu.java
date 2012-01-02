@@ -34,10 +34,10 @@ public class Cpu {
     public void setF(int f) { this.f = f; }
 
     public int getH() { return h; }
-    public void setH() { this.h = h; }
+    public void setH(int h) { this.h = h; }
 
     public int getL() { return l; }
-    public void setL() { this.l = l; }
+    public void setL(int l) { this.l = l; }
 
     // 16-bit registers
     private int bc() { return b << 8 | c; }
@@ -55,7 +55,7 @@ public class Cpu {
     private int sp; // stack pointer: 16-bit
 
     public int getSp() { return sp; }
-    public void setSp() { this.sp = sp; }
+    public void setSp(int sp) { this.sp = sp; }
 
     // flags
     // -----
