@@ -20,7 +20,7 @@ public class Rom {
     private ByteBuffer rom;
 	
     // Subtraction equations because I can't count in hex well
-    public static final int ENTRY_LENGTH = 0x104 - 0x0100;
+    public static final int ENTRY_LENGTH = 0x0104 - 0x0100;
     public static final int LOGO_LENGTH = 0x0134 - 0x104;
     public static final int TITLE_LENGTH = 0x0144 - 0x0134;
     public static final int NEW_LICENSEE_CODE_LENGTH = 0x0146 - 0x0144;

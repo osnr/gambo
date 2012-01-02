@@ -20,9 +20,10 @@ import com.gabby.loader.*;
 
 class DesktopMain extends Canvas implements ActionListener {
     Display display;
-    Ram ram;
-    Cpu cpu;
+    final Ram ram;
+    final Cpu cpu;
     Graphics last;
+    Thread cpuThread;
 
     public DesktopMain() {
         ram = new Ram();
@@ -49,6 +50,12 @@ class DesktopMain extends Canvas implements ActionListener {
 
                     ram.getMemory().clear();
                     ram.getMemory().put(rom.getRom());
+
+                    (new Thread() {
+                            public void run() {
+                                cpu.emulate(0x100);
+                            }
+                        }).start();
                 }
             } else if ("save state".equals(e.getActionCommand())) {
                 JFileChooser fc = new JFileChooser();
