@@ -13,9 +13,8 @@ class Display {
     
     protected Graphics2D g;
 
-    public Display(Graphics2D g) {
-        this.g = g;
-    }
+    public Graphics2D getG() { return g; }
+    public void setG(Graphics2D g) { this.g = g; }
 
     protected void drawTile(Graphics2D g, Ram ram, int spriteNumber, int table, int x, int y) {
         ByteBuffer spriteData = ByteBuffer.allocate(16);
@@ -121,7 +120,7 @@ class Display {
         }	
     }
 
-    public void draw(Ram ram) {
+    public void draw(Ram ram, Graphics2D g) {
         if (BitTwiddles.getBit(7, ram.getMemory().get(Ram.LCDC)) != 0) {
             drawBackground(g, ram);
             drawWindow(g, ram);

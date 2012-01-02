@@ -13,24 +13,28 @@ import java.awt.event.KeyEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 import com.gabby.loader.*;
 
 class DesktopMain extends Canvas implements ActionListener {
     Display display;
     Ram ram;
     Cpu cpu;
+    Graphics last;
 
     public DesktopMain() {
         ram = new Ram();
         cpu = new Cpu(ram);
+        display = new Display();
         addKeyListener(new DesktopInput(ram));
     }
     
     public void paint(Graphics graphics) {
         super.paint(graphics);
         Graphics2D g = (Graphics2D) graphics;
-        display = new Display(g); // This could be nicer, but I am tired.
-        display.draw(ram);
+        display.draw(ram, g);
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -112,7 +116,7 @@ class DesktopMain extends Canvas implements ActionListener {
     
     public static void main(String[] args) {
         JFrame frame = new JFrame("Gabby");
-        DesktopMain dm = new DesktopMain();
+        final DesktopMain dm = new DesktopMain();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.add(dm);
         frame.setSize(160, 144);
@@ -142,5 +146,11 @@ class DesktopMain extends Canvas implements ActionListener {
         fileMenu.add(loadState);
         
         frame.setJMenuBar(menuBar);
+
+        (new Timer()).scheduleAtFixedRate((new TimerTask() {
+                public void run() {
+                    dm.repaint();
+                }
+            }), 0, 17);
     }
 }
