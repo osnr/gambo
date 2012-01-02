@@ -450,7 +450,7 @@ public class Cpu {
                 break;
 
             case 0x3E: // LD A, n
-
+            	a = readPC();
                 break;
 
             case 0x3F: // CCF
@@ -458,259 +458,266 @@ public class Cpu {
                 break;
 
             case 0x40: // LD B, B
-
+            	// WTF?
+            	b = b;
                 break;
 
             case 0x41: // LD B, C
-
+            	b = c;
                 break;
 
             case 0x42: // LD B, D
-
+            	b = d;
                 break;
 
             case 0x43: // LD B, E
-
+            	b = e;
                 break;
 
             case 0x44: // LD B, H
-
+            	b = h;
                 break;
 
             case 0x45: // LD B, L
-
+            	b = l;
                 break;
 
             case 0x46: // LD B, (HL)
-
+            	b = ram.read(hl());
                 break;
 
             case 0x47: // LD B, A
-
+            	b = a;
                 break;
 
             case 0x48: // LD C, B
-
+            	c = b;
                 break;
 
             case 0x49: // LD C, C
-
+            	// WTF?
+            	c = c;
                 break;
 
             case 0x4A: // LD C, D
-
+            	c = d;
                 break;
 
             case 0x4B: // LD C, E
-
+            	c = e;
                 break;
 
             case 0x4C: // LD C, H
-
+            	c = h;
                 break;
 
             case 0x4D: // LD C, L
-
+            	c = l;
                 break;
 
             case 0x4E: // LD C, (HL)
-
+            	c = ram.read(hl());
                 break;
 
             case 0x4F: // LD C, A
-
+            	c = a;
                 break;
 
             case 0x50: // LD D, B
-
+            	d = b;
                 break;
 
             case 0x51: // LD D, C
-
+            	d = c;
                 break;
 
             case 0x52: // LD D, D
-
+            	// WTF?
+            	d = d;
                 break;
 
             case 0x53: // LD D, E
-
+            	d = e;
                 break;
 
             case 0x54: // LD D, H
-
+            	d = h;
                 break;
 
             case 0x55: // LD D, L
-
+            	d = l;
                 break;
 
             case 0x56: // LD D, (HL)
-
+            	d = ram.read(hl());
                 break;
 
             case 0x57: // LD D, A
-
+            	d = a;
                 break;
 
             case 0x58: // LD E, B
-
+            	e = b;
                 break;
 
             case 0x59: // LD E, C
-
+            	e = c;
                 break;
 
             case 0x5A: // LD E, D
-
+            	e = d;
                 break;
 
             case 0x5B: // LD E, E
-
+            	// WTF?
+            	e = e;
                 break;
 
             case 0x5C: // LD E, H
-
+            	e = h;
                 break;
 
             case 0x5D: // LD E, L
-
+            	e = l;
                 break;
 
             case 0x5E: // LD E, (HL)
-
+            	e = ram.read(hl());
                 break;
 
             case 0x5F: // LD E, A
-
+            	e = a;
                 break;
 
             case 0x60: // LD H, B
-
+            	h = b;
                 break;
 
             case 0x61: // LD H, C
-
+            	h = c;
                 break;
 
             case 0x62: // LD H, D
-
+            	h = d;
                 break;
 
             case 0x63: // LD H, E
-
+            	h = e;
                 break;
 
             case 0x64: // LD H, H
-
+            	// WTF?
+            	h = h;
                 break;
 
             case 0x65: // LD H, L
-
+            	h = l;
                 break;
 
             case 0x66: // LD H, (HL)
-
+            	h = ram.read(hl());
                 break;
 
             case 0x67: // LD H, A
-
+            	h = a;
                 break;
 
             case 0x68: // LD L, B
-
+            	l = b;
                 break;
 
             case 0x69: // LD L, C
-
+            	l = c;
                 break;
 
             case 0x6A: // LD L, D
-
+            	l = d;
                 break;
 
             case 0x6B: // LD L, E
-
+            	l = e;
                 break;
 
             case 0x6C: // LD L, H
-
+            	l = h;
                 break;
 
             case 0x6D: // LD L, L
-
+            	// WTF?
+            	l = l;
                 break;
 
             case 0x6E: // LD L, (HL)
-
+            	l = ram.read(hl());
                 break;
 
             case 0x6F: // LD L, A
-
+            	l = a;
                 break;
 
             case 0x70: // LD (HL), B
-
+            	ram.write(hl(), b);
                 break;
 
             case 0x71: // LD (HL), C
-
+            	ram.write(hl(), c);
                 break;
 
             case 0x72: // LD (HL), D
-
+            	ram.write(hl(), d);
                 break;
 
             case 0x73: // LD (HL), E
-
+            	ram.write(hl(), e);
                 break;
 
             case 0x74: // LD (HL), H
-
+            	ram.write(hl(), h);
                 break;
 
             case 0x75: // LD (HL), L
-
+            	ram.write(hl(), l);
                 break;
 
             case 0x76: // HALT
-
+            	
                 break;
 
             case 0x77: // LD (HL), A
-
+            	ram.write(hl(), a);
                 break;
 
             case 0x78: // LD A, B
-
+            	a = b;
                 break;
 
             case 0x79: // LD A, C
-
+            	a = c;
                 break;
 
             case 0x7A: // LD A, D
-
+            	a = d;
                 break;
 
             case 0x7B: // LD A, E
-
+            	a = e;
                 break;
 
             case 0x7C: // LD A, H
-
+            	a = h;
                 break;
 
             case 0x7D: // LD A, L
-
+            	a = l;
                 break;
 
-            case 0x7E: // LD, A, (HL)
-
+            case 0x7E: // LD A, (HL)
+            	a = ram.read(hl());
                 break;
 
             case 0x7F: // LD A, A
-
+            	// WTF?
+            	a = a;
                 break;
 
             case 0x80: // ADD A, B
