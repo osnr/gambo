@@ -13,6 +13,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
+import com.gabby.loader.*;
 
 class DesktopMain extends Canvas implements ActionListener {
     Display display;
@@ -21,7 +22,7 @@ class DesktopMain extends Canvas implements ActionListener {
 
     public DesktopMain() {
         ram = new Ram();
-        cpu = new Cpu();
+        cpu = new Cpu(ram);
         addKeyListener(new DesktopInput(ram));
     }
     
@@ -35,7 +36,16 @@ class DesktopMain extends Canvas implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         try {
             if ("load rom".equals(e.getActionCommand())) {
-                // TODO: Load ROM
+                JFileChooser fc = new JFileChooser();
+
+                int ret = fc.showOpenDialog(this);
+
+                if (ret == JFileChooser.APPROVE_OPTION) {
+                    Rom rom = RomLoader.loadGameBoyRom(f);
+
+                    Ram.getMemory().clear();
+                    Ram.getMemory().put(rom.getRom());
+                }
             } else if ("save state".equals(e.getActionCommand())) {
                 JFileChooser fc = new JFileChooser();
 
