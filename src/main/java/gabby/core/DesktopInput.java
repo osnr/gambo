@@ -7,6 +7,7 @@ class DesktopInput extends KeyAdapter {
     protected byte buttons;
     protected byte dpad;
     protected Ram ram;
+    protected Cpu cpu;
 
     public DesktopInput(Ram ram) {
         this.ram = ram;
