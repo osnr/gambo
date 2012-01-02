@@ -43,4 +43,23 @@ public class Ram {
     public void setMemory(ByteBuffer memory) {
         this.memory = memory;
     }
+    
+    // read unsigned byte from a position in memory
+    public int read(int addr) {
+        return memory.get(addr) & 0xFF; // unsign
+    }
+
+    // write to a position in memory
+    public void write(int addr, int n) {
+        memory.put(addr, (byte) n);
+    }
+
+    public void write(int addr, int n1, int n2) {
+        memory.put(addr, (byte) n1);
+        memory.put(addr + 1, (byte) n2);
+    }
+
+    public void write16(int addr, int n) {
+        memory.putShort(addr, (short) n);
+    }
 }

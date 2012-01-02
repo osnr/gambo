@@ -93,44 +93,26 @@ public class Cpu {
     public int getCounter() { return counter; }
     public void setCounter(int counter) { this.counter = counter; }
 
-    public Cpu() {
-        memory = ByteBuffer.allocate(0xFFFF);
-        memory.order(ByteOrder.LITTLE_ENDIAN);
+    public Cpu(Ram ram) {
+    	this.ram = ram;
     }
 
     // memory access
-
+    private Ram ram;
+    
     // pop 1 byte from program counter position in memory
     // then move forward
     private int readPC() {
-        return read(pc++);
+        return ram.read(pc++);
     }
 
     // pop 2 bytes from program counter position in memory
     // then move pc forward 2
     private int readPC16() {
         pc += 2;
-        return memory.getShort(pc - 2) & 0xFFFF; // unsign
+        return ram.getMemory().getShort(pc - 2) & 0xFFFF; // unsign
     }
 
-    // read unsigned byte from a position in memory
-    private int read(int addr) {
-        return memory.get(addr) & 0xFF; // unsign
-    }
-
-    // write to a position in memory
-    private void write(int addr, int n) {
-        memory.put(addr, (byte) n);
-    }
-
-    private void write(int addr, int n1, int n2) {
-        memory.put(addr, (byte) n1);
-        memory.put(addr + 1, (byte) n2);
-    }
-
-    private void write16(int addr, int n) {
-        memory.putShort(addr, (short) n);
-    }
 
     public void emulate(int initialPC) {
         int opcode;
@@ -150,7 +132,7 @@ public class Cpu {
 
             case 0x02: // LD (BC), A
                 // Save value of A to memory at location BC
-                write(bc(), a);
+                ram.write(bc(), a);
                 break;
 
             case 0x03: // INC BC
@@ -190,7 +172,7 @@ public class Cpu {
 
             case 0x08: // LD (nn), SP
                 // Save value of SP to memory at location [next 2 bytes]
-                write16(readPC16(), sp);
+                ram.write16(readPC16(), sp);
                 break;
 
             case 0x09: // ADD HL, BC
@@ -202,7 +184,7 @@ public class Cpu {
 
             case 0x0A: // LD A, (BC)
                 // Save value of memory at location BC to A
-                a = read(bc());
+                a = ram.read(bc());
                 break;
 
             case 0x0B: // DEC BC
@@ -248,7 +230,7 @@ public class Cpu {
 
             case 0x12: // LD (DE), A
                 // Save value of A to memory at location DE
-                write(de(), a);
+                ram.write(de(), a);
                 break;
 
             case 0x13: // INC DE
@@ -294,7 +276,7 @@ public class Cpu {
 
             case 0x1A: // LD A, (DE)
                 // Save value of memory at location DE to A
-                a = read(de());
+                a = ram.read(de());
                 break;
 
             case 0x1B: // DEC DE
@@ -340,7 +322,7 @@ public class Cpu {
 
             case 0x22: // LDI (HL), A
                 // Save A into memory at location HL, then increment 16-bit HL
-                write(hl(), a);
+                ram.write(hl(), a);
                 ld_hl(hl() + 1);
 
                 break;

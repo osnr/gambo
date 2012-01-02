@@ -41,10 +41,10 @@ class DesktopMain extends Canvas implements ActionListener {
                 int ret = fc.showOpenDialog(this);
 
                 if (ret == JFileChooser.APPROVE_OPTION) {
-                    Rom rom = RomLoader.loadGameBoyRom(f);
+                    Rom rom = RomLoader.loadGameBoyRom(fc.getSelectedFile());
 
-                    Ram.getMemory().clear();
-                    Ram.getMemory().put(rom.getRom());
+                    ram.getMemory().clear();
+                    ram.getMemory().put(rom.getRom());
                 }
             } else if ("save state".equals(e.getActionCommand())) {
                 JFileChooser fc = new JFileChooser();
