@@ -1,7 +1,5 @@
 package com.gabby.core;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
 public class Cpu {
     private static final int INTERRUPT_PERIOD = 0;
@@ -83,6 +81,10 @@ public class Cpu {
     
     // operation helpers
     // -----
+    // note: xAt methods put result in RAM
+    // xTo methods put result in either A or given register r
+    // and operate on given value n
+
     private void inc(int r) {
     	regs[r] = (regs[r] + 1) & 0xFF;
     	
@@ -90,6 +92,10 @@ public class Cpu {
     	halfCarry = (regs[r] & 0xF) == 0; // don't know what this does
     	subtract = false;
 	}
+    
+    private void incAt(int addr) {
+    	
+    }
     
     private void dec(int r) {
     	regs[r] = (regs[r] - 1) & 0xFF;
@@ -99,40 +105,128 @@ public class Cpu {
     	subtract = true;
     }
     
-    private void add(int r1, int r2) {
-    	int tmp = regs[r1] + regs[r2];
+    private void decAt(int addr) {
     	
-    	halfCarry = ((tmp & 0xF) < (A & 0xF)); // ??
+    }
+    
+    private void add(int r1, int r2) {
+    	addTo(r1, regs[r2]);
+    }
+    
+    private void addTo(int r, int n) {
+    	int tmp = regs[r] + n;
+    	
+    	halfCarry = ((tmp & 0xF) < (regs[r] & 0xF)); // ??
     	carry = (tmp > 0xFF);
     	
-    	regs[r1] = tmp & 0xFF;
+    	regs[r] = tmp & 0xFF;
     	
-    	zero = (regs[r1] == 0);
+    	zero = (regs[r] == 0);
+    	subtract = false;
+    }
+    
+    private void adc(int r1, int r2) {
+    	// Add regs[r2] and carry flag value to r1
+    	adcTo(r1, regs[r2]);
+    }
+
+    private void adcTo(int r, int n) {
+    	// Add n and carry flag value to r
+    	int tmp = regs[r] + n + (carry ? 1 : 0);
+    	
+    	halfCarry = (((tmp & 0xF) + (regs[r] & 0xF) + (carry ? 1 : 0)) > 0xF); // ??
+    	carry = (tmp > 0xFF);
+    	
+    	regs[r] = tmp & 0xFF;
+    	
+    	zero = (regs[r] == 0);
     	subtract = false;
     }
     
     private void sub(int r1, int r2) {
-    	int tmp = regs[r1] - regs[r2];
+    	subTo(r1, regs[r2]);
+    }
+    
+    private void subTo(int r, int n) {
+    	int tmp = regs[r] - n;
     	
-    	halfCarry = ((regs[r1] & 0xF) < (tmp & 0xF));
+    	halfCarry = ((regs[r] & 0xF) < (tmp & 0xF)); // ??
     	carry = (tmp < 0);
     	
-    	regs[r1] = tmp & 0xFF;
+    	regs[r] = tmp & 0xFF;
     	
-    	zero = (regs[r1] == 0);
+    	zero = (regs[r] == 0);
     	subtract = true;
     }
     
+    private void sbc(int r1, int r2) {
+    	sbcTo(r1, regs[r2]);
+    }
+    
+    private void sbcTo(int r, int n) {
+    	int tmp = regs[r] - n - (carry ? 1 : 0);
+    	
+    	halfCarry = (((regs[r] & 0xF) - (n & 0xF) - (carry ? 1 : 0)) < 0); // ??
+    	carry = (tmp < 0);
+    	
+    	regs[r] = tmp & 0xFF;
+    	
+    	zero = (regs[r] == 0);
+    	subtract = true;
+    }
+    
+    
     private void and(int r) {
+    	andTo(regs[r]);
+    }
+    private void andTo(int n) {
     	// AND with A, result in A
+    	regs[A] &= n;
+    	
+    	zero = (regs[A] == 0);
+    	halfCarry = true; // ??
+    	subtract = false;
+    	carry = false;
     }
     
     private void or(int r) {
+    	or(regs[r]);
+    }
+    private void orTo(int n) {
     	// OR with A, result in A
+    	regs[A] |= n;
+    	
+    	zero = (regs[A] == 0);
+    	subtract = false;
+    	halfCarry = false;
+    	carry = false;
     }
     
     private void xor(int r) {
+    	xorTo(regs[r]);
+    }
+    private void xorTo(int n) {
     	// XOR with A, result in A
+    	regs[A] ^= n;
+    	
+    	zero = (regs[A] == 0);
+    	subtract = false;
+    	halfCarry = false;
+    	carry = false;
+    }
+    
+    private void cp(int r) {
+    	cpTo(regs[r]);
+    }
+    private void cpTo(int n) {
+    	// Compare A with n
+    	// (Basically equiv. to subtraction w/ discarded result)
+    	int tmp = regs[A] - n;
+    	
+    	halfCarry = ((regs[A] & 0xF) < (tmp & 0xF)); // ??
+    	carry = (tmp < 0);
+       	zero = ((tmp & 0xFF) == 0);
+    	subtract = true;
     }
     
     // flags
@@ -315,7 +409,6 @@ public class Cpu {
 
             case 0x1B: // DEC DE
                 setDE(de() - 1);
-
                 break;
 
             case 0x1C: // INC E
@@ -386,8 +479,8 @@ public class Cpu {
                 break;
 
             case 0x2A: // LDI A, (HL)
-				
-
+				regs[A] = ram.read(hl());
+				inc(A);
                 break;
 
             case 0x2B: // DEC HL
@@ -407,11 +500,17 @@ public class Cpu {
                 break;
 
             case 0x2F: // CPL
-
+            	// Complement A register (Flip all bits)
+            	regs[A] = ~regs[A] & 0xFF;
+            	
+            	subtract = true;
+            	halfCarry = true;
                 break;
 
             case 0x30: // JR NC, n
-
+            	// Relative jump by next byte
+            	// IF not carry
+            	if (!carry) pc += ((byte) readPC());
                 break;
 
             case 0x31: // LD SP, nn
@@ -419,7 +518,8 @@ public class Cpu {
                 break;
 
             case 0x32: // LDD (HL), A
-
+            	ram.write(hl(), regs[A]);
+            	decAt(hl());
                 break;
 
             case 0x33: // INC SP
@@ -427,11 +527,11 @@ public class Cpu {
                 break;
 
             case 0x34: // INC (HL)
-
+            	incAt(hl());
                 break;
 
             case 0x35: // DEC (HL)
-
+            	decAt(hl());
                 break;
 
             case 0x36: // LD (HL), n
@@ -439,19 +539,23 @@ public class Cpu {
                 break;
 
             case 0x37: // SCF
-            	
+            	// set carry flag
+            	carry = true;
                 break;
 
             case 0x38: // JR C, n
-
+            	// Relative jump by next byte
+            	// IF carry
+            	if (carry) pc += ((byte) readPC());
                 break;
 
             case 0x39: // ADD HL, SP
-
+            	
                 break;
 
-            case 0x3A: //  LDD A, (HL)
-
+            case 0x3A: // LDD A, (HL)
+            	regs[A] = ram.read(hl()); 
+            	dec(A);
                 break;
 
             case 0x3B: // DEC SP
@@ -471,7 +575,8 @@ public class Cpu {
                 break;
 
             case 0x3F: // CCF
-
+            	// flip carry flag
+            	carry = !carry;
                 break;
 
             case 0x40: // LD B, B
@@ -697,7 +802,7 @@ public class Cpu {
                 break;
 
             case 0x76: // HALT
-            	
+            	// Power down CPU until an interrupt occurs
                 break;
 
             case 0x77: // LD (HL), A
@@ -762,7 +867,7 @@ public class Cpu {
                 break;
 
             case 0x86: // ADD A, (HL)
-            	
+            	addTo(A, ram.read(hl()));
                 break;
 
             case 0x87: // ADD A, A
@@ -770,35 +875,35 @@ public class Cpu {
                 break;
 
             case 0x88: // ADC A, B
-            	
+            	adc(A, B);
                 break;
 
             case 0x89: // ADC A, C
-
+            	adc(A, C);
                 break;
 
             case 0x8A: // ADC A, D
-
+            	adc(A, D);
                 break;
 
             case 0x8B: // ADC A, E
-
+            	adc(A, E);
                 break;
 
             case 0x8C: // ADC A, H
-
+            	adc(A, H);
                 break;
 
             case 0x8D: // ADC A, L
-
+            	adc(A, L);
                 break;
 
             case 0x8E: // ADC A, (HL)
-
+            	adcTo(A, ram.read(hl()));
                 break;
 
             case 0x8F: // ADC A, A
-
+            	adc(A, A);
                 break;
 
             case 0x90: // SUB A, B
@@ -826,7 +931,7 @@ public class Cpu {
                 break;
 
             case 0x96: // SUB A, (HL)
-
+            	subTo(A, hl());
                 break;
 
             case 0x97: // SUB A, A
@@ -834,163 +939,163 @@ public class Cpu {
                 break;
 
             case 0x98: // SBC A, B
-
+            	sbc(A, B);
                 break;
 
             case 0x99: // SBC A, C
-
+            	sbc(A, C);
                 break;
 
             case 0x9A: // SBC A, D
-
+            	sbc(A, D);
                 break;
 
             case 0x9B: // SBC A, E
-
+            	sbc(A, E);
                 break;
 
             case 0x9C: // SBC A, H
-
+            	sbc(A, H);
                 break;
 
             case 0x9D: // SBC A, L
-
+            	sbc(A, L);
                 break;
 
             case 0x9E: // SBC A, (HL)
-
+            	sbcTo(A, hl());
                 break;
 
             case 0x9F: // SBC A, A
-
+            	sbc(A, A);
                 break;
 
             case 0xA0: // AND B
-
+            	and(B);
                 break;
 
             case 0xA1: // AND C
-
+            	and(C);
                 break;
 
             case 0xA2: // AND D
-
+            	and(D);
                 break;
 
             case 0xA3: // AND E
-
+            	and(E);
                 break;
 
             case 0xA4: // AND H
-
+            	and(H);
                 break;
 
             case 0xA5: // AND L
-
+            	and(L);
                 break;
 
             case 0xA6: // AND (HL)
-
+            	andTo(hl());
                 break;
 
             case 0xA7: // AND A
-
+            	and(A);
                 break;
 
             case 0xA8: // XOR B
-
+            	xor(B);
                 break;
 
             case 0xA9: // XOR C
-
+            	xor(C);
                 break;
 
             case 0xAA: // XOR D
-
+            	xor(D);
                 break;
 
             case 0xAB: // XOR E
-
+            	xor(E);
                 break;
 
             case 0xAC: // XOR H
-
+            	xor(H);
                 break;
 
             case 0xAD: // XOR L
-
+            	xor(L);
                 break;
 
             case 0xAE: // XOR (HL)
-
+            	xorTo(hl());
                 break;
 
             case 0xAF: // XOR A
-
+            	xor(A);
                 break;
 
             case 0xB0: // OR B
-
+            	or(B);
                 break;
 
             case 0xB1: // OR C
-
+            	or(C);
                 break;
 
             case 0xB2: // OR D
-
+            	or(D);
                 break;
 
             case 0xB3: // OR E
-
+            	or(E);
                 break;
 
             case 0xB4: // OR H
-
+            	or(H);
                 break;
 
             case 0xB5: // OR L
-
+            	or(L);
                 break;
 
             case 0xB6: // OR (HL)
-
+            	orTo(hl());
                 break;
 
             case 0xB7: // OR A
-
+            	or(A);
                 break;
 
             case 0xB8: // CP B
-
+            	cp(B);
                 break;
 
             case 0xB9: // CP C
-
+            	cp(C);
                 break;
 
             case 0xBA: // CP D
-
+            	cp(D);
                 break;
 
             case 0xBB: // CP E
-
+            	cp(E);
                 break;
 
             case 0xBC: // CP H
-
+            	cp(H);
                 break;
 
             case 0xBD: // CP L
-
+            	cp(L);
                 break;
 
             case 0xBE: // CP (HL)
-
+            	cpTo(hl());
                 break;
 
             case 0xBF: // CP A
-
+            	cp(A);
                 break;
 
             case 0xC0: // RET !FZ
@@ -1222,11 +1327,11 @@ public class Cpu {
                 break;
 
             case 0xF9: // LD SP, HL
-
+            	sp = hl();
                 break;
 
             case 0xFA: // LD A, (nn)
-
+            	regs[A] = ram.read(readPC16());
                 break;
 
             case 0xFB: // EI
@@ -1242,7 +1347,7 @@ public class Cpu {
                 break;
 
             case 0xFE: // CP n
-
+            	cpTo(readPC());
                 break;
 
             case 0xFF: // RST 0x38
