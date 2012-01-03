@@ -99,6 +99,42 @@ public class Cpu {
     	subtract = true;
     }
     
+    private void add(int r1, int r2) {
+    	int tmp = regs[r1] + regs[r2];
+    	
+    	halfCarry = ((tmp & 0xF) < (A & 0xF)); // ??
+    	carry = (tmp > 0xFF);
+    	
+    	regs[r1] = tmp & 0xFF;
+    	
+    	zero = (regs[r1] == 0);
+    	subtract = false;
+    }
+    
+    private void sub(int r1, int r2) {
+    	int tmp = regs[r1] - regs[r2];
+    	
+    	halfCarry = ((regs[r1] & 0xF) < (tmp & 0xF));
+    	carry = (tmp < 0);
+    	
+    	regs[r1] = tmp & 0xFF;
+    	
+    	zero = (regs[r1] == 0);
+    	subtract = true;
+    }
+    
+    private void and(int r) {
+    	// AND with A, result in A
+    }
+    
+    private void or(int r) {
+    	// OR with A, result in A
+    }
+    
+    private void xor(int r) {
+    	// XOR with A, result in A
+    }
+    
     // flags
     // -----
     private boolean zero, // if the last math operation resulted in a zero
@@ -702,39 +738,39 @@ public class Cpu {
                 break;
 
             case 0x80: // ADD A, B
-
+            	add(A, B);
                 break;
 
             case 0x81: // ADD A, C
-
+            	add(A, C);
                 break;
 
             case 0x82: // ADD A, D
-
+            	add(A, D);
                 break;
 
             case 0x83: // ADD A, E
-
+            	add(A, E);
                 break;
 
             case 0x84: // ADD A, H
-
+            	add(A, H);
                 break;
 
             case 0x85: // ADD A, L
-
+            	add(A, L);
                 break;
 
             case 0x86: // ADD A, (HL)
-
+            	
                 break;
 
             case 0x87: // ADD A, A
-
+            	add(A, A);
                 break;
 
             case 0x88: // ADC A, B
-
+            	
                 break;
 
             case 0x89: // ADC A, C
@@ -766,27 +802,27 @@ public class Cpu {
                 break;
 
             case 0x90: // SUB A, B
-
+            	sub(A, B);
                 break;
 
             case 0x91: // SUB A, C
-
+            	sub(A, C);
                 break;
 
             case 0x92: // SUB A, D
-
+            	sub(A, D);
                 break;
 
             case 0x93: // SUB A, E
-
+            	sub(A, E);
                 break;
 
             case 0x94: // SUB A, H
-
+            	sub(A, H);
                 break;
 
             case 0x95: // SUB A, L
-
+            	sub(A, L);
                 break;
 
             case 0x96: // SUB A, (HL)
@@ -794,7 +830,7 @@ public class Cpu {
                 break;
 
             case 0x97: // SUB A, A
-
+            	sub(A, A);
                 break;
 
             case 0x98: // SBC A, B
@@ -981,7 +1017,7 @@ public class Cpu {
 
                 break;
 
-            case 0xC6: // ADD, n
+            case 0xC6: // ADD A, n
 
                 break;
 
@@ -1046,7 +1082,7 @@ public class Cpu {
                 break;
 
             case 0xD6: // SUB A, n
-
+ 
                 break;
 
             case 0xD7: // RST 0x10
