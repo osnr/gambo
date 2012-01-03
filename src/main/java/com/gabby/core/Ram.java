@@ -48,6 +48,10 @@ public class Ram {
     public int read(int addr) {
         return memory.get(addr) & 0xFF; // unsign
     }
+    
+    public int read16(int addr) {
+        return memory.getShort(addr) & 0xFFFF; // unsign
+    }
 
     // write to a position in memory
     public void write(int addr, int n) {

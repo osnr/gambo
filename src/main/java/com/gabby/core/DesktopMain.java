@@ -16,6 +16,7 @@ import java.awt.event.ActionEvent;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import com.gabby.core.Cpu.IllegalOperationException;
 import com.gabby.loader.*;
 
 class DesktopMain extends Canvas implements ActionListener {
@@ -53,7 +54,11 @@ class DesktopMain extends Canvas implements ActionListener {
 
                     (new Thread() {
                             public void run() {
-                                cpu.emulate(0x100);
+                                try {
+									cpu.emulate(0x100);
+								} catch (IllegalOperationException e) {
+									e.printStackTrace();
+								}
                             }
                         }).start();
                 }

@@ -2,7 +2,7 @@ package com.gabby.core;
 
 
 public class Cpu {
-    private static final int INTERRUPT_PERIOD = 0;
+	private static final int INTERRUPT_PERIOD = 0;
 
     public static final int A = 0;
     public static final int B = 1;
@@ -45,9 +45,18 @@ public class Cpu {
     public void setL(int l) { regs[L] = l; }
 
     // 16-bit registers
+    private int af() { return regs[A] << 8 | regs[F]; }
+    
+    private void setAF(int nn) { }
+    private void setAF(int n1, int n2) {
+    	regs[A] = n1;
+    	regs[F] = n2;
+    }
+
+    
     private int bc() { return regs[B] << 8 | regs[C]; }
     
-    private void setBC(int n) { }
+    private void setBC(int nn) { }
     private void setBC(int n1, int n2) {
     	regs[B] = n1;
     	regs[C] = n2;
@@ -55,7 +64,7 @@ public class Cpu {
 
     private int de() { return regs[D] << 8 | regs[E]; }
     
-    private void setDE(int n) { }
+    private void setDE(int nn) { }
     private void setDE(int n1, int n2) {
     	regs[D] = n1;
     	regs[E] = n2;
@@ -63,7 +72,7 @@ public class Cpu {
 
     private int hl() { return regs[H] << 8 | regs[L]; }
     
-    private void setHL(int n) { }
+    private void setHL(int nn) { }
     private void setHL(int n1, int n2) {
     	regs[H] = n1;
     	regs[L] = n2;
@@ -74,8 +83,8 @@ public class Cpu {
     public int sp() {
     	return sp;
     }
-    public void setSP(int sp) {
-    	this.sp = sp;
+    public void setSP(int nn) {
+    	sp = nn & 0xFFFF; // unsign
     }
 
     
@@ -92,7 +101,6 @@ public class Cpu {
     	halfCarry = (regs[r] & 0xF) == 0; // don't know what this does
     	subtract = false;
 	}
-    
     private void incAt(int addr) {
     	
     }
@@ -104,7 +112,6 @@ public class Cpu {
     	halfCarry = (regs[r] & 0xF) == 0xF; // don't know what this does
     	subtract = true;
     }
-    
     private void decAt(int addr) {
     	
     }
@@ -112,7 +119,6 @@ public class Cpu {
     private void add(int r1, int r2) {
     	addTo(r1, regs[r2]);
     }
-    
     private void addTo(int r, int n) {
     	int tmp = regs[r] + n;
     	
@@ -129,7 +135,6 @@ public class Cpu {
     	// Add regs[r2] and carry flag value to r1
     	adcTo(r1, regs[r2]);
     }
-
     private void adcTo(int r, int n) {
     	// Add n and carry flag value to r
     	int tmp = regs[r] + n + (carry ? 1 : 0);
@@ -146,7 +151,6 @@ public class Cpu {
     private void sub(int r1, int r2) {
     	subTo(r1, regs[r2]);
     }
-    
     private void subTo(int r, int n) {
     	int tmp = regs[r] - n;
     	
@@ -162,7 +166,6 @@ public class Cpu {
     private void sbc(int r1, int r2) {
     	sbcTo(r1, regs[r2]);
     }
-    
     private void sbcTo(int r, int n) {
     	int tmp = regs[r] - n - (carry ? 1 : 0);
     	
@@ -229,6 +232,40 @@ public class Cpu {
     	subtract = true;
     }
     
+    // stack
+    private void push(int nn) {
+    	sp -= 2;
+    	ram.write16(sp, nn);
+    }
+    
+    private int pop() {
+    	setSP(sp + 2);
+    	return ram.read16(sp - 2);
+    }
+    
+    // jumps
+    private void ret() {
+    	jp(pop());
+    }
+    
+    private void jp(int addr) {
+    	pc = addr;
+    }
+    
+    private void jr(int n) {
+    	pc += ((byte) n); // sign
+    }
+    
+    private void call(int addr) {
+    	push(addr);
+    	jp(addr);
+    }
+    
+    private void rst(int addr) {
+    	push(pc);
+    	jp(addr);
+    }
+    
     // flags
     // -----
     private boolean zero, // if the last math operation resulted in a zero
@@ -282,11 +319,11 @@ public class Cpu {
     // then move pc forward 2
     private int readPC16() {
         pc += 2;
-        return ram.getMemory().getShort(pc - 2) & 0xFF; // unsign
+        return ram.read16(pc - 2);
     }
 
 
-    public void emulate(int initialPC) {
+    public void emulate(int initialPC) throws IllegalOperationException {
         int opcode;
 
         while (true) {
@@ -395,7 +432,7 @@ public class Cpu {
 
             case 0x18: // JR n
                 // Relative jump by (signed) next byte
-                pc += ((byte) readPC()); // sign
+                jr(readPC());
                 break;
 
             case 0x19: // ADD HL, DE
@@ -430,7 +467,7 @@ public class Cpu {
             case 0x20: // JR NZ, n
                 // Relative jump by (signed) next byte
                 // IF last result was not zero
-                if (!zero) pc += ((byte) readPC());
+                if (!zero) jr(readPC());
                 break;
 
             case 0x21: // LD HL, nn
@@ -468,7 +505,7 @@ public class Cpu {
             case 0x28: // JR Z, n
                 // Relative jump by (signed) next byte
                 // IF last result was zero
-                if (zero) pc += ((byte) readPC());
+                if (zero) jr(readPC());
                 break;
 
             case 0x29: // ADD HL, HL
@@ -510,11 +547,11 @@ public class Cpu {
             case 0x30: // JR NC, n
             	// Relative jump by next byte
             	// IF not carry
-            	if (!carry) pc += ((byte) readPC());
+            	if (!carry) jr(readPC());
                 break;
 
             case 0x31: // LD SP, nn
-            	sp = readPC16();
+            	setSP(readPC16());
                 break;
 
             case 0x32: // LDD (HL), A
@@ -523,7 +560,7 @@ public class Cpu {
                 break;
 
             case 0x33: // INC SP
-            	sp++;
+            	setSP(sp + 1);
                 break;
 
             case 0x34: // INC (HL)
@@ -546,7 +583,7 @@ public class Cpu {
             case 0x38: // JR C, n
             	// Relative jump by next byte
             	// IF carry
-            	if (carry) pc += ((byte) readPC());
+            	if (carry) jr(readPC());
                 break;
 
             case 0x39: // ADD HL, SP
@@ -1099,47 +1136,52 @@ public class Cpu {
                 break;
 
             case 0xC0: // RET !FZ
-
+            	if (!zero) ret();
                 break;
 
             case 0xC1: // POP BC
-
+            	setBC(pop());
                 break;
 
             case 0xC2: // JP !FZ, nn
-
+            	// Absolute jump to position at next 2 bytes
+            	// IF not zero
+            	if (!zero) jp(readPC16());
                 break;
 
             case 0xC3: // JP nn
-
+            	// Absolute jump to position at next 2 bytes
+            	jp(readPC16());
                 break;
 
             case 0xC4: // CALL !FZ, nn
-
+            	if (!zero) call(readPC16());
                 break;
 
             case 0xC5: // PUSH BC
-
+            	push(bc());
                 break;
 
             case 0xC6: // ADD A, n
-
+            	addTo(A, readPC());
                 break;
 
             case 0xC7: // RST 0
-
+            	rst(0);
                 break;
 
             case 0xC8: // RET FZ
-
+            	if (zero) ret();
                 break;
 
             case 0xC9: // RET
-
+            	ret();
                 break;
 
             case 0xCA: // JP FZ, nn
-
+            	// Absolute jump to position at next 2 bytes
+            	// IF zero
+            	if (zero) jp(readPC16());
                 break;
 
             case 0xCB: // Secondary OP Code Set:
@@ -1147,55 +1189,56 @@ public class Cpu {
                 break;
 
             case 0xCC: // CALL FZ, nn
-
+            	if (zero) call(readPC16());
                 break;
 
             case 0xCD: // CALL nn
-
+            	call(readPC16());
                 break;
 
             case 0xCE: // ADC A, n
-
+            	adcTo(A, readPC());
                 break;
 
-            case 0xCF: // RST 0x8
-
+            case 0xCF: // RST 0x08
+            	rst(0x08);
                 break;
 
             case 0xD0: // RET !FC
-
+            	if (!carry) ret();
                 break;
 
             case 0xD1: // POP DE
-
+            	setDE(pop());
                 break;
 
             case 0xD2: // JP !FC, nn
-
+            	// Jump to position at next 2 bytes
+            	// IF not carry
+            	if (!carry) jp(readPC16());
                 break;
 
             case 0xD3: // 0xD3 - Illegal
-
-                break;
+            	throw new IllegalOperationException(opcode);
 
             case 0xD4: // CALL !FC, nn
-
+            	if (!carry) call(readPC16());
                 break;
 
             case 0xD5: // PUSH DE
-
+            	push(de());
                 break;
 
             case 0xD6: // SUB A, n
- 
+            	subTo(A, readPC());
                 break;
 
             case 0xD7: // RST 0x10
-
+            	rst(0x10);
                 break;
 
             case 0xD8: // RET FC
-
+            	if (carry) ret();
                 break;
 
             case 0xD9: // RETI
@@ -1203,103 +1246,93 @@ public class Cpu {
                 break;
 
             case 0xDA: // JP FC, nn
-
+            	if (carry) jp(readPC16());
                 break;
 
             case 0xDB: // 0xDB - Illegal
-
-                break;
-
+            	throw new IllegalOperationException(opcode);
+                
             case 0xDC: // CALL FC, nn
-
+            	if (carry) call(readPC16());
                 break;
 
             case 0xDD: // 0xDD - Illegal
-
-                break;
-
+            	throw new IllegalOperationException(opcode);
+                
             case 0xDE: // SBC A, n
-
+            	sbcTo(A, readPC());
                 break;
 
             case 0xDF: // RST 0x18
-
+            	rst(0x18);
                 break;
 
             case 0xE0: // LDH (n), A
-
+            	// Put A into memory address 0xFF00 + n ?
+            	ram.write(0xFF00 + readPC(), regs[A]);
                 break;
 
             case 0xE1: // POP HL
-
+            	setHL(pop());
                 break;
 
             case 0xE2: // LD (0xFF00 + C), A
-
+            	// why 0xFF00 + C?
+            	ram.write(0xFF00 + regs[C], regs[A]);
                 break;
 
             case 0xE3: // 0xE3 - Illegal
-
-                break;
-
             case 0xE4: // 0xE4 - Illegal
-
-                break;
-
+            	throw new IllegalOperationException(opcode);
+                
             case 0xE5: // PUSH HL
-
+            	push(hl());
                 break;
 
             case 0xE6: // AND n
-
+            	andTo(readPC());
                 break;
 
             case 0xE7: // RST 0x20
-
+            	rst(0x20);
                 break;
 
             case 0xE8: // ADD SP, n
-
+            	
                 break;
 
-            case 0xE9: // JP, (HL)
-
+            case 0xE9: // JP (HL)
+            	jp(ram.read16(hl()));
                 break;
 
-            case 0xEA: // LD n, A
-
+            case 0xEA: // LD (nn), A
+            	ram.write(readPC16(), regs[A]);
                 break;
 
             case 0xEB: // 0xEB - Illegal
-
-                break;
-
             case 0xEC: // 0xEC - Illegal
-
-                break;
-
             case 0xED: // 0xED - Illegal
-
-                break;
-
+            	throw new IllegalOperationException(opcode);
+                
             case 0xEE: // XOR n
-
+            	xorTo(readPC());
                 break;
 
             case 0xEF: // RST 0x28
-
+            	rst(0x28);
                 break;
 
-            case 0xF0: // LDH A, (n)
-
+            case 0xF0: // LDH A, (0xFF00 + n)
+            	// Set A to value at (0xFF00 + n)
+            	regs[A] = ram.read(0xFF00 + readPC());
                 break;
 
             case 0xF1: // POP AF
-
+            	setAF(pop());
                 break;
 
             case 0xF2: // LD A, (0xFF00 + C)
-
+            	regs[A] = ram.read(0xFF00 + regs[C]);
                 break;
 
             case 0xF3: // DI
@@ -1307,27 +1340,26 @@ public class Cpu {
                 break;
 
             case 0xF4: // 0xF4 - Illegal
-
-                break;
+            	throw new IllegalOperationException(opcode);
 
             case 0xF5: // PUSH AF
-
+            	push(af());
                 break;
 
             case 0xF6: // OR n
-
+            	orTo(readPC());
                 break;
 
             case 0xF7: // RST 0x30
-
+            	rst(0x30);
                 break;
 
             case 0xF8: // LDHL SP, n
-
+            	// Add SP + n, store result in HL
                 break;
 
             case 0xF9: // LD SP, HL
-            	sp = hl();
+            	setSP(hl());
                 break;
 
             case 0xFA: // LD A, (nn)
@@ -1339,23 +1371,26 @@ public class Cpu {
                 break;
 
             case 0xFC: // 0xFC - Illegal
-
-                break;
-
             case 0xFD: // 0xFD - Illegal
-
-                break;
+            	throw new IllegalOperationException(opcode);
 
             case 0xFE: // CP n
             	cpTo(readPC());
                 break;
 
             case 0xFF: // RST 0x38
-
+            	rst(0x38);
             }
 
             // counter -= CYCLES[opc];
         }
     }
 	
+    public class IllegalOperationException extends Exception {
+		private static final long serialVersionUID = 8646636447363934844L;
+
+		public IllegalOperationException(int opcode) {
+    		super("Invalid opcode: " + opcode);
+    	}
+	}
 }
