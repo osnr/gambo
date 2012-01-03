@@ -78,7 +78,7 @@ public class Cpu {
     	regs[L] = n2;
     }
 	
-    private int sp; // stack pointer: 16-bit
+    private int sp = 0xFFFE; // stack pointer: 16-bit
 
     public int sp() {
     	return sp;
@@ -128,6 +128,37 @@ public class Cpu {
     	regs[r] = tmp & 0xFF;
     	
     	zero = (regs[r] == 0);
+    	subtract = false;
+    }
+    
+    private void addHL(int nn) {
+    	int tmp = hl() + nn;
+    	halfCarry = ((hl() & 0xFFF) > (tmp & 0xFFF)); // ??
+    	carry = (tmp > 0xFFFF);
+    	setHL(tmp & 0xFFFF);
+    	subtract = false;
+    }
+    private void setHLAfterAdd(int n1, int n2) {
+    	// WTF
+    	int tmp = (n2 << 24) >> 24;
+    	setHL((n1 + tmp) & 0xFFFF);
+    	tmp = n1 ^ tmp ^ hl();
+    	
+    	carry = ((tmp & 0x100) == 0x100);
+    	halfCarry = ((tmp & 0x10) == 0x10);
+    	zero = false;
+    	subtract = false;
+    }
+    private void addSP(int n) {
+    	// I don't even remotely understand this method.
+    	int tmp2 = (n << 24) >> 24; // ??
+    	int tmp = (sp + tmp2) & 0xFFFF;
+    	tmp2 = sp ^ tmp2 ^ tmp;
+    	sp = tmp;
+    	
+    	carry = ((tmp2 & 0x100) == 0x100);
+    	halfCarry = ((tmp2 & 0x10) == 0x10);
+    	zero = false;
     	subtract = false;
     }
     
@@ -232,6 +263,24 @@ public class Cpu {
     	subtract = true;
     }
     
+    private void rl(int r) {
+    	
+    }
+    private void rlc(int r) {
+    	
+    }
+    
+    private void rr(int r) {
+    	
+    }
+    private void rrc(int r) {
+    	
+    }
+    
+    private void daa() {
+    	
+    }
+    
     // stack
     private void push(int nn) {
     	sp -= 2;
@@ -292,15 +341,30 @@ public class Cpu {
         carry = false;
     }
 
+    // interrupts
+    // ----------
+    private boolean interrupts = true;
+    
+    private int counter = Cpu.INTERRUPT_PERIOD;
+
+    public int getCounter() { return counter; }
+    public void setCounter(int counter) { this.counter = counter; }
+
+    private void enableInterrupts() {
+    	interrupts = true;
+    }
+    
+    private void disableInterrupts() {
+    	interrupts = false;
+    }
+    
+    // state
+    // -----
     private int pc; // = initialPC;
 
     public int getPc() { return pc; }
     public void setPc(int pc) { this.pc = pc; }
 
-    private int counter = Cpu.INTERRUPT_PERIOD;
-
-    public int getCounter() { return counter; }
-    public void setCounter(int counter) { this.counter = counter; }
 
     public Cpu(Ram ram) {
     	this.ram = ram;
@@ -362,7 +426,7 @@ public class Cpu {
                 // Rotate A left with carry
                 // Store old bit 7 of A in CF
                 // Reset SF, HCF, ZF
-				
+				rlc(A);
                 break;
 
             case 0x08: // LD (nn), SP
@@ -370,8 +434,7 @@ public class Cpu {
                 break;
 
             case 0x09: // ADD HL, BC
-                setHL(hl() + bc());
-
+            	addHL(bc());
                 break;
 
             case 0x0A: // LD A, (BC)
@@ -396,6 +459,7 @@ public class Cpu {
 
             case 0x0F: // RRC A
                 // Rotate A right with carry
+            	rrc(A);
                 break;
 
             case 0x10: // STOP
@@ -428,6 +492,7 @@ public class Cpu {
 
             case 0x17: // RL A
                 // Rotate A left?
+            	rl(A);
                 break;
 
             case 0x18: // JR n
@@ -436,8 +501,7 @@ public class Cpu {
                 break;
 
             case 0x19: // ADD HL, DE
-                setHL(hl() + de());
-
+                addHL(de());
                 break;
 
             case 0x1A: // LD A, (DE)
@@ -461,7 +525,7 @@ public class Cpu {
                 break;
 
             case 0x1F: // RR A
-                // Rotate A right?
+                rr(A);
                 break;
 
             case 0x20: // JR NZ, n
@@ -499,7 +563,8 @@ public class Cpu {
 
             case 0x27: // DAA
                 // Decimal-adjust A
-                // WTF does this mean
+            	// For floating-point math (haha, good luck w/ that)
+                daa();
                 break;
 
             case 0x28: // JR Z, n
@@ -511,8 +576,7 @@ public class Cpu {
             case 0x29: // ADD HL, HL
                 // Add 16-bit HL to HL
                 // Result in HL
-                setHL(hl() + hl());
-
+                addHL(hl());
                 break;
 
             case 0x2A: // LDI A, (HL)
@@ -587,7 +651,7 @@ public class Cpu {
                 break;
 
             case 0x39: // ADD HL, SP
-            	
+            	addHL(sp);
                 break;
 
             case 0x3A: // LDD A, (HL)
@@ -1242,7 +1306,8 @@ public class Cpu {
                 break;
 
             case 0xD9: // RETI
-
+            	ret();
+            	enableInterrupts();
                 break;
 
             case 0xDA: // JP FC, nn
@@ -1298,7 +1363,7 @@ public class Cpu {
                 break;
 
             case 0xE8: // ADD SP, n
-            	
+            	addSP(readPC());
                 break;
 
             case 0xE9: // JP (HL)
@@ -1336,7 +1401,7 @@ public class Cpu {
                 break;
 
             case 0xF3: // DI
-
+            	disableInterrupts();
                 break;
 
             case 0xF4: // 0xF4 - Illegal
@@ -1356,6 +1421,7 @@ public class Cpu {
 
             case 0xF8: // LDHL SP, n
             	// Add SP + n, store result in HL
+            	setHLAfterAdd(sp, readPC()); // wow this is ugly
                 break;
 
             case 0xF9: // LD SP, HL
@@ -1367,7 +1433,7 @@ public class Cpu {
                 break;
 
             case 0xFB: // EI
-
+            	enableInterrupts();
                 break;
 
             case 0xFC: // 0xFC - Illegal

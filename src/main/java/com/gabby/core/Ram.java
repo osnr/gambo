@@ -29,6 +29,9 @@ public class Ram {
 
     public static final int INPUT = 0xFF00;
 	
+    // flags for 5 interrupts in here
+    public static final int IE = 0xFFFF;
+    
     ByteBuffer memory;
 
     public Ram() {
