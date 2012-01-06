@@ -445,18 +445,33 @@ public class Cpu {
     }
     
     private void res(int b, int r) {
-    	
+	    regs[r] &= ~(0x01 << b);
     }
     private void resAt(int b, int addr) {
-    	
+	    ram.write(addr, ram.read(addr) & ~(0x01 <, b));
     }
     
     // misc
     private void swap(int r) {
-    	
+	    // swap the nibbles of a byte
+	    regs[r] = ((regs[r] >> 4) & 0x0F) & ((regs[r] << 4) & 0xF0);
+
+	    zero = (regs[r] == 0);    	
+	    subtract = false;
+	    halfCarry = false;
+	    carry = false;
     }
+
     private void swapAt(int addr) {
-    	
+	    int tmp = ram.read(addr);
+
+	    tmp = ((tmp >> 4) & 0x0F) & ((tmp << 4) & 0xF0);
+	    ram.write(addr, tmp);
+	    
+	    zero = (tmp == 0);
+	    subtract = false;
+	    halfCarry = false;
+	    carry = false;
     }
     
     private void daa() {
