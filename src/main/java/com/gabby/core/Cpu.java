@@ -448,7 +448,7 @@ public class Cpu {
 	    regs[r] &= ~(0x01 << b);
     }
     private void resAt(int b, int addr) {
-	    ram.write(addr, ram.read(addr) & ~(0x01 <, b));
+	    ram.write(addr, ram.read(addr) & ~(0x01 << b));
     }
     
     // misc
@@ -540,23 +540,95 @@ public class Cpu {
 
     // interrupts
     // ----------
-    private boolean interrupts = true;
+	private static final int VBLANK = 0;
+	private static final int LCDC = 1;
+	private static final int TIMER = 2;
+	private static final int SERIAL = 3;
+	private static final int INPUT = 4;
+
+	private boolean interrupts = true; // IME (master flag)
+
+    private void enableInterrupts() {
+	    interrupts = true;
+    }
+    
+    private void disableInterrupts() {
+	    interrupts = false;
+    }
+
+	private boolean interruptEnabled(int ie, int i) {
+		return (ie & (1 << i)) != 0;
+	}
     
     private int counter = Cpu.INTERRUPT_PERIOD;
 
     public int getCounter() { return counter; }
     public void setCounter(int counter) { this.counter = counter; }
 
-    private void enableInterrupts() {
-    	interrupts = true;
-    }
-    
-    private void disableInterrupts() {
-    	interrupts = false;
-    }
-    
+	private void checkInterrupts() {
+		int ie = ram.read(0xFFFF); // individual interrupt-enabled flags
+		int ifl = ram.read(0xFF0F); // interrupts triggered?
+
+		if (interruptEnabled(ie, VBLANK)) {
+			if (interrupts) {
+				resetInterrupt(ifl, VBLANK);
+				disableInterrupts();
+				call(0x0040);
+			}
+			halting = false;
+		}
+
+		if (interruptEnabled(ie, LCDC)) {
+			if (interrupts) {
+				resetInterrupt(ifl, LCDC);
+				disableInterrupts();
+				call(0x0048);
+			}
+			halting = false;
+		}
+
+		if (interruptEnabled(ie, TIMER)) {
+			if (interrupts) {
+				resetInterrupt(ifl, TIMER);
+				disableInterrupts();
+				call(0x0050);
+			}
+			halting = false;
+		}
+
+		if (interruptEnabled(ie, SERIAL)) {
+			if (interrupts) {
+				resetInterrupt(ifl, SERIAL);
+				disableInterrupts();
+				call(0x0058);
+			}
+			halting = false;
+		}
+
+		if (interruptEnabled(ie, INPUT)) {
+			if (interrupts) {
+				resetInterrupt(ifl, INPUT);
+				disableInterrupts();
+				call(0x0060);
+			}
+			halting = false;
+		}
+	}
+
+	private void setInterrupt(int ifl, int i) {
+		// trigger the interrupt itself
+		ram.write(0xFF0F, ifl | (0x01 << i));
+	}
+
+	private void resetInterrupt(int ifl, int i) {
+		// untrigger the interrupt itself
+		ram.write(0xFF0F, ifl & ~(0x01 << i));
+	}
+
     // state
     // -----
+	private boolean halting = false;
+
     private int pc; // = initialPC;
 
     public int getPc() { return pc; }
@@ -588,6 +660,8 @@ public class Cpu {
         int opcode;
 
         while (true) {
+	        if (halting) continue;
+
             opcode = readPC();
 
             switch (opcode) {
@@ -1102,6 +1176,7 @@ public class Cpu {
 
             case 0x76: // HALT
             	// Power down CPU until an interrupt occurs
+	            halting = true;
                 break;
 
             case 0x77: // LD (HL), A
@@ -2671,6 +2746,7 @@ public class Cpu {
             }
 
             // counter -= CYCLES[opc];
+            checkInterrupts();
         }
     }
 	
