@@ -59,6 +59,9 @@ class DesktopMain extends Canvas implements ActionListener {
                                     cpu.emulate(0x100);
                                 } catch (IllegalOperationException e) {
                                     e.printStackTrace();
+                                } catch (Exception e) {
+                                	e.printStackTrace();
+                                	System.err.println("Program counter: " + cpu.getPc());
                                 }
                             }
                         }).start();
