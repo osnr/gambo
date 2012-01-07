@@ -32,6 +32,8 @@ class DesktopInput extends KeyAdapter {
             dpad |= 1 << 2;
         else if (e.getKeyCode() == KeyEvent.VK_DOWN)
             dpad |= 1 << 3;
+
+        ram.getMemory().put(Ram.INPUT, getInputByte());
     }
 
     public void keyReleased(KeyEvent e) {
@@ -51,6 +53,8 @@ class DesktopInput extends KeyAdapter {
             dpad = ~(1 << 2);
         else if (e.getKeyCode() == KeyEvent.VK_DOWN)
             dpad = ~(1 << 3);
+
+        ram.getMemory().put(Ram.INPUT, getInputByte());
     }
 
     public byte getInputByte() {
