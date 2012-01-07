@@ -539,11 +539,11 @@ public class Cpu {
 
 	// interrupts
 	// ----------
-	private static final int VBLANK = 0;
-	private static final int LCDC = 1;
-	private static final int TIMER = 2;
-	private static final int SERIAL = 3;
-	private static final int INPUT = 4;
+	public static final int VBLANK = 0;
+	public static final int LCDC = 1;
+	public static final int TIMER = 2;
+	public static final int SERIAL = 3;
+	public static final int INPUT = 4;
 
 	private boolean interrupts = true; // IME (master flag)
 
@@ -614,6 +614,10 @@ public class Cpu {
 		}
 	}
 
+	public void setInterrupt(int i) {
+		setInterrupt(ram.read(0xFF0F), i);
+	}
+	
 	private void setInterrupt(int ifl, int i) {
 		// trigger the interrupt itself
 		ram.write(0xFF0F, ifl | (0x01 << i));
