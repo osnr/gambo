@@ -30,13 +30,14 @@ class DesktopMain extends Canvas implements ActionListener {
         ram = new Ram();
         cpu = new Cpu(ram);
         display = new Display();
-        addKeyListener(new DesktopInput(ram));
+        addKeyListener(new DesktopInput(ram, cpu));
     }
     
     public void paint(Graphics graphics) {
         super.paint(graphics);
         Graphics2D g = (Graphics2D) graphics;
         display.draw(ram, g);
+        cpu.setInterrupt(Cpu.VBLANK);
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -55,10 +56,10 @@ class DesktopMain extends Canvas implements ActionListener {
                     (new Thread() {
                             public void run() {
                                 try {
-									cpu.emulate(0x100);
-								} catch (IllegalOperationException e) {
-									e.printStackTrace();
-								}
+                                    cpu.emulate(0x100);
+                                } catch (IllegalOperationException e) {
+                                    e.printStackTrace();
+                                }
                             }
                         }).start();
                 }

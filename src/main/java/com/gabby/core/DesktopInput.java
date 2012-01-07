@@ -9,8 +9,9 @@ class DesktopInput extends KeyAdapter {
     protected Ram ram;
     protected Cpu cpu;
 
-    public DesktopInput(Ram ram) {
+    public DesktopInput(Ram ram, Cpu cpu) {
         this.ram = ram;
+        this.cpu = cpu;
         buttons = 0x20;
         dpad = 0x10;
     }
@@ -34,6 +35,7 @@ class DesktopInput extends KeyAdapter {
             dpad |= 1 << 3;
 
         ram.getMemory().put(Ram.INPUT, getInputByte());
+        cpu.setInterrupt(Cpu.INPUT);
     }
 
     public void keyReleased(KeyEvent e) {
