@@ -3,28 +3,21 @@ package com.gabby.core;
 import javax.swing.*;
 import java.io.*;
 import java.awt.Canvas;
-import java.awt.Color;
+
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.nio.ByteBuffer;
-
-import java.awt.event.KeyListener;
-import java.awt.event.KeyEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
 import java.util.Timer;
 import java.util.TimerTask;
 
-import com.gabby.core.Cpu.IllegalOperationException;
 import com.gabby.loader.*;
 
 class DesktopMain extends Canvas implements ActionListener {
     Display display;
     final Ram ram;
     final Cpu cpu;
-    Graphics last;
-    Thread cpuThread;
 
     public DesktopMain() {
         ram = new Ram();
@@ -53,6 +46,7 @@ class DesktopMain extends Canvas implements ActionListener {
 
                     ram.getMemory().clear();
                     ram.getMemory().put(rom.getRom().array());
+                    ram.getMemory().rewind();
                     
                     (new Thread() {
                             public void run() {
@@ -99,10 +93,11 @@ class DesktopMain extends Canvas implements ActionListener {
                 if (ret == JFileChooser.APPROVE_OPTION) {
                     File f = fc.getSelectedFile();
                     FileInputStream in = new FileInputStream(f);
-                    byte[] b = new byte[(int) Ram.MEMORY_SIZE];
+                    byte[] b = new byte[Ram.MEMORY_SIZE];
                     in.read(b);
                     ram.getMemory().clear();
                     ram.getMemory().put(b);
+                    ram.getMemory().rewind();
                     cpu.setA(in.read());
                     cpu.setB(in.read());
                     cpu.setC(in.read());
@@ -112,10 +107,10 @@ class DesktopMain extends Canvas implements ActionListener {
                     cpu.setH(in.read());
                     cpu.setL(in.read());
                     cpu.setSP(in.read());
-                    cpu.setZero((in.read() == 1) ? true : false);
-                    cpu.setSubtract((in.read() == 1) ? true : false);
-                    cpu.setHalfCarry((in.read() == 1) ? true : false);
-                    cpu.setCarry((in.read() == 1) ? true : false);
+                    cpu.setZero(in.read() == 1);
+                    cpu.setSubtract(in.read() == 1);
+                    cpu.setHalfCarry(in.read() == 1);
+                    cpu.setCarry(in.read() == 1);
                     cpu.setPc(in.read());
                     cpu.setCounter(in.read());
                     in.close();
