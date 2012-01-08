@@ -28,6 +28,8 @@ public class RomLoader {
             r.setHeaderChecksum(buf[0x014D]);
             r.getGlobalChecksum().put(buf, 0x014E, Rom.GLOBAL_CHECKSUM_LENGTH);
             r.getRom().put(buf);
+            
+            System.out.println("Loading game: " + new String(r.getTitle().array()));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {

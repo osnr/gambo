@@ -667,6 +667,7 @@ public class Cpu {
 
 			opcode = readPC();
 
+			// System.out.println("Opcode " + opcode);
 			switch (opcode) {
 			case 0x00: // NOP
 			// No operation

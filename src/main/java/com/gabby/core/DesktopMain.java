@@ -51,17 +51,15 @@ class DesktopMain extends Canvas implements ActionListener {
                     Rom rom = RomLoader.loadGameBoyRom(fc.getSelectedFile());
 
                     ram.getMemory().clear();
-                    ram.getMemory().put(rom.getRom());
-
+                    ram.getMemory().put(rom.getRom().array());
+                    
                     (new Thread() {
                             public void run() {
                                 try {
                                     cpu.emulate(0x100);
-                                } catch (IllegalOperationException e) {
-                                    e.printStackTrace();
                                 } catch (Exception e) {
                                 	e.printStackTrace();
-                                	System.err.println("Program counter: " + cpu.getPc());
+                                	System.err.println(String.format("Program counter: %x", cpu.getPc()));
                                 }
                             }
                         }).start();
