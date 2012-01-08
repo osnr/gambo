@@ -266,9 +266,9 @@ public class Cpu {
 		// (Basically equiv. to subtraction w/ discarded result)
 		int tmp = regs[A] - n;
 
-		halfCarry = ((regs[A] & 0xF) < (tmp & 0xF)); // ??
+		halfCarry = ((tmp & 0xF) > (regs[A] & 0xF)); // ??
 		carry = (tmp < 0);
-		zero = ((tmp & 0xFF) == 0);
+		zero = (tmp == 0);
 		subtract = true;
 	}
 
@@ -661,13 +661,15 @@ public class Cpu {
 
 	public void emulate(int initialPC) throws IllegalOperationException {
 		int opcode;
+		
+		pc = initialPC;
 
 		while (true) {
 			if (halting) continue;
 
 			opcode = readPC();
 
-			// System.out.println("Opcode " + opcode);
+			System.out.println(String.format("PC %x, opcode %x", pc - 1, opcode));
 			switch (opcode) {
 			case 0x00: // NOP
 			// No operation
@@ -807,6 +809,7 @@ public class Cpu {
 				// Relative jump by (signed) next byte
 				// IF last result was not zero
 				if (!zero) jr(readPC());
+				else pc++;
 				break;
 
 			case 0x21: // LD HL, nn
@@ -847,6 +850,7 @@ public class Cpu {
 				// Relative jump by (signed) next byte
 				// IF last result was zero
 				if (zero) jr(readPC());
+				else pc++;
 				break;
 
 			case 0x29: // ADD HL, HL
@@ -888,6 +892,7 @@ public class Cpu {
 				// Relative jump by next byte
 				// IF not carry
 				if (!carry) jr(readPC());
+				else pc++;
 				break;
 
 			case 0x31: // LD SP, nn
@@ -924,6 +929,7 @@ public class Cpu {
 				// Relative jump by next byte
 				// IF carry
 				if (carry) jr(readPC());
+				else pc++;
 				break;
 
 			case 0x39: // ADD HL, SP
@@ -1488,6 +1494,7 @@ public class Cpu {
 				// Absolute jump to position at next 2 bytes
 				// IF not zero
 				if (!zero) jp(readPC16());
+				else pc += 2;
 				break;
 
 			case 0xC3: // JP nn
@@ -1497,6 +1504,7 @@ public class Cpu {
 
 			case 0xC4: // CALL !FZ, nn
 				if (!zero) call(readPC16());
+				else pc += 2;
 				break;
 
 			case 0xC5: // PUSH BC
@@ -1523,6 +1531,7 @@ public class Cpu {
 				// Absolute jump to position at next 2 bytes
 				// IF zero
 				if (zero) jp(readPC16());
+				else pc += 2;
 				break;
 
 			case 0xCB: // Secondary OP Code Set:
@@ -2555,6 +2564,7 @@ public class Cpu {
 
 			case 0xCC: // CALL FZ, nn
 				if (zero) call(readPC16());
+				else pc += 2;
 				break;
 
 			case 0xCD: // CALL nn
@@ -2581,6 +2591,7 @@ public class Cpu {
 				// Jump to position at next 2 bytes
 				// IF not carry
 				if (!carry) jp(readPC16());
+				else pc += 2;
 				break;
 
 			case 0xD3: // 0xD3 - Illegal
@@ -2588,6 +2599,7 @@ public class Cpu {
 
 			case 0xD4: // CALL !FC, nn
 				if (!carry) call(readPC16());
+				else pc += 2;
 				break;
 
 			case 0xD5: // PUSH DE
@@ -2613,6 +2625,7 @@ public class Cpu {
 
 			case 0xDA: // JP FC, nn
 				if (carry) jp(readPC16());
+				else pc += 2;
 				break;
 
 			case 0xDB: // 0xDB - Illegal
@@ -2620,6 +2633,7 @@ public class Cpu {
 
 			case 0xDC: // CALL FC, nn
 				if (carry) call(readPC16());
+				else pc += 2;
 				break;
 
 			case 0xDD: // 0xDD - Illegal
@@ -2758,7 +2772,7 @@ public class Cpu {
 		private static final long serialVersionUID = 8646636447363934844L;
 
 		public IllegalOperationException(int opcode) {
-			super("Invalid opcode: " + opcode);
+			super(String.format("Invalid opcode: %x", opcode));
 		}
 	}
 }
