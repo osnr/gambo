@@ -34,6 +34,7 @@ class DesktopMain extends Canvas implements ActionListener {
     }
     
     public void paint(Graphics graphics) {
+        System.err.println("drawing...");
         super.paint(graphics);
         Graphics2D g = (Graphics2D) graphics;
         display.draw(ram, g);
@@ -135,7 +136,6 @@ class DesktopMain extends Canvas implements ActionListener {
         frame.add(dm);
         frame.setSize(160, 144);
         frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
         frame.setIgnoreRepaint(true);
 
         JMenuBar menuBar = new JMenuBar();
@@ -160,6 +160,7 @@ class DesktopMain extends Canvas implements ActionListener {
         fileMenu.add(loadState);
         
         frame.setJMenuBar(menuBar);
+        frame.setVisible(true);
 
         (new Timer()).scheduleAtFixedRate((new TimerTask() {
                 public void run() {
