@@ -28,7 +28,6 @@ class DesktopMain extends Canvas implements ActionListener {
     }
     
     public void paint(Graphics graphics) {
-        System.err.println("drawing...");
         super.paint(graphics);
         Graphics2D g = (Graphics2D) graphics;
 

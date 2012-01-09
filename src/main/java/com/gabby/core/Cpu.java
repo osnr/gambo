@@ -233,7 +233,7 @@ public class Cpu {
 	}
 
 	private void or(int r) {
-		or(regs[r]);
+		orTo(regs[r]);
 	}
 	private void orTo(int n) {
 		// OR with A, result in A

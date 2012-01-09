@@ -54,7 +54,8 @@ public class Sprite {
         tileNum = BitTwiddles.unsign(mem.get(Ram.OAM + spriteNum + 2));
         byte flags = mem.get(Ram.OAM + spriteNum + 3);
         data = ByteBuffer.allocate(16);
-        data.put(mem.array(), Ram.TILE_TABLE_ONE, 16);
+        byte[] array = mem.array();
+        data.put(array, Ram.TILE_TABLE_ONE, 16);
 		
         aboveBackground = (BitTwiddles.getBit(7, flags) == 0);
         yFlip = (BitTwiddles.getBit(6, flags) == 1);
