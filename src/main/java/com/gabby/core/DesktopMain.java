@@ -1,11 +1,10 @@
 package com.gabby.core;
 
 import javax.swing.*;
+import java.awt.*;
 import java.io.*;
-import java.awt.Canvas;
 
-import java.awt.Graphics;
-import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
@@ -18,11 +17,13 @@ class DesktopMain extends Canvas implements ActionListener {
     Display display;
     final Ram ram;
     final Cpu cpu;
+    final BufferedImage buffer;
 
     public DesktopMain() {
         ram = new Ram();
         cpu = new Cpu(ram);
         display = new Display();
+        buffer = new BufferedImage(160, 144, BufferedImage.TYPE_INT_RGB);
         addKeyListener(new DesktopInput(ram, cpu));
     }
     
@@ -30,7 +31,17 @@ class DesktopMain extends Canvas implements ActionListener {
         System.err.println("drawing...");
         super.paint(graphics);
         Graphics2D g = (Graphics2D) graphics;
-        display.draw(ram, g);
+
+        display.draw(ram, buffer.createGraphics());
+        
+        for (int y = 0; y < 144; y++) {
+            for (int x = 0; x < 160; x++) {
+                g.setPaint(new Color(buffer.getRGB(x, y)));
+                g.drawLine(x, y, x, y);
+                ram.getMemory().put(Ram.LY, (byte) x);
+            }
+        }
+
         cpu.setInterrupt(Cpu.VBLANK);
     }
 
