@@ -1,7 +1,10 @@
 package com.gabby.core;
 
+import sun.org.mozilla.javascript.JavaScriptException;
+
 import java.io.BufferedReader;
 import java.nio.ByteBuffer;
+//import java.nio.
 import java.util.ArrayList;
 
 import java.awt.Graphics2D;
@@ -15,7 +18,7 @@ public class Sprite {
     private boolean xFlip;
     private boolean yFlip;
     private int paletteNum;
-    private ByteBuffer data;
+    private byte[] data;
 
     /**
      * @param mem The memory to parse for the sprites
@@ -49,26 +52,33 @@ public class Sprite {
     }
 	
     public Sprite(ByteBuffer mem, int spriteNum) {
-        y = BitTwiddles.unsign(mem.get(Ram.OAM + spriteNum * 4));
-        x = BitTwiddles.unsign(mem.get(Ram.OAM + spriteNum * 4 + 1));
-        tileNum = BitTwiddles.unsign(mem.get(Ram.OAM + spriteNum + 2));
-        byte flags = mem.get(Ram.OAM + spriteNum + 3);
-        data = ByteBuffer.allocate(16);
-        byte[] array = mem.array();
-        data.put(array, Ram.TILE_TABLE_ONE, 16);
-		
-        aboveBackground = (BitTwiddles.getBit(7, flags) == 0);
-        yFlip = (BitTwiddles.getBit(6, flags) == 1);
-        xFlip = (BitTwiddles.getBit(5, flags) == 1);
-        paletteNum = BitTwiddles.getBit(4, flags);
-    }
+        try {
+            y = BitTwiddles.unsign(mem.get(Ram.OAM + spriteNum * 4));
+            x = BitTwiddles.unsign(mem.get(Ram.OAM + spriteNum * 4 + 1));
+            tileNum = BitTwiddles.unsign(mem.get(Ram.OAM + spriteNum + 2));
+            byte flags = mem.get(Ram.OAM + spriteNum * 4 + 3);
 
+            data = new byte[16];
+            mem.position(Ram.TILE_TABLE_ONE + tileNum * 16);
+            mem.get(data);
+            
+            aboveBackground = (BitTwiddles.getBit(7, flags) == 0);
+            yFlip = (BitTwiddles.getBit(6, flags) == 1);
+            xFlip = (BitTwiddles.getBit(5, flags) == 1);
+            paletteNum = BitTwiddles.getBit(4, flags);
+        } catch (UnsupportedOperationException e) {
+            System.err.println(e.getLocalizedMessage());
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
+    
     public void draw(Graphics2D g) {
         if (!yFlip) {
             for (int i = 0; i < 8; i++) {
                 if (!xFlip) {
                     for (int j = 0; j < 8; j++) {
-                        Color c = BitTwiddles.getColorFromBytePair(j, data.get(i), data.get(i + 1));
+                        Color c = BitTwiddles.getColorFromBytePair(j, data[i], data[i + 1]);
 						
                         if (c != Color.WHITE) { //not necessary, but i think this might be faster?
                             g.setPaint(c);
@@ -77,7 +87,7 @@ public class Sprite {
                     }
                 } else {
                     for (int j = 7; j >= 0; j--) {
-                        Color c = BitTwiddles.getColorFromBytePair(j, data.get(i), data.get(i + 1));
+                        Color c = BitTwiddles.getColorFromBytePair(j, data[i], data[i + 1]);
 						
                         if (c != Color.WHITE) { 
                             g.setPaint(c);
@@ -90,7 +100,7 @@ public class Sprite {
             for (int i = 7; i >= 0; i++) {
                 if (!xFlip) {
                     for (int j = 0; j < 8; j++) {
-                        Color c = BitTwiddles.getColorFromBytePair(j, data.get(i), data.get(i + 1));
+                        Color c = BitTwiddles.getColorFromBytePair(j, data[i], data[i + 1]);
 						
                         if (c != Color.WHITE) {
                             g.setPaint(c);
@@ -99,7 +109,7 @@ public class Sprite {
                     }
                 } else {
                     for (int j = 7; j >= 0; j--) {
-                        Color c = BitTwiddles.getColorFromBytePair(j, data.get(i), data.get(i + 1));
+                        Color c = BitTwiddles.getColorFromBytePair(j, data[i], data[i + 1]);
 						
                         if (c != Color.WHITE) {
                             g.setPaint(c);
@@ -135,7 +145,7 @@ public class Sprite {
         return paletteNum;
     }
 
-    public ByteBuffer getData() {
+    public byte[] getData() {
         return data;
     }
 }
