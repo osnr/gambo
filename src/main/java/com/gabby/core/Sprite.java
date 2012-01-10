@@ -52,7 +52,6 @@ public class Sprite {
     }
 	
     public Sprite(ByteBuffer mem, int spriteNum) {
-<<<<<<< local
         y = BitTwiddles.unsign(mem.get(Ram.OAM + spriteNum * 4));
         x = BitTwiddles.unsign(mem.get(Ram.OAM + spriteNum * 4 + 1));
         tileNum = BitTwiddles.unsign(mem.get(Ram.OAM + spriteNum + 2));
@@ -66,27 +65,6 @@ public class Sprite {
         yFlip = (BitTwiddles.getBit(6, flags) == 1);
         xFlip = (BitTwiddles.getBit(5, flags) == 1);
         paletteNum = BitTwiddles.getBit(4, flags);
-=======
-        try {
-            y = BitTwiddles.unsign(mem.get(Ram.OAM + spriteNum * 4));
-            x = BitTwiddles.unsign(mem.get(Ram.OAM + spriteNum * 4 + 1));
-            tileNum = BitTwiddles.unsign(mem.get(Ram.OAM + spriteNum + 2));
-            byte flags = mem.get(Ram.OAM + spriteNum * 4 + 3);
-
-            data = new byte[16];
-            mem.position(Ram.TILE_TABLE_ONE + tileNum * 16);
-            mem.get(data);
-            
-            aboveBackground = (BitTwiddles.getBit(7, flags) == 0);
-            yFlip = (BitTwiddles.getBit(6, flags) == 1);
-            xFlip = (BitTwiddles.getBit(5, flags) == 1);
-            paletteNum = BitTwiddles.getBit(4, flags);
-        } catch (UnsupportedOperationException e) {
-            System.err.println(e.getLocalizedMessage());
-            e.printStackTrace();
-            System.exit(1);
-        }
->>>>>>> other
     }
     
     public void draw(Graphics2D g) {
