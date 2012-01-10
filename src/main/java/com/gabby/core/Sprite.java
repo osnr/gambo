@@ -1,7 +1,5 @@
 package com.gabby.core;
 
-import sun.org.mozilla.javascript.JavaScriptException;
-
 import java.io.BufferedReader;
 import java.nio.ByteBuffer;
 //import java.nio.
