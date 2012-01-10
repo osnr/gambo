@@ -56,7 +56,7 @@ public class BitTwiddles {
         int a = getBit(i, first);
         int b = getBit(i, second);
 
-        System.out.println(first + ", " + second + ", " + i);
+        // System.out.println(first + ", " + second + ", " + i);
 
         int c = (a << 1) + b;
 

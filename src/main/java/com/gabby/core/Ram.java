@@ -37,7 +37,7 @@ public class Ram {
     ByteBuffer memory;
 
     public Ram() {
-        memory = ByteBuffer.allocateDirect(0xFFFF + 1);
+        memory = ByteBuffer.allocate(0xFFFF + 1);
         memory.order(ByteOrder.LITTLE_ENDIAN);
     }
 	

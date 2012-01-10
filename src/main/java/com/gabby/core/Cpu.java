@@ -47,7 +47,10 @@ public class Cpu {
 	// 16-bit registers
 	private int af() { return regs[A] << 8 | regs[F]; }
 
-	private void setAF(int nn) { }
+	private void setAF(int nn) {
+		regs[A] = (nn & 0xFF00) >> 8;
+		regs[F] = nn & 0x00FF;
+	}
 	private void setAF(int n1, int n2) {
 		regs[A] = n1;
 		regs[F] = n2;
@@ -55,7 +58,10 @@ public class Cpu {
 
 	private int bc() { return regs[B] << 8 | regs[C]; }
 
-	private void setBC(int nn) { }
+	private void setBC(int nn) {
+		regs[B] = (nn & 0xFF00) >> 8;
+		regs[C] = nn & 0x00FF;
+	}
 	private void setBC(int n1, int n2) {
 		regs[B] = n1;
 		regs[C] = n2;
@@ -63,7 +69,10 @@ public class Cpu {
 
 	private int de() { return regs[D] << 8 | regs[E]; }
 
-	private void setDE(int nn) { }
+	private void setDE(int nn) {
+		regs[D] = (nn & 0xFF00) >> 8;
+		regs[E] = nn & 0x00FF;
+	}
 	private void setDE(int n1, int n2) {
 		regs[D] = n1;
 		regs[E] = n2;
@@ -71,7 +80,10 @@ public class Cpu {
 
 	private int hl() { return regs[H] << 8 | regs[L]; }
 
-	private void setHL(int nn) { }
+	private void setHL(int nn) {
+		regs[H] = (nn & 0xFF00) >> 8;
+		regs[L] = nn & 0x00FF;
+	}
 	private void setHL(int n1, int n2) {
 		regs[H] = n1;
 		regs[L] = n2;
@@ -669,7 +681,7 @@ public class Cpu {
 
 			opcode = readPC();
 
-			// System.out.println(String.format("PC %x, opcode %x", pc - 1, opcode));
+			System.out.println(String.format("PC %x, opcode %x", pc - 1, opcode));
 			switch (opcode) {
 			case 0x00: // NOP
 			// No operation
