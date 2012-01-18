@@ -30,9 +30,10 @@ class DesktopMain extends Canvas implements ActionListener {
     public void paint(Graphics graphics) {
         super.paint(graphics);
         Graphics2D g = (Graphics2D) graphics;
+        BufferedImage secondBuffer = new BufferedImage(160, 144, BufferedImage.TYPE_INT_RGB);
+        Graphics2D bg = secondBuffer.createGraphics();
 
         display.draw(ram, buffer.createGraphics());
-        
         for (int y = 0; y < 144; y++) {
             for (int x = 0; x < 160; x++) {
                 g.setPaint(new Color(buffer.getRGB(x, y)));
@@ -40,6 +41,8 @@ class DesktopMain extends Canvas implements ActionListener {
                 ram.getMemory().put(Ram.LY, (byte) x);
             }
         }
+
+        //g.drawImage(bg, );
 
         cpu.setInterrupt(Cpu.VBLANK);
     }
