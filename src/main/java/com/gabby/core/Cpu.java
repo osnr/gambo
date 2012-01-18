@@ -683,7 +683,7 @@ public class Cpu {
 
 			opcode = readPC();
             System.out.println(String.format("PC %x, opcode %x", pc, opcode) + ": " + regs[A] + "," + regs[B] + "," + regs[C] + ","
-                    + regs[D] + "," + regs[E] + "," + regs[F] + "," + ((hl() & 0xFF00) >> 8) + "," + (hl() & 0x00FF));
+                    + regs[D] + "," + regs[E] + "," + regs[F] + "," + regs[H] + "," + regs[L]);
 
 			//System.out.println(String.format("PC %x, opcode %x", pc - 1, opcode));
 			switch (opcode) {
