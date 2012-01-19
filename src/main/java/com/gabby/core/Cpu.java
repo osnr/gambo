@@ -1,5 +1,7 @@
 package com.gabby.core;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 
 public class Cpu {
 	private static final int INTERRUPT_PERIOD = 0;
@@ -706,6 +708,8 @@ public class Cpu {
 			if (halting) continue;
 
 			opcode = readPC();
+            System.out.println(String.format("PC %x, opcode %x", pc, opcode) + ": " + regs[A] + "," + regs[B] + "," + regs[C] + ","
+                    + regs[D] + "," + regs[E] + "," + regs[F] + "," + regs[H] + "," + regs[L]);
 
 			System.out.println(String.format("PC %x, opcode %x", pc - 1, opcode));
 			switch (opcode) {
