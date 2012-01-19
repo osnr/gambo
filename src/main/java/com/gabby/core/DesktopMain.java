@@ -10,26 +10,31 @@ import java.awt.event.ActionEvent;
 
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.Date;
 
 import com.gabby.loader.*;
 
-class DesktopMain extends Canvas implements ActionListener {
+class DesktopMain extends JComponent implements ActionListener {
     Display display;
     final Ram ram;
     final Cpu cpu;
     final BufferedImage buffer;
-    
+
+
     public DesktopMain() {
         ram = new Ram();
         cpu = new Cpu(ram);
         display = new Display();
         buffer = new BufferedImage(160, 144, BufferedImage.TYPE_INT_RGB);
         addKeyListener(new DesktopInput(ram, cpu));
+
     }
 
     @Override
     public void paint(Graphics graphics) {
         super.paint(graphics);
+        long now = (new Date()).getTime();
+
         Graphics2D g = (Graphics2D) graphics;
         BufferedImage secondBuffer = new BufferedImage(160, 144, BufferedImage.TYPE_INT_RGB);
         Graphics2D bg = secondBuffer.createGraphics();
@@ -144,6 +149,7 @@ class DesktopMain extends Canvas implements ActionListener {
     public static void main(String[] args) {
         JFrame frame = new JFrame("Gabby");
         final DesktopMain dm = new DesktopMain();
+
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.add(dm);
         frame.setSize(160, 144);
@@ -174,9 +180,10 @@ class DesktopMain extends Canvas implements ActionListener {
         frame.setJMenuBar(menuBar);
         frame.setVisible(true);
 
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                dm.repaint();
-            }});
+        (new Timer()).scheduleAtFixedRate((new TimerTask() {
+                public void run() {
+                    dm.repaint();
+                }
+            }), 0, 17);
     }
 }
