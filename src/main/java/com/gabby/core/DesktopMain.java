@@ -18,7 +18,7 @@ class DesktopMain extends Canvas implements ActionListener {
     final Ram ram;
     final Cpu cpu;
     final BufferedImage buffer;
-
+    
     public DesktopMain() {
         ram = new Ram();
         cpu = new Cpu(ram);
@@ -26,23 +26,27 @@ class DesktopMain extends Canvas implements ActionListener {
         buffer = new BufferedImage(160, 144, BufferedImage.TYPE_INT_RGB);
         addKeyListener(new DesktopInput(ram, cpu));
     }
-    
+
+    @Override
     public void paint(Graphics graphics) {
         super.paint(graphics);
         Graphics2D g = (Graphics2D) graphics;
         BufferedImage secondBuffer = new BufferedImage(160, 144, BufferedImage.TYPE_INT_RGB);
         Graphics2D bg = secondBuffer.createGraphics();
+        bg.clearRect(0, 0, 160, 144);
+        //g.clearRect(0, 0, 160, 144);
 
         display.draw(ram, buffer.createGraphics());
         for (int y = 0; y < 144; y++) {
             for (int x = 0; x < 160; x++) {
-                g.setPaint(new Color(buffer.getRGB(x, y)));
-                g.drawLine(x, y, x, y);
+                bg.setPaint(new Color(buffer.getRGB(x, y)));
+                bg.drawLine(x, y, x, y);
                 ram.getMemory().put(Ram.LY, (byte) x);
             }
         }
 
-        //g.drawImage(bg, );
+        bg.dispose();
+        g.drawImage(secondBuffer, null, 0, 0);
 
         cpu.setInterrupt(Cpu.VBLANK);
     }
@@ -170,10 +174,9 @@ class DesktopMain extends Canvas implements ActionListener {
         frame.setJMenuBar(menuBar);
         frame.setVisible(true);
 
-        (new Timer()).scheduleAtFixedRate((new TimerTask() {
-                public void run() {
-                    dm.repaint();
-                }
-            }), 0, 17);
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                dm.repaint();
+            }});
     }
 }
