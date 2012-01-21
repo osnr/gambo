@@ -942,7 +942,7 @@ public class Cpu {
 
 			case 0x32: // LDD (HL), A
 				ram.write(hl(), regs[A]);
-				decAt(hl());
+				setHL(hl() - 1);
 				break;
 
 			case 0x33: // INC SP
