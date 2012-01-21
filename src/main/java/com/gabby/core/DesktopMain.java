@@ -147,6 +147,7 @@ class DesktopMain extends JComponent implements ActionListener {
 
     
     public static void main(String[] args) {
+        System.setProperty("apple.laf.useScreenMenuBar", "true");
         JFrame frame = new JFrame("Gabby");
         final DesktopMain dm = new DesktopMain();
 
