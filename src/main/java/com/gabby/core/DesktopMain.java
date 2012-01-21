@@ -10,7 +10,6 @@ import java.awt.event.ActionEvent;
 
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.Date;
 
 import com.gabby.loader.*;
 
@@ -33,7 +32,6 @@ class DesktopMain extends JComponent implements ActionListener {
     @Override
     public void paint(Graphics graphics) {
         super.paint(graphics);
-        long now = (new Date()).getTime();
 
         Graphics2D g = (Graphics2D) graphics;
         BufferedImage secondBuffer = new BufferedImage(160, 144, BufferedImage.TYPE_INT_RGB);
@@ -55,6 +53,25 @@ class DesktopMain extends JComponent implements ActionListener {
 
         cpu.setInterrupt(Cpu.VBLANK);
     }
+    
+    public void loadRom(File f) {
+        Rom rom = RomLoader.loadGameBoyRom(f);
+        System.out.println("Loaded: " + rom.getTitle());
+        ram.getMemory().clear();
+        ram.getMemory().put(rom.getRom().array());
+        ram.getMemory().rewind();
+
+        (new Thread() {
+            public void run() {
+                try {
+                    cpu.emulate(0x100);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.err.println(String.format("Program counter: %x", cpu.getPc()));
+                }
+            }
+        }).start();
+    }
 
     public void actionPerformed(ActionEvent e) {
         try {
@@ -64,22 +81,7 @@ class DesktopMain extends JComponent implements ActionListener {
                 int ret = fc.showOpenDialog(this);
 
                 if (ret == JFileChooser.APPROVE_OPTION) {
-                    Rom rom = RomLoader.loadGameBoyRom(fc.getSelectedFile());
-
-                    ram.getMemory().clear();
-                    ram.getMemory().put(rom.getRom().array());
-                    ram.getMemory().rewind();
-                    
-                    (new Thread() {
-                            public void run() {
-                                try {
-                                    cpu.emulate(0x100);
-                                } catch (Exception e) {
-                                	e.printStackTrace();
-                                	System.err.println(String.format("Program counter: %x", cpu.getPc()));
-                                }
-                            }
-                        }).start();
+                    loadRom(fc.getSelectedFile());
                 }
             } else if ("save state".equals(e.getActionCommand())) {
                 JFileChooser fc = new JFileChooser();
@@ -144,7 +146,12 @@ class DesktopMain extends JComponent implements ActionListener {
             ex.printStackTrace();
         }
     }
-
+    
+    public void processArguments(String[] args) {
+        if (args.length > 0) {
+            loadRom(new File(args[0]));
+        }
+    }
     
     public static void main(String[] args) {
         System.setProperty("apple.laf.useScreenMenuBar", "true");
@@ -180,11 +187,13 @@ class DesktopMain extends JComponent implements ActionListener {
         
         frame.setJMenuBar(menuBar);
         frame.setVisible(true);
+        
+        dm.processArguments(args);
 
         (new Timer()).scheduleAtFixedRate((new TimerTask() {
-                public void run() {
-                    dm.repaint();
-                }
-            }), 0, 17);
+            public void run() {
+                dm.repaint();
+            }
+        }), 0, 17);
     }
 }
