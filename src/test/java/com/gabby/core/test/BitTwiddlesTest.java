@@ -1,9 +1,10 @@
+package com.gabby.core.test;
 import org.junit.Test;
 import org.junit.Assert;
 import com.gabby.core.BitTwiddles;
 import java.awt.Color;
 
-public class TestBitTwiddles {
+public class BitTwiddlesTest {
 
     @Test
     public void testUnsign() {

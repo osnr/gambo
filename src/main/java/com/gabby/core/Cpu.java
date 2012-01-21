@@ -676,7 +676,7 @@ public class Cpu {
 		regs[D] = 0x00;
 		regs[E] = 0xD8;
 		regs[F] = 0xB0;
-		regs[H] = 0x00;
+		regs[H] = 0x01;
 		regs[L] = 0x4D;
 
 		this.ram = ram;
@@ -708,17 +708,16 @@ public class Cpu {
 			if (halting) continue;
 
 			opcode = readPC();
-            System.out.println(String.format("PC %x, opcode %x", pc, opcode) + ": " + regs[A] + "," + regs[B] + "," + regs[C] + ","
+            System.out.println(String.format("PC %x, opcode %x", pc - 1, opcode) + ": " + regs[A] + "," + regs[B] + "," + regs[C] + ","
                     + regs[D] + "," + regs[E] + "," + regs[F] + "," + regs[H] + "," + regs[L]);
 
-			System.out.println(String.format("PC %x, opcode %x", pc - 1, opcode));
 			switch (opcode) {
 			case 0x00: // NOP
 			// No operation
 				break;
 
 			case 0x01: // LD BC, nn
-				setBC(readPC(), readPC());
+				setBC(readPC16());
 				break;
 
 			case 0x02: // LD (BC), A
@@ -786,7 +785,7 @@ public class Cpu {
 				break;
 
 			case 0x11: // LD DE, nn
-				setDE(readPC(), readPC());
+				setDE(readPC16());
 				break;
 
 			case 0x12: // LD (DE), A
@@ -855,7 +854,7 @@ public class Cpu {
 				break;
 
 			case 0x21: // LD HL, nn
-				setHL(readPC(), readPC());
+				setHL(readPC16());
 				break;
 
 			case 0x22: // LDI (HL), A
