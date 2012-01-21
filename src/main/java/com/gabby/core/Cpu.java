@@ -110,33 +110,33 @@ public class Cpu {
 	private void inc(int r) {
 		regs[r] = (regs[r] + 1) & 0xFF;
 
-		zero = (regs[r] == 0);
-		halfCarry = (regs[r] & 0xF) == 0; // don't know what this does
-		subtract = false;
+		setZero((regs[r] == 0));
+		setHalfCarry((regs[r] & 0xF) == 0); // don't know what this does
+		setSubtract(false);
 	}
 	private void incAt(int addr) {
 		int tmp = (ram.read(addr) + 1) & 0xFF;
 		ram.write(addr, tmp);
 
-		zero = (tmp == 0);
-		halfCarry = (tmp & 0xF) == 0; // WTF?
-		subtract = false;
+		setZero((tmp == 0));
+		setHalfCarry((tmp & 0xF) == 0); // WTF?
+		setSubtract(false);
 	}
 
 	private void dec(int r) {
 		regs[r] = (regs[r] - 1) & 0xFF;
 
-		zero = (regs[r] == 0);
-		halfCarry = (regs[r] & 0xF) == 0xF; // don't know what this does
-		subtract = true;
+		setZero((regs[r] == 0));
+		setHalfCarry((regs[r] & 0xF) == 0xF); // don't know what this does
+		setSubtract(true);
 	}
 	private void decAt(int addr) {
 		int tmp = (ram.read(addr) - 1) & 0xFF;
 		ram.write(addr, tmp);
 
-		zero = (tmp == 0);
-		halfCarry = (tmp & 0xF) == 0xF; // ?
-		subtract = true;
+		setZero((tmp == 0));
+		setHalfCarry((tmp & 0xF) == 0xF); // ?
+		setSubtract(true);
 	}
 
 	private void add(int r1, int r2) {
@@ -145,21 +145,21 @@ public class Cpu {
 	private void addTo(int r, int n) {
 		int tmp = regs[r] + n;
 
-		halfCarry = ((tmp & 0xF) < (regs[r] & 0xF)); // ??
-		carry = (tmp > 0xFF);
+		setHalfCarry(((tmp & 0xF) < (regs[r] & 0xF))); // ??
+		setCarry((tmp > 0xFF));
 
 		regs[r] = tmp & 0xFF;
 
-		zero = (regs[r] == 0);
-		subtract = false;
+		setZero((regs[r] == 0));
+		setSubtract(false);
 	}
 
 	private void addHL(int nn) {
 		int tmp = hl() + nn;
-		halfCarry = ((hl() & 0xFFF) > (tmp & 0xFFF)); // ??
-		carry = (tmp > 0xFFFF);
+		setHalfCarry(((hl() & 0xFFF) > (tmp & 0xFFF))); // ??
+		setCarry((tmp > 0xFFFF));
 		setHL(tmp & 0xFFFF);
-		subtract = false;
+		setSubtract(false);
 	}
 	private void setHLAfterAdd(int n1, int n2) {
 		// WTF
@@ -167,10 +167,10 @@ public class Cpu {
 		setHL((n1 + tmp) & 0xFFFF);
 		tmp = n1 ^ tmp ^ hl();
 
-		carry = ((tmp & 0x100) == 0x100);
-		halfCarry = ((tmp & 0x10) == 0x10);
-		zero = false;
-		subtract = false;
+		setCarry(((tmp & 0x100) == 0x100));
+		setHalfCarry(((tmp & 0x10) == 0x10));
+		setZero(false);
+		setSubtract(false);
 	}
 	private void addSP(int n) {
 		// I don't even remotely understand this method.
@@ -179,10 +179,10 @@ public class Cpu {
 		tmp2 = sp ^ tmp2 ^ tmp;
 		sp = tmp;
 
-		carry = ((tmp2 & 0x100) == 0x100);
-		halfCarry = ((tmp2 & 0x10) == 0x10);
-		zero = false;
-		subtract = false;
+		setCarry(((tmp2 & 0x100) == 0x100));
+		setHalfCarry(((tmp2 & 0x10) == 0x10));
+		setZero(false);
+		setSubtract(false);
 	}
 
 	private void adc(int r1, int r2) {
@@ -191,15 +191,15 @@ public class Cpu {
 	}
 	private void adcTo(int r, int n) {
 		// Add n and carry flag value to r
-		int tmp = regs[r] + n + (carry ? 1 : 0);
+		int tmp = regs[r] + n + (isCarry() ? 1 : 0);
 
-		halfCarry = (((tmp & 0xF) + (regs[r] & 0xF) + (carry ? 1 : 0)) > 0xF); // ??
-		carry = (tmp > 0xFF);
+		setHalfCarry((((tmp & 0xF) + (regs[r] & 0xF) + (isCarry() ? 1 : 0)) > 0xF)); // ??
+		setCarry((tmp > 0xFF));
 
 		regs[r] = tmp & 0xFF;
 
-		zero = (regs[r] == 0);
-		subtract = false;
+		setZero((regs[r] == 0));
+		setSubtract(false);
 	}
 
 	private void sub(int r1, int r2) {
@@ -208,28 +208,28 @@ public class Cpu {
 	private void subTo(int r, int n) {
 		int tmp = regs[r] - n;
 
-		halfCarry = ((regs[r] & 0xF) < (tmp & 0xF)); // ??
-		carry = (tmp < 0);
+		setHalfCarry(((regs[r] & 0xF) < (tmp & 0xF))); // ??
+		setCarry((tmp < 0));
 
 		regs[r] = tmp & 0xFF;
 
-		zero = (regs[r] == 0);
-		subtract = true;
+		setZero((regs[r] == 0));
+		setSubtract(true);
 	}
 
 	private void sbc(int r1, int r2) {
 		sbcTo(r1, regs[r2]);
 	}
 	private void sbcTo(int r, int n) {
-		int tmp = regs[r] - n - (carry ? 1 : 0);
+		int tmp = regs[r] - n - (isCarry() ? 1 : 0);
 
-		halfCarry = (((regs[r] & 0xF) - (n & 0xF) - (carry ? 1 : 0)) < 0); // ??
-		carry = (tmp < 0);
+		setHalfCarry((((regs[r] & 0xF) - (n & 0xF) - (isCarry() ? 1 : 0)) < 0)); // ??
+		setCarry((tmp < 0));
 
 		regs[r] = tmp & 0xFF;
 
-		zero = (regs[r] == 0);
-		subtract = true;
+		setZero((regs[r] == 0));
+		setSubtract(true);
 	}
 
 
@@ -240,10 +240,10 @@ public class Cpu {
 		// AND with A, result in A
 		regs[A] &= n;
 
-		zero = (regs[A] == 0);
-		halfCarry = true; // ??
-		subtract = false;
-		carry = false;
+		setZero((regs[A] == 0));
+		setHalfCarry(true); // ??
+		setSubtract(false);
+		setCarry(false);
 	}
 
 	private void or(int r) {
@@ -253,10 +253,10 @@ public class Cpu {
 		// OR with A, result in A
 		regs[A] |= n;
 
-		zero = (regs[A] == 0);
-		subtract = false;
-		halfCarry = false;
-		carry = false;
+		setZero((regs[A] == 0));
+		setSubtract(false);
+		setHalfCarry(false);
+		setCarry(false);
 	}
 
 	private void xor(int r) {
@@ -266,10 +266,10 @@ public class Cpu {
 		// XOR with A, result in A
 		regs[A] ^= n;
 
-		zero = (regs[A] == 0);
-		subtract = false;
-		halfCarry = false;
-		carry = false;
+		setZero((regs[A] == 0));
+		setSubtract(false);
+		setHalfCarry(false);
+		setCarry(false);
 	}
 
 	private void cp(int r) {
@@ -280,159 +280,159 @@ public class Cpu {
 		// (Basically equiv. to subtraction w/ discarded result)
 		int tmp = regs[A] - n;
 
-		halfCarry = ((tmp & 0xF) > (regs[A] & 0xF)); // ??
-		carry = (tmp < 0);
-		zero = (tmp == 0);
-		subtract = true;
+		setHalfCarry(((tmp & 0xF) > (regs[A] & 0xF))); // ??
+		setCarry((tmp < 0));
+		setZero((tmp == 0));
+		setSubtract(true);
 	}
 
 	private void rl(int r) {
-		int c = carry ? 1 : 0;
-		carry = (regs[A] > 0x7F);
+		int c = isCarry() ? 1 : 0;
+		setCarry((regs[A] > 0x7F));
 		regs[A] = ((regs[A] << 1) & 0xFF) | c;
 
-		zero = false;
-		subtract = false;
-		halfCarry = false;
+		setZero(false);
+		setSubtract(false);
+		setHalfCarry(false);
 	}
 	private void rlAt(int addr) {
-		int c = carry ? 1 : 0;
+		int c = isCarry() ? 1 : 0;
 
 		int tmp = ram.read(addr);
 
-		carry = (tmp > 0x7F);
+		setCarry((tmp > 0x7F));
 		ram.write(addr, ((tmp << 1) & 0xFF) | c);
 
-		zero = false;
-		subtract = false;
-		halfCarry = false;
+		setZero(false);
+		setSubtract(false);
+		setHalfCarry(false);
 	}
 
 	private void rlc(int r) {
-		carry = (regs[r] > 0x7F);
+		setCarry((regs[r] > 0x7F));
 		regs[r] = ((regs[r] << 1) & 0xFF);
 
-		zero = false;
-		subtract = false;
-		halfCarry = false;
+		setZero(false);
+		setSubtract(false);
+		setHalfCarry(false);
 	}
 	private void rlcAt(int addr) {
 		int tmp = ram.read(addr);
 
-		carry = (tmp > 0x7F);
+		setCarry((tmp > 0x7F));
 		ram.write(addr, ((tmp << 1) & 0xFF));
 
-		zero = false;
-		subtract = false;
-		halfCarry = false;
+		setZero(false);
+		setSubtract(false);
+		setHalfCarry(false);
 	}
 
 	private void rr(int r) {
-		int c = carry ? 0x80 : 0;
-		carry = ((regs[A] & 1) == 1);
+		int c = isCarry() ? 0x80 : 0;
+		setCarry(((regs[A] & 1) == 1));
 		regs[A] = (regs[A] >> 1) | c;
 
-		zero = false;
-		subtract = false;
-		halfCarry = false;
+		setZero(false);
+		setSubtract(false);
+		setHalfCarry(false);
 	}
 	private void rrAt(int addr) {
 		int tmp = ram.read(addr);
 
-		int c = carry ? 0x80 : 0;
-		carry = ((tmp & 1) == 1);
+		int c = isCarry() ? 0x80 : 0;
+		setCarry(((tmp & 1) == 1));
 		ram.write(addr, (tmp >> 1) | c);
 
-		zero = false;
-		subtract = false;
-		halfCarry = false;
+		setZero(false);
+		setSubtract(false);
+		setHalfCarry(false);
 	}
 
 	private void rrc(int r) {
 		regs[r] = (regs[r] >> 1) | ((regs[r] & 1) << 7);
-		carry = (regs[r] > 0x7F);
+		setCarry((regs[r] > 0x7F));
 
-		zero = false;
-		subtract = false;
-		halfCarry = false;
+		setZero(false);
+		setSubtract(false);
+		setHalfCarry(false);
 	}
 	private void rrcAt(int addr) {
 		int tmp = ram.read(addr);
 
 		tmp = (tmp >> 1) | ((tmp & 1) << 7);
-		carry = (tmp > 0x7F);
+		setCarry((tmp > 0x7F));
 
 		ram.write(addr, tmp);
 
-		zero = false;
-		subtract = false;
-		halfCarry = false;
+		setZero(false);
+		setSubtract(false);
+		setHalfCarry(false);
 	}
 
 	private void sla(int r) {
-		carry = (regs[r] > 0x7F);
+		setCarry((regs[r] > 0x7F));
 
 		regs[r] = (regs[r] << 1) & 0xFF;
 
-		halfCarry = false;
-		subtract = false;
-		zero = (regs[r] == 0);
+		setHalfCarry(false);
+		setSubtract(false);
+		setZero((regs[r] == 0));
 	}
 	private void slaAt(int addr) {
 		int tmp = ram.read(addr);
 
-		carry = (tmp > 0x7F);
+		setCarry((tmp > 0x7F));
 
 		tmp = (tmp << 1) & 0xFF;
 		ram.write(addr, tmp);
 
-		halfCarry = false;
-		subtract = false;
-		zero = (tmp == 0);
+		setHalfCarry(false);
+		setSubtract(false);
+		setZero((tmp == 0));
 	}
 
 	private void sra(int r) {
-		carry = ((regs[r] & 0x01) == 0x01);
+		setCarry(((regs[r] & 0x01) == 0x01));
 
 		regs[r] = (regs[r] & 0x80) | (regs[r] >> 1);
 
-		halfCarry = false;
-		subtract = false;
-		zero = (regs[r] == 0);
+		setHalfCarry(false);
+		setSubtract(false);
+		setZero((regs[r] == 0));
 	}
 	private void sraAt(int addr) {
 		int tmp = ram.read(addr);
 
-		carry = ((tmp & 0x01) == 0x01);
+		setCarry(((tmp & 0x01) == 0x01));
 
 		tmp = (tmp & 0x80) | (tmp >> 1);
 		ram.write(addr, tmp);
 
-		halfCarry = false;
-		subtract = false;
-		zero = (tmp == 0);
+		setHalfCarry(false);
+		setSubtract(false);
+		setZero((tmp == 0));
 	}
 
 	private void srl(int r) {
-		carry = ((regs[r] & 0x01) == 0x01);
+		setCarry(((regs[r] & 0x01) == 0x01));
 
 		regs[r] >>= 1;
 
-		halfCarry = false;
-		subtract = false;
-		zero = (regs[r] == 0);
+		setHalfCarry(false);
+		setSubtract(false);
+		setZero((regs[r] == 0));
 	}
 	private void srlAt(int addr) {
 		int tmp = ram.read(addr);
 
-		carry = ((tmp & 0x01) == 0x01);
+		setCarry(((tmp & 0x01) == 0x01));
 
 		tmp >>= 1;
 	ram.write(addr, tmp);
 
-	halfCarry = false;
-	subtract = false;
-	zero = (tmp == 0);
+	setHalfCarry(false);
+	setSubtract(false);
+	setZero((tmp == 0));
 	}
 
 	// bit manipulation
@@ -444,10 +444,10 @@ public class Cpu {
 	}
 	private void bitCheck(int b, int n) {
 		// not directly mapped to an opcode, helper method
-		halfCarry = true;
-		subtract = false;
+		setHalfCarry(true);
+		setSubtract(false);
 
-		zero = ((n & (0x01 << b)) == 0);
+		setZero(((n & (0x01 << b)) == 0));
 	}
 
 	private void set(int b, int r) {
@@ -469,10 +469,10 @@ public class Cpu {
 		// swap the nibbles of a byte
 		regs[r] = ((regs[r] >> 4) & 0x0F) & ((regs[r] << 4) & 0xF0);
 
-		zero = (regs[r] == 0);    	
-		subtract = false;
-		halfCarry = false;
-		carry = false;
+		setZero((regs[r] == 0));    	
+		setSubtract(false);
+		setHalfCarry(false);
+		setCarry(false);
 	}
 
 	private void swapAt(int addr) {
@@ -481,10 +481,10 @@ public class Cpu {
 		tmp = ((tmp >> 4) & 0x0F) & ((tmp << 4) & 0xF0);
 		ram.write(addr, tmp);
 
-		zero = (tmp == 0);
-		subtract = false;
-		halfCarry = false;
-		carry = false;
+		setZero((tmp == 0));
+		setSubtract(false);
+		setHalfCarry(false);
+		setCarry(false);
 	}
 
 	private void daa() {
@@ -527,28 +527,45 @@ public class Cpu {
 
 	// flags
 	// -----
-	private boolean zero, // if the last math operation resulted in a zero
-	subtract, // if the last math operation involved a subtraction
-	halfCarry, // if the last math operation cause a carry from the lower nibble (bit 3-4)
-	carry; // if the last math operation cause a carry (bit 7-8)
+	private final static int F_ZERO = 0x80; // 0b10000000
+	private final static int F_SUBTRACT = 0x40; // 0b01000000
+	private final static int F_HALFCARRY = 0x20; // 0b00100000
+	private final static int F_CARRY = 0x10; // 0b00010000
+	
+	// if the last math operation resulted in a zero
+	public boolean isZero() {
+		return (regs[F] & F_ZERO) == F_ZERO;
+	}
+	public void setZero(boolean zero) {
+		if (zero) regs[F] |= F_ZERO;
+		else regs[F] &= ~F_ZERO & 0xFF;
+	}
 
-	public boolean getZero() { return zero; }
-	public void setZero(boolean zero) { this.zero = zero; }
+	// if the last math operation involved a subtraction
+	public boolean isSubtract() {
+		return (regs[F] & F_SUBTRACT) == F_SUBTRACT;
+	}
+	public void setSubtract(boolean subtract) {
+		if (subtract) regs[F] |= F_SUBTRACT;
+		else regs[F] &= ~F_SUBTRACT & 0xFF;
+	}
 
-	public boolean getSubtract() { return subtract; }
-	public void setSubtract(boolean subtract) { this.subtract = subtract; }
+	// if the last math operation cause a carry from the lower nibble (bit 3-4)
+	public boolean isHalfCarry() {
+		return (regs[F] & F_HALFCARRY) == F_HALFCARRY;
+	}
+	public void setHalfCarry(boolean halfCarry) {
+		if (halfCarry) regs[F] |= F_HALFCARRY;
+		else regs[F] &= ~F_HALFCARRY & 0xFF;
+	}
 
-	public boolean getHalfCarry() { return halfCarry; }
-	public void setHalfCarry(boolean halfCarry) { this.halfCarry = halfCarry; }
-
-	public boolean getCarry() { return carry; }
-	public void setCarry(boolean carry) { this.carry = carry; }
-
-	private void clearFlags() {
-		zero = false;
-		subtract = false;
-		halfCarry = false;
-		carry = false;
+	// if the last math operation cause a carry (bit 7-8)
+	public boolean isCarry() {
+		return (regs[F] & F_CARRY) == F_CARRY;
+	}
+	public void setCarry(boolean carry) {
+		if (carry) regs[F] |= F_CARRY;
+		else regs[F] &= ~F_CARRY & 0xFF;
 	}
 
 	// interrupts
@@ -653,6 +670,15 @@ public class Cpu {
 
 
 	public Cpu(Ram ram) {
+		regs[A] = 0x01;
+		regs[B] = 0x00;
+		regs[C] = 0x13;
+		regs[D] = 0x00;
+		regs[E] = 0xD8;
+		regs[F] = 0xB0;
+		regs[H] = 0x00;
+		regs[L] = 0x4D;
+
 		this.ram = ram;
 	}
 
@@ -685,7 +711,7 @@ public class Cpu {
             System.out.println(String.format("PC %x, opcode %x", pc, opcode) + ": " + regs[A] + "," + regs[B] + "," + regs[C] + ","
                     + regs[D] + "," + regs[E] + "," + regs[F] + "," + regs[H] + "," + regs[L]);
 
-			//System.out.println(String.format("PC %x, opcode %x", pc - 1, opcode));
+			System.out.println(String.format("PC %x, opcode %x", pc - 1, opcode));
 			switch (opcode) {
 			case 0x00: // NOP
 			// No operation
@@ -824,12 +850,12 @@ public class Cpu {
 			case 0x20: // JR NZ, n
 				// Relative jump by (signed) next byte
 				// IF last result was not zero
-				if (!zero) jr(readPC());
+				if (!isZero()) jr(readPC());
 				else pc++;
 				break;
 
 			case 0x21: // LD HL, nn
-				setHL(readPC16());
+				setHL(readPC(), readPC());
 				break;
 
 			case 0x22: // LDI (HL), A
@@ -865,7 +891,7 @@ public class Cpu {
 			case 0x28: // JR Z, n
 				// Relative jump by (signed) next byte
 				// IF last result was zero
-				if (zero) jr(readPC());
+				if (isZero()) jr(readPC());
 				else pc++;
 				break;
 
@@ -900,14 +926,14 @@ public class Cpu {
 				// Complement A register (Flip all bits)
 				regs[A] = ~regs[A] & 0xFF;
 
-				subtract = true;
-				halfCarry = true;
+				setSubtract(true);
+				setHalfCarry(true);
 				break;
 
 			case 0x30: // JR NC, n
 				// Relative jump by next byte
 				// IF not carry
-				if (!carry) jr(readPC());
+				if (!isCarry()) jr(readPC());
 				else pc++;
 				break;
 
@@ -938,13 +964,13 @@ public class Cpu {
 
 			case 0x37: // SCF
 				// set carry flag
-				carry = true;
+				setCarry(true);
 				break;
 
 			case 0x38: // JR C, n
 				// Relative jump by next byte
 				// IF carry
-				if (carry) jr(readPC());
+				if (isCarry()) jr(readPC());
 				else pc++;
 				break;
 
@@ -975,7 +1001,7 @@ public class Cpu {
 
 			case 0x3F: // CCF
 				// flip carry flag
-				carry = !carry;
+				setCarry(!isCarry());
 				break;
 
 			case 0x40: // LD B, B
@@ -1499,7 +1525,7 @@ public class Cpu {
 				break;
 
 			case 0xC0: // RET !FZ
-				if (!zero) ret();
+				if (!isZero()) ret();
 				break;
 
 			case 0xC1: // POP BC
@@ -1509,7 +1535,7 @@ public class Cpu {
 			case 0xC2: // JP !FZ, nn
 				// Absolute jump to position at next 2 bytes
 				// IF not zero
-				if (!zero) jp(readPC16());
+				if (!isZero()) jp(readPC16());
 				else pc += 2;
 				break;
 
@@ -1519,7 +1545,7 @@ public class Cpu {
 				break;
 
 			case 0xC4: // CALL !FZ, nn
-				if (!zero) call(readPC16());
+				if (!isZero()) call(readPC16());
 				else pc += 2;
 				break;
 
@@ -1536,7 +1562,7 @@ public class Cpu {
 				break;
 
 			case 0xC8: // RET FZ
-				if (zero) ret();
+				if (isZero()) ret();
 				break;
 
 			case 0xC9: // RET
@@ -1546,7 +1572,7 @@ public class Cpu {
 			case 0xCA: // JP FZ, nn
 				// Absolute jump to position at next 2 bytes
 				// IF zero
-				if (zero) jp(readPC16());
+				if (isZero()) jp(readPC16());
 				else pc += 2;
 				break;
 
@@ -2579,7 +2605,7 @@ public class Cpu {
 				break;
 
 			case 0xCC: // CALL FZ, nn
-				if (zero) call(readPC16());
+				if (isZero()) call(readPC16());
 				else pc += 2;
 				break;
 
@@ -2596,7 +2622,7 @@ public class Cpu {
 				break;
 
 			case 0xD0: // RET !FC
-				if (!carry) ret();
+				if (!isCarry()) ret();
 				break;
 
 			case 0xD1: // POP DE
@@ -2606,7 +2632,7 @@ public class Cpu {
 			case 0xD2: // JP !FC, nn
 				// Jump to position at next 2 bytes
 				// IF not carry
-				if (!carry) jp(readPC16());
+				if (!isCarry()) jp(readPC16());
 				else pc += 2;
 				break;
 
@@ -2614,7 +2640,7 @@ public class Cpu {
 				throw new IllegalOperationException(opcode);
 
 			case 0xD4: // CALL !FC, nn
-				if (!carry) call(readPC16());
+				if (!isCarry()) call(readPC16());
 				else pc += 2;
 				break;
 
@@ -2631,7 +2657,7 @@ public class Cpu {
 				break;
 
 			case 0xD8: // RET FC
-				if (carry) ret();
+				if (isCarry()) ret();
 				break;
 
 			case 0xD9: // RETI
@@ -2640,7 +2666,7 @@ public class Cpu {
 				break;
 
 			case 0xDA: // JP FC, nn
-				if (carry) jp(readPC16());
+				if (isCarry()) jp(readPC16());
 				else pc += 2;
 				break;
 
@@ -2648,7 +2674,7 @@ public class Cpu {
 				throw new IllegalOperationException(opcode);
 
 			case 0xDC: // CALL FC, nn
-				if (carry) call(readPC16());
+				if (isCarry()) call(readPC16());
 				else pc += 2;
 				break;
 

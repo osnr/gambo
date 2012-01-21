@@ -99,10 +99,10 @@ class DesktopMain extends JComponent implements ActionListener {
                     out.write(cpu.h());
                     out.write(cpu.l());
                     out.write(cpu.sp());
-                    out.write(cpu.getZero() ? 1 : 0);
-                    out.write(cpu.getSubtract() ? 1 : 0);
-                    out.write(cpu.getHalfCarry() ? 1 : 0);
-                    out.write(cpu.getCarry() ? 1 : 0);
+                    out.write(cpu.isZero() ? 1 : 0);
+                    out.write(cpu.isSubtract() ? 1 : 0);
+                    out.write(cpu.isHalfCarry() ? 1 : 0);
+                    out.write(cpu.isCarry() ? 1 : 0);
                     out.write(cpu.getPc());
                     out.write(cpu.getCounter());
                     out.close();
