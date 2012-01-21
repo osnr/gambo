@@ -64,8 +64,8 @@ public class Ram {
     }
 
     public void write(int addr, int n1, int n2) {
-        memory.put(addr, (byte) n1);
-        memory.put(addr + 1, (byte) n2);
+        memory.put(addr, (byte) n2);
+        memory.put(addr + 1, (byte) n1);
     }
 
     public void write16(int addr, int n) {
