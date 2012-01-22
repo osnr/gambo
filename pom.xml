@@ -26,7 +26,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>com.gabby.core.DesktopMain</mainClass>
+              <mainClass>com.gabby.core.Emulator</mainClass>
               <packageName>com.gabby.core</packageName>
             </manifest>
             <manifestEntries>

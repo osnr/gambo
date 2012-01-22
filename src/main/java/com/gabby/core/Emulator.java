@@ -8,19 +8,16 @@ import java.awt.image.BufferedImage;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
 import com.gabby.loader.*;
 
-class DesktopMain extends JComponent implements ActionListener {
+class Emulator extends JComponent implements ActionListener {
     Display display;
     final Ram ram;
     final Cpu cpu;
     final BufferedImage buffer;
 
 
-    public DesktopMain() {
+    public Emulator() {
         ram = new Ram();
         cpu = new Cpu(ram);
         display = new Display();
@@ -151,49 +148,5 @@ class DesktopMain extends JComponent implements ActionListener {
         if (args.length > 0) {
             loadRom(new File(args[0]));
         }
-    }
-    
-    public static void main(String[] args) {
-        System.setProperty("apple.laf.useScreenMenuBar", "true");
-        JFrame frame = new JFrame("Gabby");
-        final DesktopMain dm = new DesktopMain();
-
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.add(dm);
-        frame.setSize(160, 144);
-        frame.setLocationRelativeTo(null);
-        frame.setIgnoreRepaint(true);
-
-        JMenuBar menuBar = new JMenuBar();
-        JMenu fileMenu = new JMenu("File");
-        menuBar.add(fileMenu);
-
-        JMenuItem loadRom = new JMenuItem("Load ROM");
-        loadRom.addActionListener(dm);
-        loadRom.setActionCommand("load rom");
-
-        JMenuItem saveState = new JMenuItem("Save State");
-        saveState.addActionListener(dm);
-        saveState.setActionCommand("save state");
-
-        JMenuItem loadState = new JMenuItem("Load State");
-        loadState.addActionListener(dm);
-        loadState.setActionCommand("load state");
-
-        fileMenu.add(loadRom);
-        fileMenu.addSeparator();
-        fileMenu.add(saveState);
-        fileMenu.add(loadState);
-        
-        frame.setJMenuBar(menuBar);
-        frame.setVisible(true);
-        
-        dm.processArguments(args);
-
-        (new Timer()).scheduleAtFixedRate((new TimerTask() {
-            public void run() {
-                dm.repaint();
-            }
-        }), 0, 17);
     }
 }
