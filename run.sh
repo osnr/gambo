@@ -1,2 +1,2 @@
 #/usr/bin/bash
-java -cp target/classes com.gabby.core.Emulator
+java -cp target/classes com.gabby.core.Main

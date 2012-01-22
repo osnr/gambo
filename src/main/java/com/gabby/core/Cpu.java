@@ -668,7 +668,6 @@ public class Cpu {
 	public int getPc() { return pc; }
 	public void setPc(int pc) { this.pc = pc; }
 
-
 	public Cpu(Ram ram) {
 		regs[A] = 0x01;
 		regs[B] = 0x00;
@@ -680,10 +679,14 @@ public class Cpu {
 		regs[L] = 0x4D;
 
 		this.ram = ram;
+		this.clock = new Clock();
 	}
 
 	// memory access
 	private Ram ram;
+	
+	// internal clock
+	private Clock clock;
 
 	// pop 1 byte from program counter position in memory
 	// then move forward
@@ -1576,7 +1579,8 @@ public class Cpu {
 				break;
 
 			case 0xCB: // Secondary OP Code Set:
-				switch (readPC()) {
+				int cbOpcode = readPC();
+				switch (cbOpcode) {
 				case 0x00: // RLC B
 					rlc(B);
 					break;
@@ -2601,6 +2605,7 @@ public class Cpu {
 					set(7, A);
 					break;
 				}
+				clock.executedCBOp(cbOpcode);
 				break;
 
 			case 0xCC: // CALL FZ, nn
@@ -2804,7 +2809,7 @@ public class Cpu {
 				rst(0x38);
 			}
 
-			// counter -= CYCLES[opc];
+			clock.executedOp(opcode);
 			checkInterrupts();
 		}
 	}
