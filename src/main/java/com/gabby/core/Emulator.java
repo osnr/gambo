@@ -38,8 +38,10 @@ class Emulator extends JComponent implements ActionListener {
 
     public Emulator() {
         ram = new Ram();
-        cpu = new Cpu(ram);
         display = new Display();
+        
+        cpu = new Cpu(ram, display);
+        
         buffer = new BufferedImage(160, 144, BufferedImage.TYPE_INT_RGB);
         addKeyListener(new DesktopInput(ram, cpu));
 

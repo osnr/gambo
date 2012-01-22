@@ -687,7 +687,7 @@ public class Cpu {
 	public int getPc() { return pc; }
 	public void setPc(int pc) { this.pc = pc; }
 
-	public Cpu(Ram ram) {
+	public Cpu(Ram ram, Display display) {
 		regs[A] = 0x01;
 		regs[B] = 0x00;
 		regs[C] = 0x13;
@@ -698,11 +698,15 @@ public class Cpu {
 		regs[L] = 0x4D;
 
 		this.ram = ram;
+		this.display = display;
 		this.clock = new Clock();
 	}
 
 	// memory access
 	private Ram ram;
+	
+	// display
+	private Display display;
 	
 	// internal clock
 	private Clock clock;
@@ -2829,6 +2833,10 @@ public class Cpu {
 			}
 
 			clock.executedOp(opcode);
+			
+			display.step(clock.getDelta());
+			clock.step();
+			
 			checkInterrupts();
 		}
 	}
