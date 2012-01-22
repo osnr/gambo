@@ -10,8 +10,20 @@ class Display {
     public static final int SCREEN_WIDTH = 256;
     public static final int SCREEN_HEIGHT = 256;
 
+    public static final int HBLANK_MODE = 0;
+    public static final int VBLANK_MODE = 1;
+    public static final int OAM_READ_MODE = 2;
+    public static final int VRAM_READ_MODE = 3;
+
     
     protected Graphics2D g;
+    protected int clock;
+    protected int mode;
+    protected int line;
+
+    public Display() {
+        clock = mode = line = 0;
+    }
 
     public Graphics2D getG() { return g; }
     public void setG(Graphics2D g) { this.g = g; }
@@ -126,6 +138,57 @@ class Display {
             drawWindow(g, ram);
 
             Sprite.drawAllSprites(ram.getMemory(), g);
+        }
+    }
+
+    public void step(int deltaClock) {
+        clock += deltaClock;
+
+        switch (mode) {
+            case OAM_READ_MODE:
+                if (clock > 79) {
+                    clock = 0;
+                    mode = VRAM_READ_MODE;
+                }
+
+                break;
+            case VRAM_READ_MODE:
+                if (clock > 171) {
+                    clock = 0;
+                    mode = HBLANK_MODE;
+
+                    // TODO: RENDER LINE
+                }
+
+                break;
+            case HBLANK_MODE:
+                if (clock > 203) {
+                    clock = 0;
+                    line++;
+
+                    if (line == 143) { // at right
+                        mode = VBLANK_MODE;
+                        // TODO: RENDER ALL THE THINGS!!
+                    } else {
+                        mode = OAM_READ_MODE;
+                    }
+                }
+
+                break;
+            case VBLANK_MODE:
+                if (clock > 455) { // at bottom
+                    clock = 0;
+                    line++;
+
+                    if (line > 153) {
+                        mode = 2;
+                        line = 0;
+                    }
+                }
+
+                break;
+            default:
+                break;
         }
     }
 }
