@@ -38,9 +38,11 @@ class Display {
     protected int clock;
     protected int mode;
     protected int line;
+    protected Ram ram;
 
-    public Display() {
+    public Display(Ram ram) {
         clock = mode = line = 0;
+        this.ram = ram;
     }
 
     public Graphics2D getG() { return g; }
@@ -157,6 +159,17 @@ class Display {
 
             Sprite.drawAllSprites(ram.getMemory(), g);
         }
+    }
+
+    public void scanline(int line) {
+        int bgmap = (BitTwiddles.getBit(3, ram.getMemory().get(Ram.LCDC)) == 0) ? Ram.BACKGROUND_ONE : Ram.BACKGROUND_TWO;
+        int offset = ((line + ram.getMemory().get(Ram.SCY)) & 0xFF) / 8;
+        int firstTile = ram.getMemory().get(Ram.SCX) / 8;
+        int y = (line + ram.getMemory().get(Ram.SCY)) & 0x7;
+        int x = ram.getMemory().get(Ram.SCX);
+        
+        Color c;
+
     }
 
     public void step(int deltaClock) {
