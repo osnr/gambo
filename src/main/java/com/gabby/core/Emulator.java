@@ -21,6 +21,8 @@ package com.gabby.core;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.image.ColorModel;
+import java.awt.image.WritableRaster;
 import java.io.*;
 
 import java.awt.image.BufferedImage;
@@ -33,43 +35,34 @@ class Emulator extends JComponent implements ActionListener {
     Display display;
     final Ram ram;
     final Cpu cpu;
-    final BufferedImage buffer;
+    BufferedImage buffer;
 
 
     public Emulator() {
         ram = new Ram();
-        display = new Display();
+        display = new Display(ram, this);
         
         cpu = new Cpu(ram, display);
         
         buffer = new BufferedImage(160, 144, BufferedImage.TYPE_INT_RGB);
+
         addKeyListener(new DesktopInput(ram, cpu));
 
+    }
+
+    public void bufferFromBuffer(BufferedImage bi) {
+        ColorModel cm = bi.getColorModel();
+        boolean isAlphaPremultiplied = cm.isAlphaPremultiplied();
+        WritableRaster raster = bi.copyData(null);
+        buffer = new BufferedImage(cm, raster, isAlphaPremultiplied, null);
     }
 
     @Override
     public void paint(Graphics graphics) {
         super.paint(graphics);
-
+        
         Graphics2D g = (Graphics2D) graphics;
-        BufferedImage secondBuffer = new BufferedImage(160, 144, BufferedImage.TYPE_INT_RGB);
-        Graphics2D bg = secondBuffer.createGraphics();
-        bg.clearRect(0, 0, 160, 144);
-        //g.clearRect(0, 0, 160, 144);
-
-        display.draw(ram, buffer.createGraphics());
-        for (int y = 0; y < 144; y++) {
-            for (int x = 0; x < 160; x++) {
-                bg.setPaint(new Color(buffer.getRGB(x, y)));
-                bg.drawLine(x, y, x, y);
-                ram.getMemory().put(Ram.LY, (byte) x);
-            }
-        }
-
-        bg.dispose();
-        g.drawImage(secondBuffer, null, 0, 0);
-
-        cpu.setInterrupt(Cpu.VBLANK);
+        g.drawImage(buffer, null, 0, 0);
     }
     
     public void loadRom(File f) {

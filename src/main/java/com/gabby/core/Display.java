@@ -20,6 +20,7 @@ package com.gabby.core;
 
 import java.awt.Graphics2D;
 import java.awt.Color;
+import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 
 class Display {
@@ -39,10 +40,14 @@ class Display {
     protected int mode;
     protected int line;
     protected Ram ram;
+    BufferedImage buffer;
+    Emulator emulator;
 
-    public Display(Ram ram) {
+    public Display(Ram ram, Emulator emulator) {
         clock = mode = line = 0;
         this.ram = ram;
+        buffer = new BufferedImage(160, 144, BufferedImage.TYPE_INT_ARGB);
+        this.emulator = emulator;
     }
 
     public Graphics2D getG() { return g; }
@@ -62,11 +67,11 @@ class Display {
         }
     }
 
-    protected void drawBackground(Graphics2D g, Ram ram) {
+    protected void drawTILE_MAP(Graphics2D g, Ram ram) {
         if (BitTwiddles.getBit(0, ram.getMemory().get(Ram.LCDC)) == 1) {
             if (BitTwiddles.getBit(3, ram.getMemory().get(Ram.LCDC)) == 0) {
                 for (int i = 0; i < 32 * 32; i++) {
-                    int patternNumber = ram.getMemory().get(Ram.BACKGROUND_ONE + i);
+                    int patternNumber = ram.getMemory().get(Ram.TILE_MAP_ONE + i);
                     int scx = ram.getMemory().get(Ram.SCX);
                     int scy = ram.getMemory().get(Ram.SCY);
 					
@@ -88,7 +93,7 @@ class Display {
                 }
             } else {
                 for (int i = 0; i < 32 * 32; i++) {
-                    int patternNumber = ram.getMemory().get(Ram.BACKGROUND_TWO + i);
+                    int patternNumber = ram.getMemory().get(Ram.TILE_MAP_TWO + i);
                     int scx = ram.getMemory().get(Ram.SCX);
                     int scy = ram.getMemory().get(Ram.SCY);
 					
@@ -116,7 +121,7 @@ class Display {
         if (BitTwiddles.getBit(5, ram.getMemory().get(Ram.LCDC)) == 1) {
             if (BitTwiddles.getBit(6, ram.getMemory().get(Ram.LCDC)) == 0) {
                 for (int i = 0; i < 32 * 32; i++) {
-                    int patternNumber = ram.getMemory().get(Ram.BACKGROUND_ONE + i);
+                    int patternNumber = ram.getMemory().get(Ram.TILE_MAP_ONE + i);
                     int wx = ram.getMemory().get(Ram.WX);
                     int wy = ram.getMemory().get(Ram.WY);
 					
@@ -133,7 +138,7 @@ class Display {
                 }
             } else {
                 for (int i = 0; i < 32 * 32; i++) {
-                    int patternNumber = ram.getMemory().get(Ram.BACKGROUND_TWO + i);
+                    int patternNumber = ram.getMemory().get(Ram.TILE_MAP_TWO + i);
                     int scx = ram.getMemory().get(Ram.SCX);
                     int scy = ram.getMemory().get(Ram.SCY);
 					
@@ -154,7 +159,7 @@ class Display {
 
     public void draw(Ram ram, Graphics2D g) {
         if (BitTwiddles.getBit(7, ram.getMemory().get(Ram.LCDC)) != 0) {
-            drawBackground(g, ram);
+            drawTILE_MAP(g, ram);
             drawWindow(g, ram);
 
             Sprite.drawAllSprites(ram.getMemory(), g);
@@ -162,14 +167,37 @@ class Display {
     }
 
     public void scanline(int line) {
-        int bgmap = (BitTwiddles.getBit(3, ram.getMemory().get(Ram.LCDC)) == 0) ? Ram.BACKGROUND_ONE : Ram.BACKGROUND_TWO;
-        int offset = ((line + ram.getMemory().get(Ram.SCY)) & 0xFF) / 8;
-        int firstTile = ram.getMemory().get(Ram.SCX) / 8;
+        int bgmap = (BitTwiddles.getBit(3, ram.getMemory().get(Ram.LCDC)) == 0) ? Ram.TILE_MAP_ONE : Ram.TILE_MAP_TWO;
+        int lineOffset = bgmap + (((line + ram.getMemory().get(Ram.SCY)) & 0xFF) / 8);
+        int firstTileOffset = ram.getMemory().get(Ram.SCX) / 8;
         int y = (line + ram.getMemory().get(Ram.SCY)) & 0x7;
         int x = ram.getMemory().get(Ram.SCX);
-        
-        Color c;
+        int tile = ram.getMemory().get(lineOffset + firstTileOffset);
+        Color c = null;
+        Graphics2D g = buffer.createGraphics();
 
+        if (BitTwiddles.getBit(3, ram.getMemory().get(Ram.LCDC)) == 1 && tile < 128) {
+            tile += 256;
+        }
+
+        for (int i = 0; i < 160; i++) {
+            c = BitTwiddles.getColorFromBytePair(x, ram.getMemory().get(0x8000 + tile), ram.getMemory().get(0x8000 + tile + 1));
+            g.setPaint(c);
+            g.drawLine(x, x, y, y);
+            x++;
+
+            if (x == 8) {
+                x = 0;
+                lineOffset = (lineOffset + 1) & 31;
+                tile = ram.getMemory().get(lineOffset + firstTileOffset);
+
+                if (BitTwiddles.getBit(3, ram.getMemory().get(Ram.LCDC)) == 1 && tile < 128) {
+                    tile += 256;
+                }
+            }
+        }
+        
+        g.dispose();
     }
 
     public void step(int deltaClock) {
@@ -188,7 +216,7 @@ class Display {
                     clock = 0;
                     mode = HBLANK_MODE;
 
-                    // TODO: RENDER LINE
+                    scanline(line);
                 }
 
                 break;
@@ -199,7 +227,8 @@ class Display {
 
                     if (line == 143) { // at right
                         mode = VBLANK_MODE;
-                        // TODO: RENDER ALL THE THINGS!!
+                        emulator.bufferFromBuffer(buffer);
+                        emulator.repaint();
                     } else {
                         mode = OAM_READ_MODE;
                     }
@@ -221,5 +250,7 @@ class Display {
             default:
                 break;
         }
+        
+        ram.getMemory().put(Ram.LY, (byte) line);
     }
 }

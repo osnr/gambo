@@ -45,8 +45,8 @@ public class Ram {
     public static final int TILE_TABLE_ONE = 0x8000;
     public static final int TILE_TABLE_TWO = 0x8800;
     public static final int SPRITE_TABLE = TILE_TABLE_ONE;
-    public static final int BACKGROUND_ONE = 0x9800;
-    public static final int BACKGROUND_TWO = 0x9C00;
+    public static final int TILE_MAP_ONE = 0x9800;
+    public static final int TILE_MAP_TWO = 0x9C00;
 
     public static final int INPUT = 0xFF00;
 	
