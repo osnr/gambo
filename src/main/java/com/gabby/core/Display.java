@@ -46,15 +46,16 @@ class Display {
         this.ram = ram;
         buffer = new BufferedImage(160, 144, BufferedImage.TYPE_INT_ARGB);
         this.emulator = emulator;
+        this.emulator.buffer = buffer;
     }
 
     public void scanline(int line) {
         int bgmap = (BitTwiddles.getBit(3, ram.getMemory().get(Ram.LCDC)) == 0) ? Ram.TILE_MAP_ONE : Ram.TILE_MAP_TWO;
-        int lineOffset = bgmap + (((line + ram.getMemory().get(Ram.SCY)) & 0xFF) / 8);
-        int firstTileOffset = ram.getMemory().get(Ram.SCX) / 8;
-        int y = (line + ram.getMemory().get(Ram.SCY)) & 0x7;
-        int x = ram.getMemory().get(Ram.SCX);
-        int tile = ram.getMemory().get(lineOffset + firstTileOffset);
+        int lineOffset = bgmap + (((line + ram.read(Ram.SCY)) & 0xFF) / 8);
+        int firstTileOffset = ram.read(Ram.SCX) / 8;
+        int y = (line + ram.read(Ram.SCY)) & 0x7;
+        int x = ram.read(Ram.SCX);
+        int tile = ram.read(lineOffset + firstTileOffset);
         Color c = null;
         Graphics2D g = buffer.createGraphics();
 
@@ -71,7 +72,7 @@ class Display {
             if (x == 8) {
                 x = 0;
                 lineOffset = (lineOffset + 1) & 31;
-                tile = ram.getMemory().get(lineOffset + firstTileOffset);
+                tile = ram.read(lineOffset + firstTileOffset);
 
                 if (BitTwiddles.getBit(3, ram.getMemory().get(Ram.LCDC)) == 1 && tile < 128) {
                     tile += 256;

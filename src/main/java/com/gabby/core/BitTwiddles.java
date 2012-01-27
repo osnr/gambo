@@ -64,6 +64,15 @@ public class BitTwiddles {
         return -1;
     }
 
+    /**
+     * @param i The number of bits from the left to return (0 - 7)
+     * @param b The byte
+     * @return The bit as an int. If i is not in the range 0 to 7, then -1 is returned.
+     */
+    public static int getBit(int i, int b) {
+        return getBit(i, b & 0xFF);
+    }
+
     /** 
      * @param i The distance from the significant bit to the target bit (from 0 to 7).
      * @param second The first byte.
@@ -91,5 +100,15 @@ public class BitTwiddles {
         default:
             return Color.BLACK;
         }
+    }
+
+    /**
+     * @param i The distance from the significant bit to the target bit (from 0 to 7).
+     * @param second The first byte.
+     * @param first The second byte.
+     * @return The color for the pixel. If i is not within the specified range, then WHITE is returned.
+     */
+    public static Color getColorFromBytePair(int i, int first, int second) {
+        return getColorFromBytePair(i, first & 0xFF, second & 0xFF);
     }
 }
