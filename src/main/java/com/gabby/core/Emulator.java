@@ -35,7 +35,7 @@ class Emulator extends JComponent implements ActionListener {
     Display display;
     final Ram ram;
     final Cpu cpu;
-    BufferedImage buffer;
+    public BufferedImage buffer;
 
 
     public Emulator() {
