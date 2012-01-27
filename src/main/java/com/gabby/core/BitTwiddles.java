@@ -70,7 +70,7 @@ public class BitTwiddles {
      * @return The bit as an int. If i is not in the range 0 to 7, then -1 is returned.
      */
     public static int getBit(int i, int b) {
-        return getBit(i, (byte) b & 0xFF);
+        return getBit(i, (byte) (b & 0xFF));
     }
 
     /** 
@@ -109,6 +109,6 @@ public class BitTwiddles {
      * @return The color for the pixel. If i is not within the specified range, then WHITE is returned.
      */
     public static Color getColorFromBytePair(int i, int first, int second) {
-        return getColorFromBytePair(i, (byte) first & 0xFF, (byte) second & 0xFF);
+        return getColorFromBytePair(i, (byte) (first & 0xFF), (byte) (second & 0xFF));
     }
 }
