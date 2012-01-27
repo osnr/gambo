@@ -50,7 +50,7 @@ class Display {
     }
 
     public void scanline(int line) {
-        int bgmap = (BitTwiddles.getBit(3, ram.getMemory().get(Ram.LCDC)) == 0) ? Ram.TILE_MAP_ONE : Ram.TILE_MAP_TWO;
+        int bgmap = (BitTwiddles.getBit(3, ram.read(Ram.LCDC)) == 0) ? Ram.TILE_MAP_ONE : Ram.TILE_MAP_TWO;
         int lineOffset = bgmap + (((line + ram.read(Ram.SCY)) & 0xFF) / 8);
         int firstTileOffset = ram.read(Ram.SCX) / 8;
         int y = (line + ram.read(Ram.SCY)) & 0x7;
@@ -59,12 +59,12 @@ class Display {
         Color c = null;
         Graphics2D g = buffer.createGraphics();
 
-        if (BitTwiddles.getBit(3, ram.getMemory().get(Ram.LCDC)) == 1 && tile < 128) {
+        if (BitTwiddles.getBit(3, ram.read(Ram.LCDC)) == 1 && tile < 128) {
             tile += 256;
         }
 
         for (int i = 0; i < 160; i++) {
-            c = BitTwiddles.getColorFromBytePair(x, ram.getMemory().get(0x8000 + tile), ram.getMemory().get(0x8000 + tile + 1));
+            c = BitTwiddles.getColorFromBytePair(x, ram.read(0x8000 + tile), ram.read(0x8000 + tile + 1));
             g.setPaint(c);
             g.drawLine(x, x, y, y);
             x++;
@@ -74,7 +74,7 @@ class Display {
                 lineOffset = (lineOffset + 1) & 31;
                 tile = ram.read(lineOffset + firstTileOffset);
 
-                if (BitTwiddles.getBit(3, ram.getMemory().get(Ram.LCDC)) == 1 && tile < 128) {
+                if (BitTwiddles.getBit(3, ram.read(Ram.LCDC)) == 1 && tile < 128) {
                     tile += 256;
                 }
             }
@@ -138,6 +138,6 @@ class Display {
                 break;
         }
         
-        ram.getMemory().put(Ram.LY, (byte) line);
+        ram.write(Ram.LY, line);
     }
 }
