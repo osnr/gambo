@@ -735,7 +735,7 @@ public class Cpu {
 
 			opcode = readPC();
             System.out.println(String.format("PC %x, opcode %x", pc - 1, opcode) + ": " + regs[A] + "," + regs[B] + "," + regs[C] + ","
-                    + regs[D] + "," + regs[E] + "," + regs[F] + "," + regs[H] + "," + regs[L]);
+                    + regs[D] + "," + regs[E] + "," + regs[F] + "," + regs[H] + "," + regs[L] + ": LY " + ram.read(0xFF44));
 
 			switch (opcode) {
 			case 0x00: // NOP
