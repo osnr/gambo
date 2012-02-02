@@ -34,7 +34,9 @@ public class Ram {
     public static final int WINDOW_HEIGHT = 144;
 	
     public static final int OAM = 0xFE00;
+    public static final int IF = 0xFF0F;
     public static final int LCDC = 0xFF40;
+    public static final int STAT = 0xFF41;
     public static final int SCX = 0xFF43;
     public static final int SCY = 0xff42;
     public static final int WX = 0xFF4B;

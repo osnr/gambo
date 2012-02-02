@@ -34,15 +34,15 @@ class Display {
     public static final int OAM_READ_MODE = 2;
     public static final int VRAM_READ_MODE = 3;
 
-    protected int clock;
+    protected int modeClock, vblankClock;
     protected int mode;
-    protected int line;
+    protected int line, lastLine;
     protected Ram ram;
     BufferedImage buffer;
     Emulator emulator;
 
     public Display(Ram ram, Emulator emulator) {
-        clock = mode = line = 0;
+        modeClock = vblankClock = mode = line = lastLine = 0;
         this.ram = ram;
         buffer = new BufferedImage(160, 144, BufferedImage.TYPE_INT_ARGB);
         this.emulator = emulator;
@@ -84,60 +84,106 @@ class Display {
     }
 
     public void step(int deltaClock) {
-        clock += deltaClock;
+        int b = 0;
+        vblankClock += deltaClock;
 
-        switch (mode) {
-            case OAM_READ_MODE:
-                if (clock > 79) {
-                    clock = 0;
-                    mode = VRAM_READ_MODE;
-                }
-
-                break;
-            case VRAM_READ_MODE:
-                if (clock > 171) {
-                    clock = 0;
-                    mode = HBLANK_MODE;
-
-                    scanline(line);
-                }
-
-                break;
-            case HBLANK_MODE:
-                if (clock > 203) {
-                    clock = 0;
-                    line++;
-
-                    if (line == 143) { // at right
-                        mode = VBLANK_MODE;
-                        emulator.bufferFromBuffer(buffer);
-                        emulator.repaint();
-
-                        /*Graphics2D g = (Graphics2D) buffer.getGraphics();
-                        g.setBackground(new Color(255, 255, 255, 0));
-                        g.clearRect(0,0, buffer.getWidth(), buffer.getHeight());*/
-                    } else {
-                        mode = OAM_READ_MODE;
-                    }
-                }
-
-                break;
-            case VBLANK_MODE:
-                if (clock > 455) { // at bottom
-                    clock = 0;
-                    line++;
-
-                    if (line > 153) {
-                        mode = 2;
-                        line = 0;
-                    }
-                }
-
-                break;
-            default:
-                break;
+        if (vblankClock >= 70224) {
+            line = 0;
+            vblankClock -= 70224;
+            modeClock = vblankClock;
         }
-        
+
+        line = vblankClock / 456;
         ram.write(Ram.LY, line);
+
+        int lcdc = ram.read(Ram.LCDC);
+
+        if ((lcdc & BitTwiddles.bx10000000) == 1) {
+            if (ram.read(Ram.LY) == ram.read((Ram.LYC))) {
+                if ((ram.read(Ram.STAT) & BitTwiddles.bx00000100) == 0) {
+                    b = ram.read(Ram.STAT);
+                    b |= BitTwiddles.bx00000100;
+                    ram.write(Ram.STAT, b);
+                    if ((ram.read(Ram.STAT) & BitTwiddles.bx01000000) != 0) {
+                        ram.read(Ram.IF);
+                        b |= BitTwiddles.bx00000010;
+                        ram.write(Ram.IF, b);
+                    }
+                }
+            } else {
+                b = ram.read(Ram.STAT);
+                b &= BitTwiddles.bx11111011;
+            }
+        }
+
+        if (vblankClock >= 65664) { // VBLANK
+            if ((lcdc & BitTwiddles.bx00000011) != BitTwiddles.bx00000001) {
+                b = ram.read(Ram.LCDC);
+                b &= BitTwiddles.bx11111100;
+                b |= BitTwiddles.bx00000001;
+                ram.write(Ram.LCDC, b);
+
+                b = ram.read(Ram.STAT);
+                b |= BitTwiddles.bx00000001;
+                ram.write(Ram.STAT, b);
+
+                if ((ram.read(Ram.LCDC) & BitTwiddles.bx10000000) == 0) {
+                    // TODO: TURN OFF LCD
+                }
+
+                // TODO: Render to screen
+            }
+        } else {
+            modeClock += deltaClock;
+
+            if (modeClock >= 456)
+                modeClock -= 456;
+            if (modeClock  <= 80) {
+                b = ram.read(Ram.LCDC);
+
+                if ((b & BitTwiddles.bx00000011) != 2) {
+                    b &= BitTwiddles.bx11111100;
+                    b |= BitTwiddles.bx00000010;
+                    ram.write(Ram.LCDC, b);
+
+                    if ((ram.read(Ram.STAT) & BitTwiddles.bx00100000) != 0) {
+                        b = ram.read(Ram.IF);
+                        b |= BitTwiddles.bx00000010;
+                        ram.write(Ram.IF, b);
+                    }
+                }
+            } else if (modeClock <= (172 + 80)) {
+                b = ram.read(Ram.LCDC);
+                
+                if ((b & BitTwiddles.bx00000011) != 3) {
+                    b &= BitTwiddles.bx11111100;
+                    b |= 3;
+                    ram.write(Ram.LCDC, b);
+                }
+            } else {
+                b = ram.read(Ram.LCDC);
+                
+                if ((b & BitTwiddles.bx00000011) != 0) {
+                    b = ram.read(Ram.LCDC);
+
+                    if ((b & BitTwiddles.bx10000000) > 0) {
+                        if (lastLine != line) {
+                            lastLine = line;
+                            // TODO: Draw
+                        }
+                    }
+
+                    b &= BitTwiddles.bx11111100;
+                    b |= 0;
+                    ram.write(Ram.LCDC, b);
+
+                    if ((ram.read(Ram.STAT) & BitTwiddles.bx00001000) != 0) {
+                        b = ram.read(Ram.IF);
+                        b |= BitTwiddles.bx00000010;
+                        ram.write(Ram.IF, b);
+                    }
+                }
+            }
+        }
     }
 }
