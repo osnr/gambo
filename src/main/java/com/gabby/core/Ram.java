@@ -89,7 +89,7 @@ public class Ram {
         memory.put(addr + 1, (byte) n1);
     }
 
-    public void write16(int addr, int n) {
-        memory.putShort(addr, (short) n);
+    public void write16(int addr, int nn) {
+        memory.putShort(addr, (short) nn);
     }
 }

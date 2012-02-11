@@ -185,5 +185,6 @@ class Display {
                 }
             }
         }
+        System.out.println(String.format("clkCounterMode: %d, vBlank: %d, LY: %d", modeClock, vblankClock, ram.read(Ram.LY)));
     }
 }
