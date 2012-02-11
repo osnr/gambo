@@ -517,8 +517,9 @@ public class Cpu {
 	}
 
 	private int pop() {
+		int target = ram.read16(sp);
 		setSP(sp + 2);
-		return ram.read16(sp - 2);
+		return target;
 	}
 
 	// jumps
@@ -535,7 +536,7 @@ public class Cpu {
 	}
 
 	private void call(int addr) {
-		push(addr);
+		push(pc);
 		jp(addr);
 	}
 
@@ -605,8 +606,8 @@ public class Cpu {
 		interrupts = false;
 	}
 
-	private boolean interruptEnabled(int ie, int i) {
-		return (ie & (1 << i)) != 0;
+	private boolean interrupt(int flags, int i) {
+		return (flags & (1 << i)) != 0;
 	}
 
 	private int counter = Cpu.INTERRUPT_PERIOD;
@@ -618,7 +619,7 @@ public class Cpu {
 		int ie = ram.read(0xFFFF); // individual interrupt-enabled flags
 		int ifl = ram.read(0xFF0F); // interrupts triggered?
 
-		if (interruptEnabled(ie, VBLANK)) {
+		if (interrupt(ie, VBLANK) && interrupt(ifl, VBLANK)) {
 			if (interrupts) {
 				resetInterrupt(ifl, VBLANK);
 				disableInterrupts();
@@ -627,7 +628,7 @@ public class Cpu {
 			halting = false;
 		}
 
-		if (interruptEnabled(ie, LCDC)) {
+		if (interrupt(ie, LCDC) && interrupt(ifl, LCDC)) {
 			if (interrupts) {
 				resetInterrupt(ifl, LCDC);
 				disableInterrupts();
@@ -636,7 +637,7 @@ public class Cpu {
 			halting = false;
 		}
 
-		if (interruptEnabled(ie, TIMER)) {
+		if (interrupt(ie, TIMER) && interrupt(ifl, TIMER)) {
 			if (interrupts) {
 				resetInterrupt(ifl, TIMER);
 				disableInterrupts();
@@ -645,7 +646,7 @@ public class Cpu {
 			halting = false;
 		}
 
-		if (interruptEnabled(ie, SERIAL)) {
+		if (interrupt(ie, SERIAL) && interrupt(ifl, SERIAL)) {
 			if (interrupts) {
 				resetInterrupt(ifl, SERIAL);
 				disableInterrupts();
@@ -654,7 +655,7 @@ public class Cpu {
 			halting = false;
 		}
 
-		if (interruptEnabled(ie, INPUT)) {
+		if (interrupt(ie, INPUT) && interrupt(ifl, INPUT)) {
 			if (interrupts) {
 				resetInterrupt(ifl, INPUT);
 				disableInterrupts();
