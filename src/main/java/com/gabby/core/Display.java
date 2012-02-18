@@ -49,6 +49,25 @@ class Display {
         this.emulator.buffer = buffer;
     }
 
+    private Color getColorFromPalette(int pal, int c) {
+        int palb = ram.read(pal);
+
+        int colorCode = (palb >> (c * 2)) & BitTwiddles.bx00000011;
+
+        switch (colorCode) {
+            case 0:
+                return Color.WHITE;
+            case 1:
+                return Color.LIGHT_GRAY;
+            case 2:
+                return Color.DARK_GRAY;
+            case 3:
+                return Color.BLACK;
+            default:
+                return Color.RED;
+        }
+    }
+
     private void scanline(int line) {
         int bgmap = (BitTwiddles.getBit(3, ram.read(Ram.LCDC)) == 0) ? Ram.TILE_MAP_ONE : Ram.TILE_MAP_TWO;
         int lineOffset = bgmap + (((line + ram.read(Ram.SCY)) & 0xFF) / 8);
@@ -79,11 +98,87 @@ class Display {
                 }
             }
         }
-        
+
         g.dispose();
     }
 
-    private void drawSprites(int line) {
+    private void drawBackground(int line) {
+        int[] tileBuf = new int[64];
+        int tiledata;
+        int tilemap;
+
+        if ((ram.read(Ram.LCDC) & BitTwiddles.bx00000001) ==  0) {
+            // Screen is off, so draw black.
+            for (int i = 0; i < 160; i++) {
+                buffer.setRGB(i, line, 0x000000000);
+            }
+        } else {
+            if ((ram.read(Ram.LCDC) & BitTwiddles.bx00010000) == 0) {
+                tiledata = Ram.TILE_TABLE_ONE;
+            } else {
+                tiledata = Ram.TILE_TABLE_TWO;
+            }
+
+            if ((ram.read(Ram.LCDC) & BitTwiddles.bx00000100) == 0) {
+                tilemap = Ram.TILE_MAP_ONE;
+            } else {
+                tilemap = Ram.TILE_MAP_TWO;
+            }
+
+            int y = line + ram.read(Ram.SCY);
+            int z = y & 7; // appar-ently the same as y % 8, but faster, row of tile
+            int u = z * 8;
+            y >>= 3; // num of tile
+
+            int tileNum = y << 5;
+            int tile;
+
+            int lastTile = 999; // valid values are 0 to 255, so this forces the first one.
+            int[] tileBuffer = new int[64];
+
+            for (int i = 0; i < 32; i++) {
+                if (tiledata == Ram.TILE_TABLE_ONE) {
+                    tile = ram.read(tilemap + tileNum);
+                } else {
+                    tile = ram.read(tilemap + tileNum) + 128; // This might be wrong
+                }
+
+                int t = 0;
+
+                if (tile != lastTile) {
+                    lastTile = tile;
+                    t = z << 1;
+                    int tmpAddr = tiledata + (tile << 4) + t;
+                    t <<= 2;
+
+                    int b1 = ram.read(tmpAddr);
+                    int b2 = ram.read(tmpAddr + 1);
+                    tileBuffer[t + 7] = ((b2 & 1) | ((b1 & 1) << 1));
+                    tileBuffer[t + 6] = (((b2 & 2) >> 1) | (((b1 & 2) >> 1) << 1));
+                    tileBuffer[t + 5] = (((b2 & 4) >> 2) | (((b1 & 4) >> 2) << 1));
+                    tileBuffer[t + 4] = (((b2 & 8) >> 3) | (((b1 & 8) >> 3) << 1));
+                    tileBuffer[t + 3] = (((b2 & 16) >> 4) | (((b1 & 16) >> 4) << 1));
+                    tileBuffer[t + 2] = (((b2 & 32) >> 5) | (((b1 & 32) >> 5) << 1));
+                    tileBuffer[t + 1] = (((b2 & 64) >> 6) | (((b1 & 64) >> 6) << 1));
+                    tileBuffer[t] = (((b2 & 128) >> 7) | (((b1 & 128) >> 7) << 1));
+                }
+
+                int x = (i * 8) - ram.read(Ram.SCX);
+
+                for (int j = 0; j < 8; j++) {
+                    if (x < 160) {
+                        buffer.setRGB(x, line, getColorFromPalette(Ram.BGP, tileBuffer[u + j]).getRGB());
+                    }
+
+                    x++;
+                }
+
+                tileNum++;
+            }
+        }
+    }
+
+    private void drawSprites(int line) { // TODO: FINISH THIS
         int numSpritesToDisplay = 0, height = 0;
         int[] spritesToDraw = new int[40];
 
@@ -107,7 +202,9 @@ class Display {
         }
 
         Arrays.sort(spritesToDraw);
-        
+
+        int[] spriteBuff = new int[128];
+
         for (int i = 0; i < numSpritesToDisplay; i++) {
             int sprite = spritesToDraw[i] & BitTwiddles.bx00111111;
             int x = ram.read(Ram.OAM + (sprite * 4)) - 16;
@@ -118,6 +215,16 @@ class Display {
                 pattern &= BitTwiddles.bx11111110;
 
             int flags = ram.read(Ram.OAM + (x * 4) + 3);
+            int palette = 1;
+
+            if ((flags & BitTwiddles.bx00010000) == 1) {
+                palette = 2;
+            }
+
+            for (int j = 0; j <= (height * 2) + 1; j += 2) {
+                int b1 = ram.read(Ram.VRAM + (pattern << 4) + j);
+                int b2 = ram.read(Ram.VRAM + (pattern << 4) + j + 1);
+            }
         }
     }
 
@@ -194,7 +301,7 @@ class Display {
                 }
             } else if (modeClock <= (172 + 80)) {
                 b = ram.read(Ram.LCDC);
-                
+
                 if ((b & BitTwiddles.bx00000011) != 3) {
                     b &= BitTwiddles.bx11111100;
                     b |= 3;
@@ -202,7 +309,7 @@ class Display {
                 }
             } else {
                 b = ram.read(Ram.LCDC);
-                
+
                 if ((b & BitTwiddles.bx00000011) != 0) {
                     b = ram.read(Ram.LCDC);
 
@@ -210,7 +317,8 @@ class Display {
                         if (lastLine != line) {
                             lastLine = line;
                             // TODO: Draw
-                            scanline(line);
+                            // scanline(line);
+                            drawBackground(line);
                         }
                     }
 
@@ -226,6 +334,7 @@ class Display {
                 }
             }
         }
+
         System.out.println(String.format("clkCounterMode: %d, vBlank: %d, LY: %d", modeClock, vblankClock, ram.read(Ram.LY)));
     }
 }
