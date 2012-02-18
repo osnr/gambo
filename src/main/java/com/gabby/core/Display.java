@@ -21,7 +21,7 @@ package com.gabby.core;
 import java.awt.Graphics2D;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
-import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 class Display {
     public static final int TILE_WIDTH = 8;
@@ -49,7 +49,7 @@ class Display {
         this.emulator.buffer = buffer;
     }
 
-    public void scanline(int line) {
+    private void scanline(int line) {
         int bgmap = (BitTwiddles.getBit(3, ram.read(Ram.LCDC)) == 0) ? Ram.TILE_MAP_ONE : Ram.TILE_MAP_TWO;
         int lineOffset = bgmap + (((line + ram.read(Ram.SCY)) & 0xFF) / 8);
         int firstTileOffset = ram.read(Ram.SCX) / 8;
@@ -81,6 +81,44 @@ class Display {
         }
         
         g.dispose();
+    }
+
+    private void drawSprites(int line) {
+        int numSpritesToDisplay = 0, height = 0;
+        int[] spritesToDraw = new int[40];
+
+        if ((ram.read(Ram.LCDC) & BitTwiddles.bx00000010) == 1) { // TODO: Hide sprite display
+            numSpritesToDisplay = 0;
+
+            if ((ram.read(Ram.LCDC) & BitTwiddles.bx00000100) == 0)
+                height = 7; // 8x8
+            else
+                height = 15; // 8x16
+        }
+
+        for (int i = 0; i < 40; i++) {
+            int x = ram.read(Ram.OAM + (i * 4)) - 16; // x coords are -16 for some reason
+            int y = ram.read(Ram.OAM + (i * 4) + 1) - 8; // y coords are -8
+
+            if ((x > -8) && (y >= (line - height)) && (x < 160) && (y < line)) {
+                spritesToDraw[numSpritesToDisplay] = ((x + 8) << 6) | x;
+                numSpritesToDisplay++;
+            }
+        }
+
+        Arrays.sort(spritesToDraw);
+        
+        for (int i = 0; i < numSpritesToDisplay; i++) {
+            int sprite = spritesToDraw[i] & BitTwiddles.bx00111111;
+            int x = ram.read(Ram.OAM + (sprite * 4)) - 16;
+            int y = ram.read(Ram.OAM + (sprite * 4) + 1) - 8;
+            int pattern = ram.read(Ram.OAM + (sprite * 4) + 2);
+
+            if (height == 15)
+                pattern &= BitTwiddles.bx11111110;
+
+            int flags = ram.read(Ram.OAM + (x * 4) + 3);
+        }
     }
 
     public void step(int deltaClock) {
@@ -132,6 +170,8 @@ class Display {
                 }
 
                 // TODO: Render to screen
+                emulator.buffer = this.buffer;
+                emulator.repaint();
             }
         } else {
             modeClock += deltaClock;
@@ -170,6 +210,7 @@ class Display {
                         if (lastLine != line) {
                             lastLine = line;
                             // TODO: Draw
+                            scanline(line);
                         }
                     }
 

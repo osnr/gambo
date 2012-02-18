@@ -43,8 +43,12 @@ public class Ram {
     public static final int WY = 0xFF4A;
     public static final int LY = 0xFF44;
     public static final int LYC = 0xFF45;
+    public static final int BGP = 0xFF47;
+    public static final int OBP0 = 0xFF48;
+    public static final int OBP1 = 0xFF49;
 	
     public static final int TILE_TABLE_ONE = 0x8000;
+    public static final int VRAM = 0x8000;
     public static final int TILE_TABLE_TWO = 0x8800;
     public static final int SPRITE_TABLE = TILE_TABLE_ONE;
     public static final int TILE_MAP_ONE = 0x9800;
