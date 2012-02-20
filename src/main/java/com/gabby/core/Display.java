@@ -106,6 +106,8 @@ class Display {
         int[] tileBuf = new int[64];
         int tiledata;
         int tilemap;
+        
+        System.out.println("line: " + line);
 
         if ((ram.read(Ram.LCDC) & BitTwiddles.bx00000001) ==  0) {
             // Screen is off, so draw black.
@@ -163,11 +165,17 @@ class Display {
                     tileBuffer[t] = (((b2 & 128) >> 7) | (((b1 & 128) >> 7) << 1));
                 }
 
-                int x = (i * 8) - ram.read(Ram.SCX);
+                int x = BitTwiddles.toUnsignedByte((i << 3) - ram.read(Ram.SCX));
+                int scx = ram.read(Ram.SCX);
 
                 for (int j = 0; j < 8; j++) {
                     if (x < 160) {
-                        buffer.setRGB(x, line, getColorFromPalette(Ram.BGP, tileBuffer[u + j]).getRGB());
+                        try {
+                            buffer.setRGB(x, line, getColorFromPalette(Ram.BGP, tileBuffer[u + j]).getRGB());
+                        } catch (ArrayIndexOutOfBoundsException e) {
+                            System.err.println(String.format("Out of bounds at: (%d, %d)", x, line));
+                            e.printStackTrace();
+                        }
                     }
 
                     x++;
@@ -238,7 +246,7 @@ class Display {
             modeClock = vblankClock;
         }
 
-        line = vblankClock / 456;
+        line = (vblankClock / 456);
         ram.write(Ram.LY, line);
 
         int lcdc = ram.read(Ram.LCDC);

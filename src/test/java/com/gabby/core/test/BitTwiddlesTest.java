@@ -34,4 +34,13 @@ public class BitTwiddlesTest {
             actual[i] = BitTwiddles.getColorFromBytePair(i, b1, b2);
         Assert.assertArrayEquals(expected, actual);
     }
+
+    @Test
+    public void testToUnisgnedByte() {
+        int a = BitTwiddles.toUnsignedByte(-16);
+        int b = BitTwiddles.toUnsignedByte(16);
+
+        Assert.assertEquals(240, a);
+        Assert.assertEquals(16, b);
+    }
 }

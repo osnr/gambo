@@ -366,4 +366,12 @@ public class BitTwiddles {
     public static Color getColorFromBytePair(int i, int first, int second) {
         return getColorFromBytePair(i, (byte) (first & 0xFF), (byte) (second & 0xFF));
     }
+    
+    public static int toUnsignedByte(int i) {
+        if (i < 0) {
+            return 256 + i;
+        } else {
+            return i;
+        }
+    }
 }
