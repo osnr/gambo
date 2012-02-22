@@ -107,7 +107,8 @@ class Display {
         int tiledata;
         int tilemap;
         
-        System.out.println("line: " + line);
+        //System.out.println("line: " + line);
+        //System.out.println(Arrays.toString(ram.readRange(Ram.VRAM, 0x9800)));
 
         if ((ram.read(Ram.LCDC) & BitTwiddles.bx00000001) ==  0) {
             // Screen is off, so draw black.
@@ -115,10 +116,12 @@ class Display {
                 buffer.setRGB(i, line, 0x000000000);
             }
         } else {
-            if ((ram.read(Ram.LCDC) & BitTwiddles.bx00010000) == 0) {
-                tiledata = Ram.TILE_TABLE_ONE;
-            } else {
+            int lcdc = ram.read(Ram.LCDC);
+            int q = lcdc & 16;
+            if ((ram.read(Ram.LCDC) & 16) == 0) {
                 tiledata = Ram.TILE_TABLE_TWO;
+            } else {
+                tiledata = Ram.TILE_TABLE_ONE;
             }
 
             if ((ram.read(Ram.LCDC) & BitTwiddles.bx00000100) == 0) {
@@ -126,6 +129,8 @@ class Display {
             } else {
                 tilemap = Ram.TILE_MAP_TWO;
             }
+            
+            int scy = ram.read(Ram.SCY);
 
             int y = line + ram.read(Ram.SCY);
             int z = y & 7; // appar-ently the same as y % 8, but faster, row of tile
@@ -142,7 +147,8 @@ class Display {
                 if (tiledata == Ram.TILE_TABLE_ONE) {
                     tile = ram.read(tilemap + tileNum);
                 } else {
-                    tile = ram.read(tilemap + tileNum) + 128; // This might be wrong
+                    int r = ram.read(tilemap + tileNum);
+                    tile = BitTwiddles.toSignedByte(ram.read(tilemap + tileNum)) + 128; // This might be wrong
                 }
 
                 int t = 0;
@@ -155,14 +161,15 @@ class Display {
 
                     int b1 = ram.read(tmpAddr);
                     int b2 = ram.read(tmpAddr + 1);
-                    tileBuffer[t + 7] = ((b2 & 1) | ((b1 & 1) << 1));
-                    tileBuffer[t + 6] = (((b2 & 2) >> 1) | (((b1 & 2) >> 1) << 1));
-                    tileBuffer[t + 5] = (((b2 & 4) >> 2) | (((b1 & 4) >> 2) << 1));
-                    tileBuffer[t + 4] = (((b2 & 8) >> 3) | (((b1 & 8) >> 3) << 1));
-                    tileBuffer[t + 3] = (((b2 & 16) >> 4) | (((b1 & 16) >> 4) << 1));
-                    tileBuffer[t + 2] = (((b2 & 32) >> 5) | (((b1 & 32) >> 5) << 1));
-                    tileBuffer[t + 1] = (((b2 & 64) >> 6) | (((b1 & 64) >> 6) << 1));
-                    tileBuffer[t] = (((b2 & 128) >> 7) | (((b1 & 128) >> 7) << 1));
+                    int a = 0;
+                    tileBuffer[t + 7] = a = ((b2 & 1) | ((b1 & 1) << 1));
+                    tileBuffer[t + 6] = a = (((b2 & 2) >> 1) | (((b1 & 2) >> 1) << 1));
+                    tileBuffer[t + 5] = a = (((b2 & 4) >> 2) | (((b1 & 4) >> 2) << 1));
+                    tileBuffer[t + 4] = a = (((b2 & 8) >> 3) | (((b1 & 8) >> 3) << 1));
+                    tileBuffer[t + 3] = a = (((b2 & 16) >> 4) | (((b1 & 16) >> 4) << 1));
+                    tileBuffer[t + 2] = a = (((b2 & 32) >> 5) | (((b1 & 32) >> 5) << 1));
+                    tileBuffer[t + 1] = a = (((b2 & 64) >> 6) | (((b1 & 64) >> 6) << 1));
+                    tileBuffer[t] = a = (((b2 & 128) >> 7) | (((b1 & 128) >> 7) << 1));
                 }
 
                 int x = BitTwiddles.toUnsignedByte((i << 3) - ram.read(Ram.SCX));
@@ -343,6 +350,6 @@ class Display {
             }
         }
 
-        System.out.println(String.format("clkCounterMode: %d, vBlank: %d, LY: %d", modeClock, vblankClock, ram.read(Ram.LY)));
+        //System.out.println(String.format("clkCounterMode: %d, vBlank: %d, LY: %d", modeClock, vblankClock, ram.read(Ram.LY)));
     }
 }

@@ -43,4 +43,13 @@ public class BitTwiddlesTest {
         Assert.assertEquals(240, a);
         Assert.assertEquals(16, b);
     }
+
+    @Test
+    public void testToSignedByte() {
+        int a = BitTwiddles.toSignedByte(128);
+        int b = BitTwiddles.toSignedByte(127);
+
+        Assert.assertEquals(-128, a);
+        Assert.assertEquals(127, b);
+    }
 }

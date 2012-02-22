@@ -78,6 +78,17 @@ public class Ram {
     public int read(int addr) {
         return memory.get(addr) & 0xFF; // unsign
     }
+
+    // reads the interval [start, end)
+    public int[] readRange(int start, int end) {
+        int[] b = new int[end - start];
+        
+        for (int i = start; i < end; i++) {
+            b[i - start] = read(i);
+        }
+
+        return b;
+    }
     
     public int read16(int addr) {
         return memory.getShort(addr) & 0xFFFF; // unsign

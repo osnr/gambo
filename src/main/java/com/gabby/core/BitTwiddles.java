@@ -374,4 +374,12 @@ public class BitTwiddles {
             return i;
         }
     }
+    
+    public static int toSignedByte(int i) {
+        if (i > 127) {
+            return -128 + (i - 128);
+        } else {
+            return i;
+        }
+    }
 }
