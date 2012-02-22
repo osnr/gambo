@@ -64,42 +64,8 @@ class Display {
             case 3:
                 return Color.BLACK;
             default:
-                return Color.RED;
+                return Color.RED; // THINGS HAVE GONE HORRIBLY WRONG!
         }
-    }
-
-    private void scanline(int line) {
-        int bgmap = (BitTwiddles.getBit(3, ram.read(Ram.LCDC)) == 0) ? Ram.TILE_MAP_ONE : Ram.TILE_MAP_TWO;
-        int lineOffset = bgmap + (((line + ram.read(Ram.SCY)) & 0xFF) / 8);
-        int firstTileOffset = ram.read(Ram.SCX) / 8;
-        int y = (line + ram.read(Ram.SCY)) & 0x7;
-        int x = ram.read(Ram.SCX);
-        int tile = ram.read(lineOffset + firstTileOffset);
-        Color c = null;
-        Graphics2D g = buffer.createGraphics();
-
-        if (BitTwiddles.getBit(3, ram.read(Ram.LCDC)) == 1 && tile < 128) {
-            tile += 256;
-        }
-
-        for (int i = 0; i < 160; i++) {
-            c = BitTwiddles.getColorFromBytePair(x, ram.read(0x8000 + tile), ram.read(0x8000 + tile + 1));
-            g.setPaint(c);
-            g.drawLine(x, x, y, y);
-            x++;
-
-            if (x == 8) {
-                x = 0;
-                lineOffset = (lineOffset + 1) & 31;
-                tile = ram.read(lineOffset + firstTileOffset);
-
-                if (BitTwiddles.getBit(3, ram.read(Ram.LCDC)) == 1 && tile < 128) {
-                    tile += 256;
-                }
-            }
-        }
-
-        g.dispose();
     }
 
     private void drawBackground(int line) {
@@ -116,9 +82,7 @@ class Display {
                 buffer.setRGB(i, line, 0x000000000);
             }
         } else {
-            int lcdc = ram.read(Ram.LCDC);
-            int q = lcdc & 16;
-            if ((ram.read(Ram.LCDC) & 16) == 0) {
+            if ((ram.read(Ram.LCDC) & BitTwiddles.bx00010000) == 0) {
                 tiledata = Ram.TILE_TABLE_TWO;
             } else {
                 tiledata = Ram.TILE_TABLE_ONE;
@@ -129,8 +93,6 @@ class Display {
             } else {
                 tilemap = Ram.TILE_MAP_TWO;
             }
-            
-            int scy = ram.read(Ram.SCY);
 
             int y = line + ram.read(Ram.SCY);
             int z = y & 7; // appar-ently the same as y % 8, but faster, row of tile
@@ -147,11 +109,10 @@ class Display {
                 if (tiledata == Ram.TILE_TABLE_ONE) {
                     tile = ram.read(tilemap + tileNum);
                 } else {
-                    int r = ram.read(tilemap + tileNum);
                     tile = BitTwiddles.toSignedByte(ram.read(tilemap + tileNum)) + 128; // This might be wrong
                 }
 
-                int t = 0;
+                int t;
 
                 if (tile != lastTile) {
                     lastTile = tile;
@@ -161,19 +122,18 @@ class Display {
 
                     int b1 = ram.read(tmpAddr);
                     int b2 = ram.read(tmpAddr + 1);
-                    int a = 0;
-                    tileBuffer[t + 7] = a = ((b2 & 1) | ((b1 & 1) << 1));
-                    tileBuffer[t + 6] = a = (((b2 & 2) >> 1) | (((b1 & 2) >> 1) << 1));
-                    tileBuffer[t + 5] = a = (((b2 & 4) >> 2) | (((b1 & 4) >> 2) << 1));
-                    tileBuffer[t + 4] = a = (((b2 & 8) >> 3) | (((b1 & 8) >> 3) << 1));
-                    tileBuffer[t + 3] = a = (((b2 & 16) >> 4) | (((b1 & 16) >> 4) << 1));
-                    tileBuffer[t + 2] = a = (((b2 & 32) >> 5) | (((b1 & 32) >> 5) << 1));
-                    tileBuffer[t + 1] = a = (((b2 & 64) >> 6) | (((b1 & 64) >> 6) << 1));
-                    tileBuffer[t] = a = (((b2 & 128) >> 7) | (((b1 & 128) >> 7) << 1));
+
+                    tileBuffer[t + 7] = ((b2 & 1) | ((b1 & 1) << 1));
+                    tileBuffer[t + 6] = (((b2 & 2) >> 1) | (((b1 & 2) >> 1) << 1));
+                    tileBuffer[t + 5] = (((b2 & 4) >> 2) | (((b1 & 4) >> 2) << 1));
+                    tileBuffer[t + 4] = (((b2 & 8) >> 3) | (((b1 & 8) >> 3) << 1));
+                    tileBuffer[t + 3] = (((b2 & 16) >> 4) | (((b1 & 16) >> 4) << 1));
+                    tileBuffer[t + 2] = (((b2 & 32) >> 5) | (((b1 & 32) >> 5) << 1));
+                    tileBuffer[t + 1] = (((b2 & 64) >> 6) | (((b1 & 64) >> 6) << 1));
+                    tileBuffer[t] = (((b2 & 128) >> 7) | (((b1 & 128) >> 7) << 1));
                 }
 
                 int x = BitTwiddles.toUnsignedByte((i << 3) - ram.read(Ram.SCX));
-                int scx = ram.read(Ram.SCX);
 
                 for (int j = 0; j < 8; j++) {
                     if (x < 160) {
@@ -182,6 +142,7 @@ class Display {
                         } catch (ArrayIndexOutOfBoundsException e) {
                             System.err.println(String.format("Out of bounds at: (%d, %d)", x, line));
                             e.printStackTrace();
+                            System.exit(1);
                         }
                     }
 
