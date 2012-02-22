@@ -200,6 +200,67 @@ class Display {
             for (int j = 0; j <= (height * 2) + 1; j += 2) {
                 int b1 = ram.read(Ram.VRAM + (pattern << 4) + j);
                 int b2 = ram.read(Ram.VRAM + (pattern << 4) + j + 1);
+
+                spriteBuff[(j << 2) + 7] =  ((b2 & BitTwiddles.bx00000001) | ((b1 & BitTwiddles.bx00000001) << 1));
+                spriteBuff[(j << 2) + 6] = (((b2 & BitTwiddles.bx00000010) >> 1) | (((b1 & BitTwiddles.bx00000010) >> 1) << 1));
+                spriteBuff[(j << 2) + 5] = (((b2 & BitTwiddles.bx00000100) >> 2) | (((b1 & BitTwiddles.bx00000100) >> 2) << 1));
+                spriteBuff[(j << 2) + 4] = (((b2 & BitTwiddles.bx00001000) >> 3) | (((b1 & BitTwiddles.bx00001000) >> 3) << 1));
+                spriteBuff[(j << 2) + 3] = (((b2 & BitTwiddles.bx00010000) >> 4) | (((b1 & BitTwiddles.bx00010000) >> 4) << 1));
+                spriteBuff[(j << 2) + 2] = (((b2 & BitTwiddles.bx00100000) >> 5) | (((b1 & BitTwiddles.bx00100000) >> 5) << 1));
+                spriteBuff[(j << 2) + 1] = (((b2 & BitTwiddles.bx01000000) >> 6) | (((b1 & BitTwiddles.bx01000000) >> 6) << 1));
+                spriteBuff[(j << 2)] = (((b2 & BitTwiddles.bx10000000) >> 7) | (((b1 & BitTwiddles.bx10000000) >> 7) << 1));
+            }
+
+            if ((flags & BitTwiddles.bx00100000) == 1) {
+                for (int j = 0; j < height; j++) { // x-axis flip
+                    int t = spriteBuff[(j << 3) + 0];
+                    spriteBuff[(j << 3) + 0] = spriteBuff[(j << 3) + 7];
+                    spriteBuff[(j << 3) + 7] = t;
+                    t = spriteBuff[(j << 3) + 1];
+                    spriteBuff[(j << 3) + 1] = spriteBuff[(j << 3) + 6];
+                    spriteBuff[(j << 3) + 6] = t;
+                    t = spriteBuff[(j << 3) + 2];
+                    spriteBuff[(j << 3) + 2] = spriteBuff[(j << 3) + 5];
+                    spriteBuff[(j << 3) + 5] = t;
+                    t = spriteBuff[(j << 3) + 3];
+                    spriteBuff[(j << 3) + 3] = spriteBuff[(j << 3) + 4];
+                    spriteBuff[(j << 3) + 4] = t;
+                }
+            }
+
+            if ((flags & BitTwiddles.bx01000000) == 1) { // y-axis flip
+                for (int j = 0; j < 8; j++) {
+                    if (height == 7) {  /* Swap 8 pixels high sprites */
+                        for (y = 0; y < 25; y += 8) {
+                            int t = spriteBuff[y + j];
+                            spriteBuff[y + j] = spriteBuff[(56 - y) + j];
+                            spriteBuff[(56 - y) + j] = t;
+                        }
+                    } else {   /* Swap 16 pixels high sprites */
+                        for (y = 0; y < 57; y += 8) {
+                            int t = spriteBuff[y + j];
+                            spriteBuff[y + j] = spriteBuff[(120 - y) + j];
+                            spriteBuff[(120 - y) + j] = t;
+                        }
+                    }
+                }
+            }
+
+            int bgc = getColorFromPalette(Ram.BGP, 0).getRGB();
+            int z = line - y;
+
+            for (int j = 0; j < 8; j++) {
+                if (((x + j) >= 0) && ((y + j) >= 0) && ((x + j) < 160) && ((y + z) < 144)) {
+                    if (spriteBuff[(z << 3) | j] > 0) { // if inside the screen and not transparant
+                        if (((flags & BitTwiddles.bx10000000) == 0) || (buffer.getRGB(x + j, y + z) == bgc)) {
+                            if (palette == 1) {
+                                buffer.setRGB(x + j, y + z, getColorFromPalette(Ram.OBP0, spriteBuff[(z << 3) | j]).getRGB());
+                            } else {
+                                buffer.setRGB(x + j, y + z, getColorFromPalette(Ram.OBP1, spriteBuff[(z << 3) | j]).getRGB());
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -252,7 +313,6 @@ class Display {
                     // TODO: TURN OFF LCD
                 }
 
-                // TODO: Render to screen
                 emulator.buffer = this.buffer;
                 emulator.repaint();
             }
@@ -295,6 +355,7 @@ class Display {
                             // TODO: Draw
                             // scanline(line);
                             drawBackground(line);
+                            drawSprites(line);
                         }
                     }
 
