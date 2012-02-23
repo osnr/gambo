@@ -25,16 +25,16 @@ import java.awt.event.KeyEvent;
 class DesktopInput extends KeyAdapter {
     protected int buttons;
     protected int dpad;
-    protected static final int DPAD = 0x10;
-    protected static final int BUTTONS = 0x20;
+    protected static final int DPAD = BitTwiddles.bx00010000;
+    protected static final int BUTTONS = BitTwiddles.bx00100000;
     protected Ram ram;
     protected Cpu cpu;
 
     public DesktopInput(Ram ram, Cpu cpu) {
         this.ram = ram;
         this.cpu = cpu;
-        buttons = BUTTONS;
-        dpad = DPAD;
+        buttons = 0x2f;
+        dpad = 0x1f;
     }
     
     public void keyPressed(KeyEvent e) {
