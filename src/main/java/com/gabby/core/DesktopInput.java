@@ -23,16 +23,18 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
 class DesktopInput extends KeyAdapter {
-    protected byte buttons;
-    protected byte dpad;
+    protected int buttons;
+    protected int dpad;
+    protected static final int DPAD = 0x10;
+    protected static final int BUTTONS = 0x20;
     protected Ram ram;
     protected Cpu cpu;
 
     public DesktopInput(Ram ram, Cpu cpu) {
         this.ram = ram;
         this.cpu = cpu;
-        buttons = 0x20;
-        dpad = 0x10;
+        buttons = BUTTONS;
+        dpad = DPAD;
     }
     
     public void keyPressed(KeyEvent e) {
@@ -53,7 +55,7 @@ class DesktopInput extends KeyAdapter {
         else if (e.getKeyCode() == KeyEvent.VK_DOWN)
             dpad |= 1 << 3;
 
-        ram.getMemory().put(Ram.INPUT, getInputByte());
+        ram.write(Ram.JOYP, getInputByte());
         cpu.setInterrupt(Cpu.INPUT);
     }
 
@@ -75,15 +77,24 @@ class DesktopInput extends KeyAdapter {
         else if (e.getKeyCode() == KeyEvent.VK_DOWN)
             dpad = ~(1 << 3);
 
-        ram.getMemory().put(Ram.INPUT, getInputByte());
+        ram.write(Ram.JOYP, getInputByte());
     }
 
-    public byte getInputByte() {
-        if (BitTwiddles.getBit(4, ram.getMemory().get(Ram.INPUT)) == 0) // check endianness
+    public int getInputByte() {
+        if (BitTwiddles.getBit(4, ram.getMemory().get(Ram.JOYP)) == 0) // check endianness
             return dpad;
-        else if (BitTwiddles.getBit(5, ram.getMemory().get(Ram.INPUT)) == 0) // check endianness
+        else if (BitTwiddles.getBit(5, ram.getMemory().get(Ram.JOYP)) == 0) // check endianness
             return buttons;
         else
             return 0x0; // is this ok?    
+    }
+    
+    public void step() {
+        int joyp = ram.read(Ram.JOYP);
+
+        if (joyp == BUTTONS)
+            ram.write(Ram.JOYP, buttons);
+        else if (joyp == DPAD)
+            ram.write(Ram.JOYP, dpad);
     }
 }

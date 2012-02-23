@@ -54,7 +54,7 @@ public class Ram {
     public static final int TILE_MAP_ONE = 0x9800;
     public static final int TILE_MAP_TWO = 0x9C00;
 
-    public static final int INPUT = 0xFF00;
+    public static final int JOYP = 0xFF00;
 	
     // flags for 5 interrupts in here
     public static final int IE = 0xFFFF;
