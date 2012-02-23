@@ -688,7 +688,7 @@ public class Cpu {
 	public int getPc() { return pc; }
 	public void setPc(int pc) { this.pc = pc; }
 
-	public Cpu(Ram ram, Display display) {
+	public Cpu(Ram ram, Display display, DesktopInput input) {
 		regs[A] = 0x01;
 		regs[B] = 0x00;
 		regs[C] = 0x13;
@@ -701,6 +701,7 @@ public class Cpu {
 		this.ram = ram;
 		this.display = display;
 		this.clock = new Clock();
+        this.input = input;
 	}
 
 	// memory access
@@ -711,6 +712,8 @@ public class Cpu {
 	
 	// internal clock
 	private Clock clock;
+
+    private DesktopInput input;
 
 	// pop 1 byte from program counter position in memory
 	// then move forward
@@ -2836,6 +2839,7 @@ public class Cpu {
 			clock.executedOp(opcode);
 			
 			display.step(clock.getDelta());
+            input.step();
 			clock.step();
 			
 			checkInterrupts();

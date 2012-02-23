@@ -33,16 +33,17 @@ import com.gabby.loader.*;
 
 class Emulator extends JComponent implements ActionListener {
     Display display;
-    final Ram ram;
-    final Cpu cpu;
+    private Ram ram;
+    private Cpu cpu;
     public BufferedImage buffer;
-
+    private DesktopInput input;
 
     public Emulator() {
         ram = new Ram();
         display = new Display(ram, this);
+        input = new DesktopInput(ram, cpu);
         
-        cpu = new Cpu(ram, display);
+        cpu = new Cpu(ram, display, input);
         
         buffer = new BufferedImage(160, 144, BufferedImage.TYPE_INT_RGB);
 
