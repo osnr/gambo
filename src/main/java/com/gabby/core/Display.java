@@ -62,6 +62,7 @@ class Display {
             case 2:
                 return Color.DARK_GRAY;
             case 3:
+
                 return Color.BLACK;
             default:
                 return Color.RED; // THINGS HAVE GONE HORRIBLY WRONG!
@@ -372,6 +373,6 @@ class Display {
             }
         }
 
-        //System.out.println(String.format("clkCounterMode: %d, vBlank: %d, LY: %d", modeClock, vblankClock, ram.read(Ram.LY)));
+        // System.out.println(String.format("clkCounterMode: %d, vBlank: %d, LY: %d", modeClock, vblankClock, ram.read(Ram.LY)));
     }
 }

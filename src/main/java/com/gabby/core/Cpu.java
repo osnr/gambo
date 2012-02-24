@@ -738,7 +738,7 @@ public class Cpu {
 			if (halting) continue;
 
 			opcode = readPC();
-            //System.out.print(String.format("PC %x, opcode %x", pc - 1, opcode) + ": " + regs[A] + "," + regs[B] + "," + regs[C] + ","
+            // System.out.print(String.format("PC %x, opcode %x", pc - 1, opcode) + ": " + regs[A] + "," + regs[B] + "," + regs[C] + ","
             //                 + regs[D] + "," + regs[E] + "," + regs[F] + "," + regs[H] + "," + regs[L] + "," + sp + ": SP target " + ram.read16(sp) + ": ");
 
 			switch (opcode) {
@@ -2754,8 +2754,8 @@ public class Cpu {
 				addSP(readPC());
 				break;
 
-			case 0xE9: // JP (HL)
-				jp(ram.read16(hl()));
+			case 0xE9: // JP HL
+				jp(hl());
 				break;
 
 			case 0xEA: // LD (nn), A
