@@ -67,6 +67,8 @@ public class Main implements Serializable {
                 frame.setVisible(true);
 
                 emulator.processArguments(args);
+                
+                frame.addKeyListener(emulator.getInput());
 
                 (new java.util.Timer()).scheduleAtFixedRate((new TimerTask() {
                     public void run() {
