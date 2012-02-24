@@ -28,11 +28,11 @@ class DesktopInput extends KeyAdapter {
     protected static final int DPAD = BitTwiddles.bx00010000;
     protected static final int BUTTONS = BitTwiddles.bx00100000;
     protected Ram ram;
-    protected Cpu cpu;
+    private Cpu cpu;
 
-    public DesktopInput(Ram ram, Cpu cpu) {
+    public DesktopInput(Ram ram) {
         this.ram = ram;
-        this.cpu = cpu;
+
         buttons = 0x2f;
         dpad = 0x1f;
     }
@@ -97,4 +97,12 @@ class DesktopInput extends KeyAdapter {
         else if (joyp == DPAD)
             ram.write(Ram.JOYP, dpad);
     }
+
+	protected void setCpu(Cpu cpu) {
+		this.cpu = cpu;
+	}
+
+	protected Cpu getCpu() {
+		return cpu;
+	}
 }

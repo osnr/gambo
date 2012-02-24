@@ -41,14 +41,13 @@ class Emulator extends JComponent implements ActionListener {
     public Emulator() {
         ram = new Ram();
         display = new Display(ram, this);
-        input = new DesktopInput(ram, cpu);
+        input = new DesktopInput(ram);
         
         cpu = new Cpu(ram, display, input);
         
+        input.setCpu(cpu);
+        
         buffer = new BufferedImage(160, 144, BufferedImage.TYPE_INT_RGB);
-
-        addKeyListener(new DesktopInput(ram, cpu));
-
     }
 
     public void bufferFromBuffer(BufferedImage bi) {
@@ -164,4 +163,12 @@ class Emulator extends JComponent implements ActionListener {
             loadRom(new File(args[0]));
         }
     }
+
+	protected void setInput(DesktopInput input) {
+		this.input = input;
+	}
+
+	protected DesktopInput getInput() {
+		return input;
+	}
 }

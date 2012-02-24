@@ -738,8 +738,8 @@ public class Cpu {
 			if (halting) continue;
 
 			opcode = readPC();
-            // System.out.print(String.format("PC %x, opcode %x", pc - 1, opcode) + ": " + regs[A] + "," + regs[B] + "," + regs[C] + ","
-            //                 + regs[D] + "," + regs[E] + "," + regs[F] + "," + regs[H] + "," + regs[L] + "," + sp + ": SP target " + ram.read16(sp) + ": ");
+            System.out.print(String.format("PC %x, opcode %x", pc - 1, opcode) + ": " + regs[A] + "," + regs[B] + "," + regs[C] + ","
+                             + regs[D] + "," + regs[E] + "," + regs[F] + "," + regs[H] + "," + regs[L] + "," + sp + ": SP target " + ram.read16(sp) + ": ");
 
 			switch (opcode) {
 			case 0x00: // NOP
