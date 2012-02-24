@@ -36,9 +36,10 @@ public class Main implements Serializable {
 
                 frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 frame.add(emulator);
-                frame.setSize(160, 144);
+                //frame.setSize(160, 164);
                 frame.setLocationRelativeTo(null);
                 frame.setIgnoreRepaint(true);
+                frame.getContentPane().setPreferredSize(new Dimension(160, 144));
 
                 JMenuBar menuBar = new JMenuBar();
                 JMenu fileMenu = new JMenu("File");
@@ -62,6 +63,7 @@ public class Main implements Serializable {
                 fileMenu.add(loadState);
 
                 frame.setJMenuBar(menuBar);
+                frame.pack();
                 frame.setVisible(true);
 
                 emulator.processArguments(args);
