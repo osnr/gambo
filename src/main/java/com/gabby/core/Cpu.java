@@ -702,6 +702,8 @@ public class Cpu {
 		this.display = display;
 		this.clock = new Clock();
         this.input = input;
+        
+        this.ram.init();
 	}
 
 	// memory access
@@ -739,7 +741,7 @@ public class Cpu {
 
 			opcode = readPC();
             System.out.print(String.format("PC %x, opcode %x", pc - 1, opcode) + ": " + regs[A] + "," + regs[B] + "," + regs[C] + ","
-                             + regs[D] + "," + regs[E] + "," + regs[F] + "," + regs[H] + "," + regs[L] + "," + sp + ": SP target " + ram.read16(sp) + ": ");
+                             + regs[D] + "," + regs[E] + "," + regs[F] + "," + regs[H] + "," + regs[L] + "," + sp + ": LCDC " + ram.read(Ram.LCDC) + "\n");
 
 			switch (opcode) {
 			case 0x00: // NOP
