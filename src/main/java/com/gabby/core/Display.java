@@ -301,14 +301,14 @@ class Display {
 
         if (vblankClock >= 65664) { // VBLANK
             if ((lcdc & BitTwiddles.bx00000011) != BitTwiddles.bx00000001) {
-                b = ram.read(Ram.LCDC);
+                b = ram.read(Ram.STAT);
                 b &= BitTwiddles.bx11111100;
                 b |= BitTwiddles.bx00000001;
-                ram.write(Ram.LCDC, b);
-
-                b = ram.read(Ram.STAT);
-                b |= BitTwiddles.bx00000001;
                 ram.write(Ram.STAT, b);
+
+                /*b = ram.read(Ram.STAT);
+                b |= BitTwiddles.bx00000001;
+                ram.write(Ram.STAT, b);*/
 
                 if ((ram.read(Ram.LCDC) & BitTwiddles.bx10000000) == 0) {
                     // TODO: TURN OFF LCD
@@ -323,12 +323,12 @@ class Display {
             if (modeClock >= 456)
                 modeClock -= 456;
             if (modeClock  <= 80) {
-                b = ram.read(Ram.LCDC);
+                b = ram.read(Ram.STAT);
 
                 if ((b & BitTwiddles.bx00000011) != 2) {
                     b &= BitTwiddles.bx11111100;
                     b |= BitTwiddles.bx00000010;
-                    ram.write(Ram.LCDC, b);
+                    ram.write(Ram.STAT, b);
 
                     if ((ram.read(Ram.STAT) & BitTwiddles.bx00100000) != 0) {
                         b = ram.read(Ram.IF);
@@ -337,15 +337,15 @@ class Display {
                     }
                 }
             } else if (modeClock <= (172 + 80)) {
-                b = ram.read(Ram.LCDC);
+                b = ram.read(Ram.STAT);
 
                 if ((b & BitTwiddles.bx00000011) != 3) {
                     b &= BitTwiddles.bx11111100;
                     b |= 3;
-                    ram.write(Ram.LCDC, b);
+                    ram.write(Ram.STAT, b);
                 }
             } else {
-                b = ram.read(Ram.LCDC);
+                b = ram.read(Ram.STAT);
 
                 if ((b & BitTwiddles.bx00000011) != 0) {
                     b = ram.read(Ram.LCDC);
@@ -360,9 +360,10 @@ class Display {
                         }
                     }
 
+                    b = ram.read(Ram.STAT);
                     b &= BitTwiddles.bx11111100;
                     b |= 0;
-                    ram.write(Ram.LCDC, b);
+                    ram.write(Ram.STAT, b);
 
                     if ((ram.read(Ram.STAT) & BitTwiddles.bx00001000) != 0) {
                         b = ram.read(Ram.IF);
