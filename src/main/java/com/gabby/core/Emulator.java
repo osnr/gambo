@@ -44,7 +44,8 @@ class Emulator extends JComponent implements ActionListener {
         input = new DesktopInput(ram);
         
         cpu = new Cpu(ram, display, input);
-        
+
+        display.setCpu(cpu);
         input.setCpu(cpu);
         
         buffer = new BufferedImage(160, 144, BufferedImage.TYPE_INT_RGB);

@@ -671,7 +671,7 @@ public class Cpu {
 	
 	private void setInterrupt(int ifl, int i) {
 		// trigger the interrupt itself
-		ram.write(0xFF0F, ifl | (0x01 << i));
+		ram.write(0xFF0F, ifl | (1 << i));
 	}
 
 	private void resetInterrupt(int ifl, int i) {
@@ -741,7 +741,7 @@ public class Cpu {
 
 			opcode = readPC();
             System.out.print(String.format("PC %x, opcode %x", pc - 1, opcode) + ": " + regs[A] + "," + regs[B] + "," + regs[C] + ","
-                             + regs[D] + "," + regs[E] + "," + regs[F] + "," + regs[H] + "," + regs[L] + "," + sp + ": LCDC " + ram.read(Ram.LCDC) + "\n");
+                             + regs[D] + "," + regs[E] + "," + regs[F] + "," + regs[H] + "," + regs[L] + "," + sp + ": ");
 
 			switch (opcode) {
 			case 0x00: // NOP

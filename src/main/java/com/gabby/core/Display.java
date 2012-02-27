@@ -38,6 +38,7 @@ class Display {
     protected int mode;
     protected int line, lastLine;
     protected Ram ram;
+	protected Cpu cpu;
     BufferedImage buffer;
     Emulator emulator;
 
@@ -300,11 +301,14 @@ class Display {
         }
 
         if (vblankClock >= 65664) { // VBLANK
-            if ((lcdc & BitTwiddles.bx00000011) != BitTwiddles.bx00000001) {
+	        if ((ram.read(Ram.STAT) & BitTwiddles.bx00000011) != BitTwiddles.bx00000001) {
                 b = ram.read(Ram.STAT);
                 b &= BitTwiddles.bx11111100;
                 b |= BitTwiddles.bx00000001;
                 ram.write(Ram.STAT, b);
+
+                System.out.println("Setting vblank");
+                cpu.setInterrupt(Cpu.VBLANK);
 
                 /*b = ram.read(Ram.STAT);
                 b |= BitTwiddles.bx00000001;
@@ -374,6 +378,14 @@ class Display {
             }
         }
 
-        // System.out.println(String.format("clkCounterMode: %d, vBlank: %d, LY: %d", modeClock, vblankClock, ram.read(Ram.LY)));
+        System.out.println(String.format("vBlank: %d", vblankClock));
     }
+
+	protected void setCpu(Cpu cpu) {
+		this.cpu = cpu;
+	}
+
+	protected Cpu getCpu() {
+		return cpu;
+	}
 }
