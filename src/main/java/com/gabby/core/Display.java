@@ -225,7 +225,7 @@ class Display {
         }
     }
 
-    private void drawSprites() { // TODO: FINISH THIS
+    private void drawSprites() {
         int numSpritesToDisplay = 0, height = 0;
         int[] spritesToDraw = new int[40];
 
@@ -376,7 +376,7 @@ class Display {
                 b |= BitTwiddles.bx00000001;
                 ram.write(Ram.STAT, b);
 
-                //System.out.println("Setting vblank");
+                System.out.println("Setting vblank");
                 cpu.setInterrupt(Cpu.VBLANK);
 
                 /*b = ram.read(Ram.STAT);
@@ -448,7 +448,7 @@ class Display {
             }
         }
 
-        // System.out.println(String.format("vBlank: %d", vblankClock));
+        //System.out.println(String.format("vBlank: %d", vblankClock));
     }
 
 	protected void setCpu(Cpu cpu) {
