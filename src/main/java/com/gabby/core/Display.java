@@ -70,7 +70,7 @@ class Display {
         }
     }
 
-    private void drawBackground(int line) {
+    private void drawBackground() {
         int[] tileBuf = new int[64];
         int tiledata;
         int tilemap;
@@ -156,7 +156,76 @@ class Display {
         }
     }
 
-    private void drawSprites(int line) { // TODO: FINISH THIS
+    private void drawWindow() {
+        int lcdc = ram.read(Ram.LCDC);
+        int wx = ram.read(Ram.WX), wy = ram.read(Ram.WY);
+        int tileMap = 0;
+        int tileData = 0;
+        if (((lcdc & BitTwiddles.bx00000001) == 1) && ((lcdc & BitTwiddles.bx00100000) == 1)) {
+            if ((wx <= 166) && (wy <= line) && (wx >= 7) && (line <= 143)) {
+                if ((lcdc & BitTwiddles.bx01000000) == 0) {
+                    tileMap = Ram.TILE_MAP_ONE;
+                } else {
+                    tileMap = Ram.TILE_MAP_TWO;
+                }
+
+                if ((lcdc & BitTwiddles.bx00010000) == 0) {
+                    tileData = Ram.TILE_TABLE_TWO;
+                } else {
+                    tileData = Ram.TILE_TABLE_ONE;
+                }
+
+                int row = line - wy;
+                int y = (row >> 3);
+                row &= BitTwiddles.bx00000111;
+                int tileNum = y << 5;
+                int tile = 0;
+
+                for (int i = 0; i < 32; i++) {
+                    if (tileData == Ram.TILE_TABLE_ONE) {
+                        tile = ram.read(tileData + tileNum);
+                    } else {
+                        tile = BitTwiddles.toSignedByte(ram.read(tileData + tileNum)) + 128;
+                    }
+
+
+                    int z = row << 1;
+                    int tmpAddr = tileData + (tile << 4) + z;
+                    z <<= 2;
+
+                    int b1 = ram.read(tmpAddr);
+                    int b2 = ram.read(tmpAddr + 1);
+
+                    int[] tileBuff = new int[64];
+
+                    tileBuff[z + 7] = ((b2 & BitTwiddles.bx00000001) | ((b1 & BitTwiddles.bx00000001) << 1));
+                    tileBuff[z + 6] = (((b2 & BitTwiddles.bx00000010) >> 1) | (((b1 & BitTwiddles.bx00000010) >> 1) << 1));
+                    tileBuff[z + 5] = (((b2 & BitTwiddles.bx00000100) >> 2) | (((b1 & BitTwiddles.bx00000100) >> 2) << 1));
+                    tileBuff[z + 4] = (((b2 & BitTwiddles.bx00001000) >> 3) | (((b1 & BitTwiddles.bx00001000) >> 3) << 1));
+                    tileBuff[z + 3] = (((b2 & BitTwiddles.bx00010000) >> 4) | (((b1 & BitTwiddles.bx00010000) >> 4) << 1));
+                    tileBuff[z + 2] = (((b2 & BitTwiddles.bx00100000) >> 5) | (((b1 & BitTwiddles.bx00100000) >> 5) << 1));
+                    tileBuff[z + 1] = (((b2 & BitTwiddles.bx01000000) >> 6) | (((b1 & BitTwiddles.bx01000000) >> 6) << 1));
+                    tileBuff[z] = (((b2 & BitTwiddles.bx10000000) >> 7) | (((b1 & BitTwiddles.bx10000000) >> 7) << 1));
+
+                    int x = (i << 3) + wx - 7;
+                    z = (line - (wy  & 7)) << 3;
+
+                    for (int j = 0; j < 8; j++) {
+                        if ((x > 0) && (x < 160)) {
+                            buffer.setRGB(x, line, getColorFromPalette(Ram.BGP, tileBuff[z]).getRGB());
+                        }
+
+                        x++;
+                        z++;
+                    }
+
+                    tileNum++;
+                }
+            }
+        }
+    }
+
+    private void drawSprites() { // TODO: FINISH THIS
         int numSpritesToDisplay = 0, height = 0;
         int[] spritesToDraw = new int[40];
 
@@ -307,7 +376,7 @@ class Display {
                 b |= BitTwiddles.bx00000001;
                 ram.write(Ram.STAT, b);
 
-                System.out.println("Setting vblank");
+                //System.out.println("Setting vblank");
                 cpu.setInterrupt(Cpu.VBLANK);
 
                 /*b = ram.read(Ram.STAT);
@@ -359,8 +428,9 @@ class Display {
                             lastLine = line;
                             // TODO: Draw
                             // scanline(line);
-                            drawBackground(line);
-                            drawSprites(line);
+                            drawBackground();
+                            drawWindow();
+                            drawSprites();
                         }
                     }
 
@@ -378,7 +448,7 @@ class Display {
             }
         }
 
-        System.out.println(String.format("vBlank: %d", vblankClock));
+        // System.out.println(String.format("vBlank: %d", vblankClock));
     }
 
 	protected void setCpu(Cpu cpu) {
