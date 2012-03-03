@@ -230,7 +230,7 @@ class Display {
         int[] spritesToDraw = new int[40];
 
         if ((ram.read(Ram.LCDC) & BitTwiddles.bx00000010) == 1) { // TODO: Hide sprite display
-            numSpritesToDisplay = 0;
+            //numSpritesToDisplay = 0;
 
             if ((ram.read(Ram.LCDC) & BitTwiddles.bx00000100) == 0)
                 height = 7; // 8x8
@@ -239,10 +239,14 @@ class Display {
         }
 
         for (int i = 0; i < 40; i++) {
-            int x = ram.read(Ram.OAM + (i * 4)) - 16; // x coords are -16 for some reason
-            int y = ram.read(Ram.OAM + (i * 4) + 1) - 8; // y coords are -8
+            int y = ram.read(Ram.OAM + (i << 2)) - 16; // x coords are -16 for some reason
+            int x = ram.read(Ram.OAM + (i << 2) + 1) - 8; // y coords are -8
+            
+            int[] a = ram.readRange(0x8000, 0x8FFF);
+            
+//            System.out.println(String.format("x: %d, y: %d\nox: %d, oy: %d", x, y, Ram.OAM + (i << 2) + 1, Ram.OAM + (i << 2)));
 
-            if ((x > -8) && (y >= (line - height)) && (x < 160) && (y < line)) {
+            if ((x > -8) && (y >= (line - height)) && (x < 160) && (y <= line)) {
                 spritesToDraw[numSpritesToDisplay] = ((x + 8) << 6) | x;
                 numSpritesToDisplay++;
             }
@@ -271,7 +275,7 @@ class Display {
             for (int j = 0; j <= (height * 2) + 1; j += 2) {
                 int b1 = ram.read(Ram.VRAM + (pattern << 4) + j);
                 int b2 = ram.read(Ram.VRAM + (pattern << 4) + j + 1);
-
+                System.out.println(String.format("b1: %d, b2: %d", b1, b2));
                 spriteBuff[(j << 2) + 7] =  ((b2 & BitTwiddles.bx00000001) | ((b1 & BitTwiddles.bx00000001) << 1));
                 spriteBuff[(j << 2) + 6] = (((b2 & BitTwiddles.bx00000010) >> 1) | (((b1 & BitTwiddles.bx00000010) >> 1) << 1));
                 spriteBuff[(j << 2) + 5] = (((b2 & BitTwiddles.bx00000100) >> 2) | (((b1 & BitTwiddles.bx00000100) >> 2) << 1));
@@ -376,7 +380,6 @@ class Display {
                 b |= BitTwiddles.bx00000001;
                 ram.write(Ram.STAT, b);
 
-                System.out.println("Setting vblank");
                 cpu.setInterrupt(Cpu.VBLANK);
 
                 /*b = ram.read(Ram.STAT);
