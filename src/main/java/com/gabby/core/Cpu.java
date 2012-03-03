@@ -507,7 +507,30 @@ public class Cpu {
 	}
 
 	private void daa() {
+		// Decimal-adjust reg A after addition
+		int tmpA = regs[A];
 
+		if (!isSubtract()) {
+			if (isCarry() || tmpA > 0x99) {
+				tmpA = (tmpA + 0x60) & 0xFF;
+				setCarry(true);
+			}
+			if (isHalfCarry() || (tmpA & 0xF) > 0x9) {
+				tmpA = (tmpA + 0x06) & 0xFF;
+				setHalfCarry(false);
+			}
+		} else if (isCarry() && isHalfCarry()) {
+			tmpA = (tmpA + 0x9A) & 0xFF;
+			setHalfCarry(false);
+		} else if (isCarry()) {
+			tmpA = (tmpA + 0xA0) & 0xFF;
+		} else if (isHalfCarry()) {
+			tmpA = (tmpA + 0xFA) & 0xFF;
+			setHalfCarry(false);
+		}
+		setZero((tmpA == 0));
+
+		regs[A] = tmpA;
 	}
 
 	// stack

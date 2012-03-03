@@ -113,6 +113,13 @@ public class Ram {
         this.memory = memory;
     }
     
+    protected void dmaTransfer(int data) {
+    	int addr = data << 8; // source address is data * 0x100
+    	for (int i = 0; i < 0xA0; i++) { // copy A0 bytes to OAM
+    		this.write(0xFE00 + i, this.read(addr + i));
+    	}
+    }
+    
     // read unsigned byte from a position in memory
     public int read(int addr) {
         return memory.get(addr) & 0xFF; // unsign
@@ -135,16 +142,18 @@ public class Ram {
 
     // write to a position in memory
     public void write(int addr, int n) {
-	    if (addr < ROM_LIMIT) return;
-
-        memory.put(addr, (byte) n);
+	    if (addr < ROM_LIMIT) {
+	    	return;
+	    } else if (addr == 0xFF46) { // DMA transfer 
+	    	dmaTransfer(n);
+	    } else {
+	    	memory.put(addr, (byte) n);
+	    }
     }
 
     public void write(int addr, int n1, int n2) {
-	    if (addr < ROM_LIMIT) return;
-
-        memory.put(addr, (byte) n2);
-        memory.put(addr + 1, (byte) n1);
+        this.write(addr, n2);
+        this.write(addr + 1, n1);
     }
 
     public void write16(int addr, int nn) {

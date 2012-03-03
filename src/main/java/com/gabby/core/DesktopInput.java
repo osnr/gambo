@@ -23,8 +23,8 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
 class DesktopInput extends KeyAdapter {
-    protected int buttons;
-    protected int dpad;
+    protected int buttons = 0xDF; // pin 15
+    protected int dpad = 0xEF; // pin 14
     protected static final int DPAD = BitTwiddles.bx00010000;
     protected static final int BUTTONS = BitTwiddles.bx00100000;
     protected Ram ram;
@@ -55,7 +55,6 @@ class DesktopInput extends KeyAdapter {
         else if (e.getKeyCode() == KeyEvent.VK_DOWN)
             dpad |= 1 << 3;
 
-        ram.write(Ram.JOYP, getInputByte());
         cpu.setInterrupt(Cpu.INPUT);
     }
 
@@ -76,17 +75,16 @@ class DesktopInput extends KeyAdapter {
             dpad = ~(1 << 2);
         else if (e.getKeyCode() == KeyEvent.VK_DOWN)
             dpad = ~(1 << 3);
-
-        ram.write(Ram.JOYP, getInputByte());
     }
 
     public int getInputByte() {
-        if (BitTwiddles.getBit(4, ram.getMemory().get(Ram.JOYP)) == 0) // check endianness
-            return dpad;
-        else if (BitTwiddles.getBit(5, ram.getMemory().get(Ram.JOYP)) == 0) // check endianness
-            return buttons;
-        else
-            return 0x0; // is this ok?    
+    	switch ((ram.read(Ram.JOYP)>>4)&3) {
+    	case 0: return dpad & buttons; // TODO not sure on this
+    	case 1: return buttons;
+    	case 2: return dpad;
+    	case 3: return 0xFF; // TODO not sure on this
+    	default: return 0x00;
+    	}
     }
     
     public void step() {
