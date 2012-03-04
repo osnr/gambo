@@ -88,12 +88,7 @@ class DesktopInput extends KeyAdapter {
     }
     
     public void step() {
-        int joyp = ram.read(Ram.JOYP);
-
-        if (joyp == BUTTONS)
-            ram.write(Ram.JOYP, buttons);
-        else if (joyp == DPAD)
-            ram.write(Ram.JOYP, dpad);
+        ram.write(Ram.JOYP, this.getInputByte());
     }
 
 	protected void setCpu(Cpu cpu) {

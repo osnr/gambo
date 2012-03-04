@@ -114,10 +114,14 @@ public class Ram {
     }
     
     protected void dmaTransfer(int data) {
+    	System.out.print("Running DMA transfer");
     	int addr = data << 8; // source address is data * 0x100
+  ///  	int total = 0;
     	for (int i = 0; i < 0xA0; i++) { // copy A0 bytes to OAM
     		this.write(0xFE00 + i, this.read(addr + i));
+    //		total += this.read(addr + i);
     	}
+    	//System.out.println(", total: " + total);
     }
     
     // read unsigned byte from a position in memory

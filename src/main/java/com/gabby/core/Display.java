@@ -275,7 +275,7 @@ class Display {
             for (int j = 0; j <= (height * 2) + 1; j += 2) {
                 int b1 = ram.read(Ram.VRAM + (pattern << 4) + j);
                 int b2 = ram.read(Ram.VRAM + (pattern << 4) + j + 1);
-                System.out.println(String.format("b1: %d, b2: %d", b1, b2));
+                //System.out.println(String.format("b1: %d, b2: %d", b1, b2));
                 spriteBuff[(j << 2) + 7] =  ((b2 & BitTwiddles.bx00000001) | ((b1 & BitTwiddles.bx00000001) << 1));
                 spriteBuff[(j << 2) + 6] = (((b2 & BitTwiddles.bx00000010) >> 1) | (((b1 & BitTwiddles.bx00000010) >> 1) << 1));
                 spriteBuff[(j << 2) + 5] = (((b2 & BitTwiddles.bx00000100) >> 2) | (((b1 & BitTwiddles.bx00000100) >> 2) << 1));
