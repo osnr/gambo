@@ -229,8 +229,8 @@ class Display {
         int numSpritesToDisplay = 0, height = 0;
         int[] spritesToDraw = new int[40];
 
-        if ((ram.read(Ram.LCDC) & BitTwiddles.bx00000010) == 1) {
-            //numSpritesToDisplay = 0;
+        if ((ram.read(Ram.LCDC) & BitTwiddles.bx00000010) > 0) {
+            numSpritesToDisplay = 0;
 
             if ((ram.read(Ram.LCDC) & BitTwiddles.bx00000100) == 0)
                 height = 7; // 8x8
