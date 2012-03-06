@@ -2863,9 +2863,9 @@ public class Cpu {
 
 			clock.executedOp(opcode);
 			
-			try {
+            //try {
 			display.step(clock.getDelta());
-			} catch (Exception ex) { }
+            //} catch (Exception e) {}
             input.step();
 			clock.step();
 			

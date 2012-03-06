@@ -116,12 +116,12 @@ public class Ram {
     
     protected void dmaTransfer(int data) {
     	int addr = data << 8; // source address is data * 0x100
-    	System.out.println("Running DMA transfer from addr " + addr + " to 0xFE00.");
-    	System.out.println("Source memory: " + Arrays.toString(this.readRange(addr, addr + 0xA0)));
+    	//System.out.println("Running DMA transfer from addr " + addr + " to 0xFE00.");
+    	//System.out.println("Source memory: " + Arrays.toString(this.readRange(addr, addr + 0xA0)));
     	for (int i = 0; i < 0xA0; i++) { // copy A0 bytes to OAM
     		this.write(0xFE00 + i, this.read(addr + i));
     	}
-    	System.out.println("Dest memory: " + Arrays.toString(this.readRange(0xFE00, 0xFE00 + 0xA0)));
+    	//System.out.println("Dest memory: " + Arrays.toString(this.readRange(0xFE00, 0xFE00 + 0xA0)));
     }
     
     // read unsigned byte from a position in memory

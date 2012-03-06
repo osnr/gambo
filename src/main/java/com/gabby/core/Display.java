@@ -229,7 +229,7 @@ class Display {
         int numSpritesToDisplay = 0, height = 0;
         int[] spritesToDraw = new int[40];
 
-        if ((ram.read(Ram.LCDC) & BitTwiddles.bx00000010) == 1) { // TODO: Hide sprite display
+        if ((ram.read(Ram.LCDC) & BitTwiddles.bx00000010) == 1) {
             //numSpritesToDisplay = 0;
 
             if ((ram.read(Ram.LCDC) & BitTwiddles.bx00000100) == 0)
@@ -242,9 +242,10 @@ class Display {
             int y = ram.read(Ram.OAM + (i << 2)) - 16; // x coords are -16 for some reason
             int x = ram.read(Ram.OAM + (i << 2) + 1) - 8; // y coords are -8
             
-            int[] a = ram.readRange(0x8000, 0x8FFF);
+            int[] a = ram.readRange(Ram.OAM, Ram.OAM + 20);
             
-//            System.out.println(String.format("x: %d, y: %d\nox: %d, oy: %d", x, y, Ram.OAM + (i << 2) + 1, Ram.OAM + (i << 2)));
+//            System.out.println(String.fo
+// rmat("x: %d, y: %d\nox: %d, oy: %d", x, y, Ram.OAM + (i << 2) + 1, Ram.OAM + (i << 2)));
 
             if ((x > -8) && (y >= (line - height)) && (x < 160) && (y <= line)) {
                 spritesToDraw[numSpritesToDisplay] = ((x + 8) << 6) | x;
@@ -258,8 +259,8 @@ class Display {
 
         for (int i = 0; i < numSpritesToDisplay; i++) {
             int sprite = spritesToDraw[i] & BitTwiddles.bx00111111;
-            int x = ram.read(Ram.OAM + (sprite * 4)) - 16;
-            int y = ram.read(Ram.OAM + (sprite * 4) + 1) - 8;
+            int y = ram.read(Ram.OAM + (sprite * 4)) - 16;
+            int x = ram.read(Ram.OAM + (sprite * 4) + 1) - 8;
             int pattern = ram.read(Ram.OAM + (sprite * 4) + 2);
 
             if (height == 15)
