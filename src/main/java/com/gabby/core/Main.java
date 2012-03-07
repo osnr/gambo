@@ -39,6 +39,7 @@ public class Main implements Serializable {
                 //frame.setSize(160, 164);
                 frame.setLocationRelativeTo(null);
                 frame.setIgnoreRepaint(true);
+                frame.setResizable(false);
                 frame.getContentPane().setPreferredSize(new Dimension(160, 144));
 
                 JMenuBar menuBar = new JMenuBar();
