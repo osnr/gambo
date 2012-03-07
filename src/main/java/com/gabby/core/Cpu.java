@@ -252,7 +252,7 @@ public class Cpu {
 	}
 	private void andTo(int n) {
 		// AND with A, result in A
-		regs[A] &= n;
+		regs[A] &= (n & 0xFF);
 
 		setZero((regs[A] == 0));
 		setHalfCarry(true); // ??
@@ -671,7 +671,47 @@ public class Cpu {
 		while (true) {
 			if (isHalting()) continue;
 
-			if (pc == 0x29e2 && mmu.read(0xFF81) != 0) System.out.println(Integer.toHexString(mmu.read(0xFF81)));
+			// check what tetris is reading about inputs
+			// (tetris flips the bits btw)
+			if (pc == 0x29b5 && regs[A] != 0x00) { // first part of input read (0x20 plug into (0xFF00), so dpad)
+				int dpad = regs[A];
+				System.out.println("Reading dpad, value: " + Integer.toHexString(dpad));
+			}
+			if (pc == 0x29d3 && regs[A] != 0x00) { // second part of input read (0x10 plug into (0xFF00), so buttons)
+				int buttons = regs[A];
+				System.out.println("Reading buttons, value: " + Integer.toHexString(buttons));
+			}
+			if (pc == 0x29e2 && mmu.read(0xFF81) != 0) {
+				int inputs = mmu.read(0xFF81);
+				
+				System.out.println("(0xFF81) = " + Integer.toHexString(inputs));
+				System.out.print("Buttons pressed:");
+				if ((inputs & 0x80) != 0) {
+					System.out.print(" START");
+				}
+				if ((inputs & 0x40) != 0) {
+					System.out.print(" SELECT");
+				}
+				if ((inputs & 0x20) != 0) {
+					System.out.print(" B");
+				}
+				if ((inputs & 0x10) != 0) {
+					System.out.print(" A");
+				}
+				if ((inputs & 0x08) != 0) {
+					System.out.print(" down");
+				}
+				if ((inputs & 0x04) != 0) {
+					System.out.print(" up");
+				}
+				if ((inputs & 0x02) != 0) {
+					System.out.print(" left");
+				}
+				if ((inputs & 0x01) != 0) {
+					System.out.print(" right");
+				}
+				System.out.print("\n");
+			}
 			opcode = readPC();
 			
             //System.out.print(String.format("PC %x, opcode %x", pc - 1, opcode) + ": " + regs[A] + "," + regs[B] + "," + regs[C] + ","
