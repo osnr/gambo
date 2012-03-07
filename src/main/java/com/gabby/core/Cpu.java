@@ -671,39 +671,6 @@ public class Cpu {
 		while (true) {
 			if (isHalting()) continue;
 
-			// check what tetris is reading about inputs
-			// (tetris flips the bits btw)
-			if (pc == 0x29e2 && mmu.read(0xFF81) != 0) {
-				int inputs = mmu.read(0xFF81);
-				
-				System.out.println("(0xFF81) = " + Integer.toHexString(inputs));
-				System.out.print("Buttons pressed:");
-				if ((inputs & 0x80) != 0) {
-					System.out.print(" START");
-				}
-				if ((inputs & 0x40) != 0) {
-					System.out.print(" SELECT");
-				}
-				if ((inputs & 0x20) != 0) {
-					System.out.print(" B");
-				}
-				if ((inputs & 0x10) != 0) {
-					System.out.print(" A");
-				}
-				if ((inputs & 0x08) != 0) {
-					System.out.print(" down");
-				}
-				if ((inputs & 0x04) != 0) {
-					System.out.print(" up");
-				}
-				if ((inputs & 0x02) != 0) {
-					System.out.print(" left");
-				}
-				if ((inputs & 0x01) != 0) {
-					System.out.print(" right");
-				}
-				System.out.print("\n");
-			}
 			opcode = readPC();
 			
             //System.out.print(String.format("PC %x, opcode %x", pc - 1, opcode) + ": " + regs[A] + "," + regs[B] + "," + regs[C] + ","

@@ -21,6 +21,7 @@ package com.gabby.core;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
+import java.util.Collections;
 
 import com.gabby.core.Mmu.Interrupts;
 
@@ -244,13 +245,11 @@ class Display {
             int y = mmu.read(Mmu.OAM + (i << 2)) - 16; // x coords are -16 for some reason
             int x = mmu.read(Mmu.OAM + (i << 2) + 1) - 8; // y coords are -8
             
-            int[] a = mmu.readRange(Mmu.OAM, Mmu.OAM + 20);
-            
 //            System.out.println(String.fo
 // rmat("x: %d, y: %d\nox: %d, oy: %d", x, y, Ram.OAM + (i << 2) + 1, Ram.OAM + (i << 2)));
 
             if ((x > -8) && (y >= (line - height)) && (x < 160) && (y <= line)) {
-                spritesToDraw[numSpritesToDisplay] = ((x + 8) << 6) | x;
+                spritesToDraw[numSpritesToDisplay] = ((x + 8) << 6) | i;
                 numSpritesToDisplay++;
             }
         }
@@ -260,18 +259,22 @@ class Display {
         int[] spriteBuff = new int[128];
 
         for (int i = 0; i < numSpritesToDisplay; i++) {
-            int sprite = spritesToDraw[i] & BitTwiddles.bx00111111;
-            int y = mmu.read(Mmu.OAM + (sprite * 4)) - 16;
-            int x = mmu.read(Mmu.OAM + (sprite * 4) + 1) - 8;
-            int pattern = mmu.read(Mmu.OAM + (sprite * 4) + 2);
+        	// array is sorted in reverse..
+            int sprite = spritesToDraw[spritesToDraw.length - (1 + i)] & BitTwiddles.bx00111111;
+            
+            int y = mmu.read(Mmu.OAM + (sprite << 2)) - 16;
+            int x = mmu.read(Mmu.OAM + (sprite << 2) + 1) - 8;
+            int pattern = mmu.read(Mmu.OAM + (sprite << 2) + 2);
 
             if (height == 15)
                 pattern &= BitTwiddles.bx11111110;
 
-            int flags = mmu.read(Mmu.OAM + (x * 4) + 3);
-            int palette = 1;
-
-            if ((flags & BitTwiddles.bx00010000) == 1) {
+            int flags = mmu.read(Mmu.OAM + (sprite << 2) + 3);
+            
+            int palette;
+            if ((flags & BitTwiddles.bx00010000) == 0) {
+            	palette = 1;
+            } else {
                 palette = 2;
             }
 
@@ -289,7 +292,7 @@ class Display {
                 spriteBuff[(j << 2)] = (((b2 & BitTwiddles.bx10000000) >> 7) | (((b1 & BitTwiddles.bx10000000) >> 7) << 1));
             }
 
-            if ((flags & BitTwiddles.bx00100000) == 1) {
+            if ((flags & BitTwiddles.bx00100000) != 0) {
                 for (int j = 0; j < height; j++) { // x-axis flip
                     int t = spriteBuff[(j << 3) + 0];
                     spriteBuff[(j << 3) + 0] = spriteBuff[(j << 3) + 7];
@@ -306,19 +309,19 @@ class Display {
                 }
             }
 
-            if ((flags & BitTwiddles.bx01000000) == 1) { // y-axis flip
+            if ((flags & BitTwiddles.bx01000000) != 0) { // y-axis flip
                 for (int j = 0; j < 8; j++) {
                     if (height == 7) {  /* Swap 8 pixels high sprites */
-                        for (y = 0; y < 25; y += 8) {
-                            int t = spriteBuff[y + j];
-                            spriteBuff[y + j] = spriteBuff[(56 - y) + j];
-                            spriteBuff[(56 - y) + j] = t;
+                        for (int h = 0; h < 25; h += 8) {
+                            int t = spriteBuff[h + j];
+                            spriteBuff[h + j] = spriteBuff[(56 - h) + j];
+                            spriteBuff[(56 - h) + j] = t;
                         }
                     } else {   /* Swap 16 pixels high sprites */
-                        for (y = 0; y < 57; y += 8) {
-                            int t = spriteBuff[y + j];
-                            spriteBuff[y + j] = spriteBuff[(120 - y) + j];
-                            spriteBuff[(120 - y) + j] = t;
+                        for (int h = 0; h < 57; h += 8) {
+                            int t = spriteBuff[h + j];
+                            spriteBuff[h + j] = spriteBuff[(120 - h) + j];
+                            spriteBuff[(120 - h) + j] = t;
                         }
                     }
                 }
@@ -328,7 +331,7 @@ class Display {
             int z = line - y;
 
             for (int j = 0; j < 8; j++) {
-                if (((x + j) >= 0) && ((y + j) >= 0) && ((x + j) < 160) && ((y + z) < 144)) {
+                if (((x + j) >= 0) && ((y + z) >= 0) && ((x + j) < 160) && ((y + z) < 144)) {
                     if (spriteBuff[(z << 3) | j] > 0) { // if inside the screen and not transparant
                         if (((flags & BitTwiddles.bx10000000) == 0) || (buffer.getRGB(x + j, y + z) == bgc)) {
                             if (palette == 1) {
