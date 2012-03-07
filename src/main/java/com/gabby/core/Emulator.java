@@ -149,6 +149,25 @@ class Emulator extends JComponent implements ActionListener {
                     // cpu.setCounter(in.read());
                     in.close();
                 }
+            } else if ("change size".equals(e.getActionCommand())) {
+                JMenuItem item = (JMenuItem) e.getSource();
+                
+                if ("160x144".equals(item.getText())) {
+                    display.buffer = new BufferedImage(160, 144, BufferedImage.TYPE_INT_RGB);
+                    display.setSizeMultiplyer(1);
+                    this.getParent().setPreferredSize(new Dimension(160, 144));
+                    SwingUtilities.getWindowAncestor(this).pack();
+                } else if ("320x288".equals(item.getText())) {
+                    display.buffer = new BufferedImage(320, 288, BufferedImage.TYPE_INT_RGB);
+                    display.setSizeMultiplyer(2);
+                    this.getParent().setPreferredSize(new Dimension(320, 288));
+                    SwingUtilities.getWindowAncestor(this).pack();
+                } else if ("640x576".equals(item.getText())) {
+                    display.buffer = new BufferedImage(640, 576, BufferedImage.TYPE_INT_RGB);
+                    display.setSizeMultiplyer(2);
+                    this.getParent().setPreferredSize(new Dimension(640, 576));
+                    SwingUtilities.getWindowAncestor(this).pack();
+                }
             }
         } catch (FileNotFoundException ex) {
             ex.printStackTrace();

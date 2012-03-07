@@ -39,6 +39,7 @@ class Display {
     protected int modeClock, vblankClock;
     protected int mode;
     protected int line, lastLine;
+    protected int sizeMultiplyer;
 
 	protected Mmu mmu;
     BufferedImage buffer;
@@ -52,6 +53,7 @@ class Display {
         this.emulator.buffer = buffer;
         
         this.mmu = mmu;
+        sizeMultiplyer = 1;
     }
 
     private Color getColorFromPalette(int pal, int c) {
@@ -143,7 +145,8 @@ class Display {
                 for (int j = 0; j < 8; j++) {
                     if (x < 160) {
                         try {
-                            buffer.setRGB(x, line, getColorFromPalette(Mmu.BGP, tileBuffer[u + j]).getRGB());
+                            for (int k = 0; k < sizeMultiplyer; k++)
+                                buffer.setRGB(x + k, line + k, getColorFromPalette(Mmu.BGP, tileBuffer[u + j]).getRGB());
                         } catch (ArrayIndexOutOfBoundsException e) {
                             System.err.println(String.format("Out of bounds at: (%d, %d)", x, line));
                             e.printStackTrace();
@@ -215,7 +218,8 @@ class Display {
 
                     for (int j = 0; j < 8; j++) {
                         if ((x > 0) && (x < 160)) {
-                            buffer.setRGB(x, line, getColorFromPalette(Mmu.BGP, tileBuff[z]).getRGB());
+                            for (int k = 0; k < sizeMultiplyer; k++)
+                                buffer.setRGB(x + k, line + k, getColorFromPalette(Mmu.BGP, tileBuff[z]).getRGB());
                         }
 
                         x++;
@@ -334,10 +338,12 @@ class Display {
                 if (((x + j) >= 0) && ((y + z) >= 0) && ((x + j) < 160) && ((y + z) < 144)) {
                     if (spriteBuff[(z << 3) | j] > 0) { // if inside the screen and not transparant
                         if (((flags & BitTwiddles.bx10000000) == 0) || (buffer.getRGB(x + j, y + z) == bgc)) {
-                            if (palette == 1) {
-                                buffer.setRGB(x + j, y + z, getColorFromPalette(Mmu.OBP0, spriteBuff[(z << 3) | j]).getRGB());
-                            } else {
-                                buffer.setRGB(x + j, y + z, getColorFromPalette(Mmu.OBP1, spriteBuff[(z << 3) | j]).getRGB());
+                            for (int k = 0; k < sizeMultiplyer; k++) {
+                                if (palette == 1) {
+                                    buffer.setRGB(x + j + k, y + z + k, getColorFromPalette(Mmu.OBP0, spriteBuff[(z << 3) | j]).getRGB());
+                                } else {
+                                    buffer.setRGB(x + j + k, y + z + k, getColorFromPalette(Mmu.OBP1, spriteBuff[(z << 3) | j]).getRGB());
+                                }
                             }
                         }
                     }
@@ -456,7 +462,13 @@ class Display {
                 }
             }
         }
+    }
 
-        //System.out.println(String.format("vBlank: %d", vblankClock));
+    public int getSizeMultiplyer() {
+        return sizeMultiplyer;
+    }
+
+    public void setSizeMultiplyer(int sizeMultiplyer) {
+        this.sizeMultiplyer = sizeMultiplyer;
     }
 }
