@@ -186,10 +186,10 @@ public class Mmu {
 		
 		private int joypValue(int data) {
 			short output = 0x0F;
-	    	if ((data & 0x10) != 0x00) {
+	    	if ((data & 0x10) == 0x00) {
 	    		output &= this.dpad;
 	    	}
-	    	if ((data & 0x20) != 0x00) {
+	    	if ((data & 0x20) == 0x00) {
 	    		output &= this.buttons;
 	    	}
 	    	output |= (data & 0xF0);
