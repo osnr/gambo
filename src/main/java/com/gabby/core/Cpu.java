@@ -19,12 +19,7 @@
 
 package com.gabby.core;
 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-
 public class Cpu {
-	private static final int INTERRUPT_PERIOD = 0;
-
 	public static final int A = 0;
 	public static final int B = 1;
 	public static final int C = 2;
@@ -134,8 +129,8 @@ public class Cpu {
 		setSubtract(false);
 	}
 	private void incAt(int addr) {
-		int tmp = (ram.read(addr) + 1) & 0xFF;
-		ram.write(addr, tmp);
+		int tmp = (mmu.read(addr) + 1) & 0xFF;
+		mmu.write(addr, tmp);
 
 		setZero((tmp == 0));
 		setHalfCarry((tmp & 0xF) == 0); // WTF?
@@ -150,8 +145,8 @@ public class Cpu {
 		setSubtract(true);
 	}
 	private void decAt(int addr) {
-		int tmp = (ram.read(addr) - 1) & 0xFF;
-		ram.write(addr, tmp);
+		int tmp = (mmu.read(addr) - 1) & 0xFF;
+		mmu.write(addr, tmp);
 
 		setZero((tmp == 0));
 		setHalfCarry((tmp & 0xF) == 0xF); // ?
@@ -317,10 +312,10 @@ public class Cpu {
 	private void rlAt(int addr) {
 		int c = isCarry() ? 1 : 0;
 
-		int tmp = ram.read(addr);
+		int tmp = mmu.read(addr);
 
 		setCarry((tmp > 0x7F));
-		ram.write(addr, ((tmp << 1) & 0xFF) | c);
+		mmu.write(addr, ((tmp << 1) & 0xFF) | c);
 
 		setZero(false);
 		setSubtract(false);
@@ -336,10 +331,10 @@ public class Cpu {
 		setHalfCarry(false);
 	}
 	private void rlcAt(int addr) {
-		int tmp = ram.read(addr);
+		int tmp = mmu.read(addr);
 
 		setCarry((tmp > 0x7F));
-		ram.write(addr, ((tmp << 1) & 0xFF));
+		mmu.write(addr, ((tmp << 1) & 0xFF));
 
 		setZero(false);
 		setSubtract(false);
@@ -356,11 +351,11 @@ public class Cpu {
 		setHalfCarry(false);
 	}
 	private void rrAt(int addr) {
-		int tmp = ram.read(addr);
+		int tmp = mmu.read(addr);
 
 		int c = isCarry() ? 0x80 : 0;
 		setCarry(((tmp & 1) == 1));
-		ram.write(addr, (tmp >> 1) | c);
+		mmu.write(addr, (tmp >> 1) | c);
 
 		setZero(false);
 		setSubtract(false);
@@ -376,12 +371,12 @@ public class Cpu {
 		setHalfCarry(false);
 	}
 	private void rrcAt(int addr) {
-		int tmp = ram.read(addr);
+		int tmp = mmu.read(addr);
 
 		tmp = (tmp >> 1) | ((tmp & 1) << 7);
 		setCarry((tmp > 0x7F));
 
-		ram.write(addr, tmp);
+		mmu.write(addr, tmp);
 
 		setZero(false);
 		setSubtract(false);
@@ -398,12 +393,12 @@ public class Cpu {
 		setZero((regs[r] == 0));
 	}
 	private void slaAt(int addr) {
-		int tmp = ram.read(addr);
+		int tmp = mmu.read(addr);
 
 		setCarry((tmp > 0x7F));
 
 		tmp = (tmp << 1) & 0xFF;
-		ram.write(addr, tmp);
+		mmu.write(addr, tmp);
 
 		setHalfCarry(false);
 		setSubtract(false);
@@ -420,12 +415,12 @@ public class Cpu {
 		setZero((regs[r] == 0));
 	}
 	private void sraAt(int addr) {
-		int tmp = ram.read(addr);
+		int tmp = mmu.read(addr);
 
 		setCarry(((tmp & 0x01) == 0x01));
 
 		tmp = (tmp & 0x80) | (tmp >> 1);
-		ram.write(addr, tmp);
+		mmu.write(addr, tmp);
 
 		setHalfCarry(false);
 		setSubtract(false);
@@ -442,12 +437,12 @@ public class Cpu {
 		setZero((regs[r] == 0));
 	}
 	private void srlAt(int addr) {
-		int tmp = ram.read(addr);
+		int tmp = mmu.read(addr);
 
 		setCarry(((tmp & 0x01) == 0x01));
 
 		tmp >>= 1;
-	ram.write(addr, tmp);
+	mmu.write(addr, tmp);
 
 	setHalfCarry(false);
 	setSubtract(false);
@@ -459,7 +454,7 @@ public class Cpu {
 		bitAt(b, regs[r]);
 	}
 	private void bitAt(int b, int addr) {
-		bitCheck(b, ram.read(addr));
+		bitCheck(b, mmu.read(addr));
 	}
 	private void bitCheck(int b, int n) {
 		// not directly mapped to an opcode, helper method
@@ -473,20 +468,20 @@ public class Cpu {
 		regs[r] |= (0x01 << b);
 	}
 	private void setAt(int b, int addr) {
-		ram.write(addr, ram.read(addr) | (0x01 << b));
+		mmu.write(addr, mmu.read(addr) | (0x01 << b));
 	}
 
 	private void res(int b, int r) {
 		regs[r] &= ~(0x01 << b);
 	}
 	private void resAt(int b, int addr) {
-		ram.write(addr, ram.read(addr) & ~(0x01 << b));
+		mmu.write(addr, mmu.read(addr) & ~(0x01 << b));
 	}
 
 	// misc
 	private void swap(int r) {
 		// swap the nibbles of a byte
-		regs[r] = ((regs[r] >> 4) & 0x0F) & ((regs[r] << 4) & 0xF0);
+		regs[r] = ((regs[r] >> 4) & 0x0F) | ((regs[r] << 4) & 0xF0);
 
 		setZero((regs[r] == 0));    	
 		setSubtract(false);
@@ -495,10 +490,10 @@ public class Cpu {
 	}
 
 	private void swapAt(int addr) {
-		int tmp = ram.read(addr);
+		int tmp = mmu.read(addr);
 
-		tmp = ((tmp >> 4) & 0x0F) & ((tmp << 4) & 0xF0);
-		ram.write(addr, tmp);
+		tmp = ((tmp >> 4) & 0x0F) | ((tmp << 4) & 0xF0);
+		mmu.write(addr, tmp);
 
 		setZero((tmp == 0));
 		setSubtract(false);
@@ -536,11 +531,11 @@ public class Cpu {
 	// stack
 	private void push(int nn) {
 		sp -= 2;
-		ram.write16(sp, nn);
+		mmu.write16(sp, nn);
 	}
 
 	private int pop() {
-		int target = ram.read16(sp);
+		int target = mmu.read16(sp);
 		setSP(sp + 2);
 		return target;
 	}
@@ -558,7 +553,7 @@ public class Cpu {
 		pc += ((byte) n); // sign
 	}
 
-	private void call(int addr) {
+	public void call(int addr) {
 		push(pc);
 		jp(addr);
 	}
@@ -611,107 +606,24 @@ public class Cpu {
 		else regs[F] &= ~F_CARRY & 0xFF;
 	}
 
-	// interrupts
-	// ----------
-	public static final int VBLANK = 0;
-	public static final int LCDC = 1;
-	public static final int TIMER = 2;
-	public static final int SERIAL = 3;
-	public static final int INPUT = 4;
-
-	private boolean interrupts = true; // IME (master flag)
-
-	private void enableInterrupts() {
-		interrupts = true;
-	}
-
-	private void disableInterrupts() {
-		interrupts = false;
-	}
-
-	private boolean interrupt(int flags, int i) {
-		return (flags & (1 << i)) != 0;
-	}
-
-	private int counter = Cpu.INTERRUPT_PERIOD;
-
-	public int getCounter() { return counter; }
-	public void setCounter(int counter) { this.counter = counter; }
-
-	private void checkInterrupts() {
-		int ie = ram.read(0xFFFF); // individual interrupt-enabled flags
-		int ifl = ram.read(0xFF0F); // interrupts triggered?
-
-		if (interrupt(ie, VBLANK) && interrupt(ifl, VBLANK)) {
-			if (interrupts) {
-				resetInterrupt(ifl, VBLANK);
-				disableInterrupts();
-				call(0x0040);
-			}
-			halting = false;
-		}
-
-		if (interrupt(ie, LCDC) && interrupt(ifl, LCDC)) {
-			if (interrupts) {
-				resetInterrupt(ifl, LCDC);
-				disableInterrupts();
-				call(0x0048);
-			}
-			halting = false;
-		}
-
-		if (interrupt(ie, TIMER) && interrupt(ifl, TIMER)) {
-			if (interrupts) {
-				resetInterrupt(ifl, TIMER);
-				disableInterrupts();
-				call(0x0050);
-			}
-			halting = false;
-		}
-
-		if (interrupt(ie, SERIAL) && interrupt(ifl, SERIAL)) {
-			if (interrupts) {
-				resetInterrupt(ifl, SERIAL);
-				disableInterrupts();
-				call(0x0058);
-			}
-			halting = false;
-		}
-
-		if (interrupt(ie, INPUT) && interrupt(ifl, INPUT)) {
-			if (interrupts) {
-				resetInterrupt(ifl, INPUT);
-				disableInterrupts();
-				call(0x0060);
-			}
-			halting = false;
-		}
-	}
-
-	public void setInterrupt(int i) {
-		setInterrupt(ram.read(0xFF0F), i);
-	}
-	
-	private void setInterrupt(int ifl, int i) {
-		// trigger the interrupt itself
-		ram.write(0xFF0F, ifl | (1 << i));
-	}
-
-	private void resetInterrupt(int ifl, int i) {
-		// untrigger the interrupt itself
-		ram.write(0xFF0F, ifl & ~(0x01 << i));
-	}
-
 	// state
 	// -----
 	private boolean halting = false;
+	
+	public void setHalting(boolean halting) {
+		this.halting = halting;
+	}
+	public boolean isHalting() {
+		return halting;
+	}
+	
 
 	private int pc; // = initialPC;
 
 	public int getPc() { return pc; }
 	public void setPc(int pc) { this.pc = pc; }
 
-	public Cpu(Ram ram, Display display, DesktopInput input) {
+	public Cpu(Mmu mmu, Display display) {
 		regs[A] = 0x01;
 		regs[B] = 0x00;
 		regs[C] = 0x13;
@@ -721,16 +633,15 @@ public class Cpu {
 		regs[H] = 0x01;
 		regs[L] = 0x4D;
 
-		this.ram = ram;
+		this.mmu = mmu;
 		this.display = display;
 		this.clock = new Clock();
-        this.input = input;
         
-        this.ram.init();
+        this.mmu.init();
 	}
 
 	// memory access
-	private Ram ram;
+	private Mmu mmu;
 	
 	// display
 	private Display display;
@@ -738,19 +649,17 @@ public class Cpu {
 	// internal clock
 	private Clock clock;
 
-    private DesktopInput input;
-
 	// pop 1 byte from program counter position in memory
 	// then move forward
 	private int readPC() {
-		return ram.read(pc++);
+		return mmu.read(pc++);
 	}
 
 	// pop 2 bytes from program counter position in memory
 	// then move pc forward 2
 	private int readPC16() {
 		pc += 2;
-		return ram.read16(pc - 2);
+		return mmu.read16(pc - 2);
 	}
 
 
@@ -760,9 +669,11 @@ public class Cpu {
 		pc = initialPC;
 
 		while (true) {
-			if (halting) continue;
+			if (isHalting()) continue;
 
+			if (pc == 0x29e2) System.out.println(Integer.toHexString(mmu.read(0xFF81)));
 			opcode = readPC();
+			
             //System.out.print(String.format("PC %x, opcode %x", pc - 1, opcode) + ": " + regs[A] + "," + regs[B] + "," + regs[C] + ","
             //                 + regs[D] + "," + regs[E] + "," + regs[F] + "," + regs[H] + "," + regs[L] + "," + sp + ": ");
 
@@ -776,7 +687,7 @@ public class Cpu {
 				break;
 
 			case 0x02: // LD (BC), A
-				ram.write(bc(), regs[A]);
+				mmu.write(bc(), regs[A]);
 				break;
 
 			case 0x03: // INC BC
@@ -803,7 +714,7 @@ public class Cpu {
 				break;
 
 			case 0x08: // LD (nn), SP
-				ram.write16(readPC16(), sp);
+				mmu.write16(readPC16(), sp);
 				break;
 
 			case 0x09: // ADD HL, BC
@@ -811,7 +722,7 @@ public class Cpu {
 				break;
 
 			case 0x0A: // LD A, (BC)
-				regs[A] = ram.read(bc());
+				regs[A] = mmu.read(bc());
 				break;
 
 			case 0x0B: // DEC BC
@@ -844,7 +755,7 @@ public class Cpu {
 				break;
 
 			case 0x12: // LD (DE), A
-				ram.write(de(), regs[A]);
+				mmu.write(de(), regs[A]);
 				break;
 
 			case 0x13: // INC DE
@@ -878,7 +789,7 @@ public class Cpu {
 				break;
 
 			case 0x1A: // LD A, (DE)
-				regs[A] = ram.read(de());
+				regs[A] = mmu.read(de());
 				break;
 
 			case 0x1B: // DEC DE
@@ -915,7 +826,7 @@ public class Cpu {
 			case 0x22: // LDI (HL), A
 				// Save A into memory at location HL,
 				// then increment 16-bit HL
-				ram.write(hl(), regs[A]);
+				mmu.write(hl(), regs[A]);
 				setHL(hl() + 1);
 				break;
 
@@ -956,7 +867,7 @@ public class Cpu {
 				break;
 
 			case 0x2A: // LDI A, (HL)
-				regs[A] = ram.read(hl());
+				regs[A] = mmu.read(hl());
 				setHL(hl() + 1);
 				break;
 
@@ -996,7 +907,7 @@ public class Cpu {
 				break;
 
 			case 0x32: // LDD (HL), A
-				ram.write(hl(), regs[A]);
+				mmu.write(hl(), regs[A]);
 				setHL(hl() - 1);
 				break;
 
@@ -1013,7 +924,7 @@ public class Cpu {
 				break;
 
 			case 0x36: // LD (HL), n
-				ram.write(hl(), readPC());
+				mmu.write(hl(), readPC());
 				break;
 
 			case 0x37: // SCF
@@ -1033,7 +944,7 @@ public class Cpu {
 				break;
 
 			case 0x3A: // LDD A, (HL)
-				regs[A] = ram.read(hl()); 
+				regs[A] = mmu.read(hl()); 
 				dec(A);
 				break;
 
@@ -1084,7 +995,7 @@ public class Cpu {
 				break;
 
 			case 0x46: // LD B, (HL)
-				regs[B] = ram.read(hl());
+				regs[B] = mmu.read(hl());
 				break;
 
 			case 0x47: // LD B, A
@@ -1117,7 +1028,7 @@ public class Cpu {
 				break;
 
 			case 0x4E: // LD C, (HL)
-				regs[C] = ram.read(hl());
+				regs[C] = mmu.read(hl());
 				break;
 
 			case 0x4F: // LD C, A
@@ -1150,7 +1061,7 @@ public class Cpu {
 				break;
 
 			case 0x56: // LD D, (HL)
-				regs[D] = ram.read(hl());
+				regs[D] = mmu.read(hl());
 				break;
 
 			case 0x57: // LD D, A
@@ -1183,7 +1094,7 @@ public class Cpu {
 				break;
 
 			case 0x5E: // LD E, (HL)
-				regs[E] = ram.read(hl());
+				regs[E] = mmu.read(hl());
 				break;
 
 			case 0x5F: // LD E, A
@@ -1216,7 +1127,7 @@ public class Cpu {
 				break;
 
 			case 0x66: // LD H, (HL)
-				regs[H] = ram.read(hl());
+				regs[H] = mmu.read(hl());
 				break;
 
 			case 0x67: // LD H, A
@@ -1249,7 +1160,7 @@ public class Cpu {
 				break;
 
 			case 0x6E: // LD L, (HL)
-				regs[L] = ram.read(hl());
+				regs[L] = mmu.read(hl());
 				break;
 
 			case 0x6F: // LD L, A
@@ -1257,36 +1168,36 @@ public class Cpu {
 				break;
 
 			case 0x70: // LD (HL), B
-				ram.write(hl(), regs[B]);
+				mmu.write(hl(), regs[B]);
 				break;
 
 			case 0x71: // LD (HL), C
-				ram.write(hl(), regs[C]);
+				mmu.write(hl(), regs[C]);
 				break;
 
 			case 0x72: // LD (HL), D
-				ram.write(hl(), regs[D]);
+				mmu.write(hl(), regs[D]);
 				break;
 
 			case 0x73: // LD (HL), E
-				ram.write(hl(), regs[E]);
+				mmu.write(hl(), regs[E]);
 				break;
 
 			case 0x74: // LD (HL), H
-				ram.write(hl(), regs[H]);
+				mmu.write(hl(), regs[H]);
 				break;
 
 			case 0x75: // LD (HL), L
-				ram.write(hl(), regs[L]);
+				mmu.write(hl(), regs[L]);
 				break;
 
 			case 0x76: // HALT
 				// Power down CPU until an interrupt occurs
-				halting = true;
+				setHalting(true);
 				break;
 
 			case 0x77: // LD (HL), A
-				ram.write(hl(), regs[A]);
+				mmu.write(hl(), regs[A]);
 				break;
 
 			case 0x78: // LD A, B
@@ -1314,7 +1225,7 @@ public class Cpu {
 				break;
 
 			case 0x7E: // LD A, (HL)
-				regs[A] = ram.read(hl());
+				regs[A] = mmu.read(hl());
 				break;
 
 			case 0x7F: // LD A, A
@@ -1347,7 +1258,7 @@ public class Cpu {
 				break;
 
 			case 0x86: // ADD A, (HL)
-				addTo(A, ram.read(hl()));
+				addTo(A, mmu.read(hl()));
 				break;
 
 			case 0x87: // ADD A, A
@@ -1379,7 +1290,7 @@ public class Cpu {
 				break;
 
 			case 0x8E: // ADC A, (HL)
-				adcTo(A, ram.read(hl()));
+				adcTo(A, mmu.read(hl()));
 				break;
 
 			case 0x8F: // ADC A, A
@@ -2718,7 +2629,7 @@ public class Cpu {
 
 			case 0xD9: // RETI
 				ret();
-				enableInterrupts();
+				mmu.interrupts.enableInterrupts();
 				break;
 
 			case 0xDA: // JP FC, nn
@@ -2747,7 +2658,7 @@ public class Cpu {
 
 			case 0xE0: // LDH (n), A
 				// Put A into memory address 0xFF00 + n ?
-				ram.write(0xFF00 + readPC(), regs[A]);
+				mmu.write(0xFF00 + readPC(), regs[A]);
 				break;
 
 			case 0xE1: // POP HL
@@ -2756,7 +2667,7 @@ public class Cpu {
 
 			case 0xE2: // LD (0xFF00 + C), A
 				// why 0xFF00 + C?
-				ram.write(0xFF00 + regs[C], regs[A]);
+				mmu.write(0xFF00 + regs[C], regs[A]);
 				break;
 
 			case 0xE3: // 0xE3 - Illegal
@@ -2784,7 +2695,7 @@ public class Cpu {
 				break;
 
 			case 0xEA: // LD (nn), A
-				ram.write(readPC16(), regs[A]);
+				mmu.write(readPC16(), regs[A]);
 				break;
 
 			case 0xEB: // 0xEB - Illegal
@@ -2802,7 +2713,7 @@ public class Cpu {
 
 			case 0xF0: // LDH A, (0xFF00 + n)
 				// Set A to value at (0xFF00 + n)
-				regs[A] = ram.read(0xFF00 + readPC());
+				regs[A] = mmu.read(0xFF00 + readPC());
 				break;
 
 			case 0xF1: // POP AF
@@ -2810,11 +2721,11 @@ public class Cpu {
 				break;
 
 			case 0xF2: // LD A, (0xFF00 + C)
-				regs[A] = ram.read(0xFF00 + regs[C]);
+				regs[A] = mmu.read(0xFF00 + regs[C]);
 				break;
 
 			case 0xF3: // DI
-				disableInterrupts();
+				mmu.interrupts.disableInterrupts();
 				break;
 
 			case 0xF4: // 0xF4 - Illegal
@@ -2842,11 +2753,11 @@ public class Cpu {
 				break;
 
 			case 0xFA: // LD A, (nn)
-				regs[A] = ram.read(readPC16());
+				regs[A] = mmu.read(readPC16());
 				break;
 
 			case 0xFB: // EI
-				enableInterrupts();
+				mmu.interrupts.enableInterrupts();
 				break;
 
 			case 0xFC: // 0xFC - Illegal
@@ -2863,13 +2774,11 @@ public class Cpu {
 
 			clock.executedOp(opcode);
 			
-            //try {
 			display.step(clock.getDelta());
-            //} catch (Exception e) {}
-            input.step();
+			
 			clock.step();
 			
-			checkInterrupts();
+			mmu.interrupts.checkInterrupts(this);
 		}
 	}
 

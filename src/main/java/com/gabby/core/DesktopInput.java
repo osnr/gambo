@@ -22,80 +22,70 @@ package com.gabby.core;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
+import com.gabby.core.Mmu.Inputs;
+
 class DesktopInput extends KeyAdapter {
-    protected int buttons = 0xDF; // pin 15
-    protected int dpad = 0xEF; // pin 14
-    protected static final int DPAD = BitTwiddles.bx00010000;
-    protected static final int BUTTONS = BitTwiddles.bx00100000;
-    protected Ram ram;
-    private Cpu cpu;
+    protected Mmu mmu;
 
-    public DesktopInput(Ram ram) {
-        this.ram = ram;
-
-        buttons = 0x2f;
-        dpad = 0x1f;
+    public DesktopInput(Mmu mmu) {
+        this.mmu = mmu;
     }
     
     public void keyPressed(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_X)
-            buttons |= 1;
-        else if (e.getKeyCode() == KeyEvent.VK_Z)
-            buttons |= 1 << 1;
-        else if (e.getKeyCode() == KeyEvent.VK_SHIFT)
-            buttons |= 1 << 2;
-        else if (e.getKeyCode() == KeyEvent.VK_ENTER)
-            buttons |= 1 << 3;
-        else if (e.getKeyCode() == KeyEvent.VK_RIGHT)
-            dpad |= 1;
-        else if (e.getKeyCode() == KeyEvent.VK_LEFT)
-            dpad |= 1 << 1;
-        else if (e.getKeyCode() == KeyEvent.VK_UP)
-            dpad |= 1 << 2;
-        else if (e.getKeyCode() == KeyEvent.VK_DOWN)
-            dpad |= 1 << 3;
-
-        cpu.setInterrupt(Cpu.INPUT);
+	    switch (e.getKeyCode()) {
+	    case KeyEvent.VK_X:
+	    	mmu.inputs.pressedButton(Inputs.BTN_B);
+            break;
+	    case KeyEvent.VK_Z:
+	    	mmu.inputs.pressedButton(Inputs.BTN_A);
+            break;
+	    case KeyEvent.VK_SHIFT:
+	    	mmu.inputs.pressedButton(Inputs.BTN_SELECT);
+            break;
+	    case KeyEvent.VK_ENTER:
+	    	mmu.inputs.pressedButton(Inputs.BTN_START);
+            break;
+	    case KeyEvent.VK_RIGHT:
+	    	mmu.inputs.pressedDpad(Inputs.DPD_RIGHT);
+            break;
+	    case KeyEvent.VK_LEFT:
+	    	mmu.inputs.pressedDpad(Inputs.DPD_LEFT);
+            break;
+	    case KeyEvent.VK_UP:
+	    	mmu.inputs.pressedDpad(Inputs.DPD_UP);
+            break;
+	    case KeyEvent.VK_DOWN:
+	    	mmu.inputs.pressedDpad(Inputs.DPD_DOWN);
+	    }
     }
 
     public void keyReleased(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_X)
-            buttons &= ~(1);
-        else if (e.getKeyCode() == KeyEvent.VK_Z)
-            buttons &= ~(1 << 1);
-        else if (e.getKeyCode() == KeyEvent.VK_SHIFT)
-            buttons &= ~(1 << 2);
-        else if (e.getKeyCode() == KeyEvent.VK_ENTER)
-            buttons &= ~(1 << 3);
-        else if (e.getKeyCode() == KeyEvent.VK_RIGHT)
-            dpad &= ~(1);
-        else if (e.getKeyCode() == KeyEvent.VK_LEFT)
-            dpad = ~(1 << 1);
-        else if (e.getKeyCode() == KeyEvent.VK_UP)
-            dpad = ~(1 << 2);
-        else if (e.getKeyCode() == KeyEvent.VK_DOWN)
-            dpad = ~(1 << 3);
+    	switch (e.getKeyCode()) {
+	    case KeyEvent.VK_X:
+	    	mmu.inputs.unpressedButton(Inputs.BTN_B);
+            break;
+	    case KeyEvent.VK_Z:
+	    	mmu.inputs.unpressedButton(Inputs.BTN_A);
+            break;
+	    case KeyEvent.VK_SHIFT:
+	    	mmu.inputs.unpressedButton(Inputs.BTN_SELECT);
+            break;
+	    case KeyEvent.VK_ENTER:
+	    	mmu.inputs.unpressedButton(Inputs.BTN_START);
+            break;
+	    case KeyEvent.VK_RIGHT:
+	    	mmu.inputs.unpressedDpad(Inputs.DPD_RIGHT);
+            break;
+	    case KeyEvent.VK_LEFT:
+	    	mmu.inputs.unpressedDpad(Inputs.DPD_LEFT);
+            break;
+	    case KeyEvent.VK_UP:
+	    	mmu.inputs.unpressedDpad(Inputs.DPD_UP);
+            break;
+	    case KeyEvent.VK_DOWN:
+	    	mmu.inputs.unpressedDpad(Inputs.DPD_DOWN);
+	    }
     }
 
-    public int getInputByte() {
-    	switch ((ram.read(Ram.JOYP)>>4)&3) {
-    	case 0: return dpad & buttons; // TODO not sure on this
-    	case 1: return buttons;
-    	case 2: return dpad;
-    	case 3: return 0xFF; // TODO not sure on this
-    	default: return 0x00;
-    	}
-    }
     
-    public void step() {
-        ram.write(Ram.JOYP, this.getInputByte());
-    }
-
-	protected void setCpu(Cpu cpu) {
-		this.cpu = cpu;
-	}
-
-	protected Cpu getCpu() {
-		return cpu;
-	}
 }

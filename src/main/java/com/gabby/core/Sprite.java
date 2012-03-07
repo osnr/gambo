@@ -53,12 +53,12 @@ public class Sprite {
     }
 
     /**
-     * @param ram The ram from which the sprites are parsed
+     * @param mmu The ram from which the sprites are parsed
      * @return An ArrayList of all sprites
      */
 
-    public static ArrayList<Sprite> getAllSprites(Ram ram) {
-        return getAllSprites(ram.getMemory());
+    public static ArrayList<Sprite> getAllSprites(Mmu mmu) {
+        return getAllSprites(mmu.getMemory());
     }
 
     public static void drawAllSprites(ByteBuffer mem, Graphics2D g) {
@@ -69,13 +69,13 @@ public class Sprite {
     }
 	
     public Sprite(ByteBuffer mem, int spriteNum) {
-        y = BitTwiddles.unsign(mem.get(Ram.OAM + spriteNum * 4));
-        x = BitTwiddles.unsign(mem.get(Ram.OAM + spriteNum * 4 + 1));
-        tileNum = BitTwiddles.unsign(mem.get(Ram.OAM + spriteNum + 2));
-        byte flags = mem.get(Ram.OAM + spriteNum + 3);
+        y = BitTwiddles.unsign(mem.get(Mmu.OAM + spriteNum * 4));
+        x = BitTwiddles.unsign(mem.get(Mmu.OAM + spriteNum * 4 + 1));
+        tileNum = BitTwiddles.unsign(mem.get(Mmu.OAM + spriteNum + 2));
+        byte flags = mem.get(Mmu.OAM + spriteNum + 3);
         
         data = new byte[16];
-        mem.position(Ram.TILE_TABLE_ONE);
+        mem.position(Mmu.TILE_TABLE_ONE);
         mem.get(data);
 		
         aboveBackground = (BitTwiddles.getBit(7, flags) == 0);

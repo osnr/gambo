@@ -21,12 +21,8 @@ package com.gabby.core;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.text.AttributedString;
-import java.util.ArrayList;
-import java.util.Arrays;
 
-public class Ram {
-
+public class Mmu {
     public static final int MEMORY_SIZE = 0xFFFF;
     
 	public static final int ROM_LIMIT = 0x8000;
@@ -62,11 +58,157 @@ public class Ram {
     // flags for 5 interrupts in here
     public static final int IE = 0xFFFF;
     
+    class Interrupts {
+		// interrupts
+		// ----------
+		public static final int VBLANK = 0;
+		public static final int LCDC = 1;
+		public static final int TIMER = 2;
+		public static final int SERIAL = 3;
+		public static final int INPUT = 4;
+	
+		private boolean interrupts = true; // IME (master flag)
+	
+		public void enableInterrupts() {
+			interrupts = true;
+		}
+	
+		public void disableInterrupts() {
+			interrupts = false;
+		}
+	
+		private boolean interrupt(int flags, int i) {
+			return (flags & (1 << i)) != 0;
+		}
+	
+		public void checkInterrupts(Cpu cpu) {
+			int ie = read(0xFFFF); // individual interrupt-enabled flags
+			int ifl = read(0xFF0F); // interrupts triggered?
+	
+			if (this.interrupt(ie, Interrupts.VBLANK) &&
+					this.interrupt(ifl, Interrupts.VBLANK)) {
+				if (interrupts) {
+					this.resetInterrupt(ifl, VBLANK);
+					this.disableInterrupts();
+					cpu.call(0x0040);
+				}
+				cpu.setHalting(false);
+			}
+	
+			if (this.interrupt(ie, Interrupts.LCDC) &&
+					this.interrupt(ifl, Interrupts.LCDC)) {
+				if (interrupts) {
+					resetInterrupt(ifl, LCDC);
+					disableInterrupts();
+					cpu.call(0x0048);
+				}
+				cpu.setHalting(false);
+			}
+	
+			if (this.interrupt(ie, Interrupts.TIMER) &&
+					this.interrupt(ifl, Interrupts.TIMER)) {
+				if (interrupts) {
+					resetInterrupt(ifl, TIMER);
+					disableInterrupts();
+					cpu.call(0x0050);
+				}
+				cpu.setHalting(false);
+			}
+	
+			if (this.interrupt(ie, Interrupts.SERIAL) &&
+					this.interrupt(ifl, Interrupts.SERIAL)) {
+				if (interrupts) {
+					resetInterrupt(ifl, SERIAL);
+					disableInterrupts();
+					cpu.call(0x0058);
+				}
+				cpu.setHalting(false);
+			}
+	
+			if (this.interrupt(ie, INPUT) &&
+					this.interrupt(ifl, INPUT)) {
+				if (interrupts) {
+					this.resetInterrupt(ifl, INPUT);
+					this.disableInterrupts();
+					cpu.call(0x0060);
+				}
+				cpu.setHalting(false);
+			}
+		}
+
+		public void setInterrupt(int i) {
+			this.setInterrupt(read(0xFF0F), i);
+		}
+		
+		private void setInterrupt(int ifl, int i) {
+			// trigger the interrupt itself
+			write(0xFF0F, ifl | (1 << i));
+		}
+	
+		private void resetInterrupt(int ifl, int i) {
+			// untrigger the interrupt itself
+			write(0xFF0F, ifl & ~(0x01 << i));
+		}
+    }
+	public final Interrupts interrupts = new Interrupts();
+	
+	class Inputs {
+		private int buttons = 0xDF; // pin 15
+		private int dpad = 0xEF; // pin 14
+
+		public static final int BTN_A = 0xFE;
+		public static final int BTN_B = 0xFD;
+		public static final int BTN_SELECT = 0xFB;
+		public static final int BTN_START = 0xF7;
+		
+		public static final int DPD_RIGHT = 0xFE;
+		public static final int DPD_LEFT = 0xFD;
+		public static final int DPD_UP = 0xFB;
+		public static final int DPD_DOWN = 0xF7;
+		
+		public void pressedButton(int btn) {
+			this.buttons &= btn;
+			interrupts.setInterrupt(Interrupts.INPUT);
+		}
+		
+		public void pressedDpad(int dpd) {
+			this.dpad &= dpd;
+			interrupts.setInterrupt(Interrupts.INPUT);
+		}
+		
+		public void unpressedButton(int btn) {
+			this.buttons |= ~btn;
+		}
+		
+		public void unpressedDpad(int dpd) {
+			this.dpad |= ~dpd;
+		}
+		
+		private int joypValue(int data) {
+			short output = 0x0F;
+	    	if ((data & 0x10) == 0x00) {
+	    		output &= this.dpad;
+	    	}
+	    	if ((data & 0x20) == 0x00) {
+	    		output &= this.buttons;
+	    	}
+	    	output |= (data & 0xF0);
+	    	return (byte) output;
+	    }
+	    
+	    public void updateJoyp(int data) {
+	    	// System.out.println("Updating joyp: " + Integer.toBinaryString(read(Mmu.JOYP)));
+	        memory.put(Mmu.JOYP, (byte) (this.joypValue(data) & 0xFF));
+	    }
+	}
+
+	public final Inputs inputs = new Inputs();
+    
     ByteBuffer memory;
 
-    public Ram() {
-        memory = ByteBuffer.allocate(0xFFFF + 1);
-        memory.order(ByteOrder.LITTLE_ENDIAN);
+    public Mmu() {
+        this.memory = ByteBuffer.allocate(0xFFFF + 1);
+        this.memory.order(ByteOrder.LITTLE_ENDIAN);
     }
     
     // preload appropriate register values
@@ -148,6 +290,8 @@ public class Ram {
     public void write(int addr, int n) {
 	    if (addr < ROM_LIMIT) {
 	    	return;
+	    } else if (addr == 0xFF00) { // update JOYP register
+		    inputs.updateJoyp(n);
 	    } else if (addr == 0xFF46) { // DMA transfer 
 	    	dmaTransfer(n);
 	    } else {
@@ -161,8 +305,7 @@ public class Ram {
     }
 
     public void write16(int addr, int nn) {
-	    if (addr < ROM_LIMIT) return;
-
-        memory.putShort(addr, (short) nn);
+    	this.write(addr, (byte) (nn & 0xFF));
+    	this.write(addr + 1, (byte) ((nn >> 8) & 0xFF));
     }
 }

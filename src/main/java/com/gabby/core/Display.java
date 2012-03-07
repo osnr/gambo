@@ -18,10 +18,11 @@
 
 package com.gabby.core;
 
-import java.awt.Graphics2D;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
+
+import com.gabby.core.Mmu.Interrupts;
 
 class Display {
     public static final int TILE_WIDTH = 8;
@@ -37,21 +38,23 @@ class Display {
     protected int modeClock, vblankClock;
     protected int mode;
     protected int line, lastLine;
-    protected Ram ram;
-	protected Cpu cpu;
+
+	protected Mmu mmu;
     BufferedImage buffer;
     Emulator emulator;
 
-    public Display(Ram ram, Emulator emulator) {
+    public Display(Mmu mmu, Emulator emulator) {
         modeClock = vblankClock = mode = line = lastLine = 0;
-        this.ram = ram;
+
         buffer = new BufferedImage(160, 144, BufferedImage.TYPE_INT_ARGB);
         this.emulator = emulator;
         this.emulator.buffer = buffer;
+        
+        this.mmu = mmu;
     }
 
     private Color getColorFromPalette(int pal, int c) {
-        int palb = ram.read(pal);
+        int palb = mmu.read(pal);
 
         int colorCode = (palb >> (c * 2)) & BitTwiddles.bx00000011;
 
@@ -71,32 +74,31 @@ class Display {
     }
 
     private void drawBackground() {
-        int[] tileBuf = new int[64];
         int tiledata;
         int tilemap;
         
         //System.out.println("line: " + line);
         //System.out.println(Arrays.toString(ram.readRange(Ram.VRAM, 0x9800)));
 
-        if ((ram.read(Ram.LCDC) & BitTwiddles.bx00000001) ==  0) {
+        if ((mmu.read(Mmu.LCDC) & BitTwiddles.bx00000001) ==  0) {
             // Screen is off, so draw black.
             for (int i = 0; i < 160; i++) {
                 buffer.setRGB(i, line, 0x000000000);
             }
         } else {
-            if ((ram.read(Ram.LCDC) & BitTwiddles.bx00010000) == 0) {
-                tiledata = Ram.TILE_TABLE_TWO;
+            if ((mmu.read(Mmu.LCDC) & BitTwiddles.bx00010000) == 0) {
+                tiledata = Mmu.TILE_TABLE_TWO;
             } else {
-                tiledata = Ram.TILE_TABLE_ONE;
+                tiledata = Mmu.TILE_TABLE_ONE;
             }
 
-            if ((ram.read(Ram.LCDC) & BitTwiddles.bx00000100) == 0) {
-                tilemap = Ram.TILE_MAP_ONE;
+            if ((mmu.read(Mmu.LCDC) & BitTwiddles.bx00000100) == 0) {
+                tilemap = Mmu.TILE_MAP_ONE;
             } else {
-                tilemap = Ram.TILE_MAP_TWO;
+                tilemap = Mmu.TILE_MAP_TWO;
             }
 
-            int y = line + ram.read(Ram.SCY);
+            int y = line + mmu.read(Mmu.SCY);
             int z = y & 7; // appar-ently the same as y % 8, but faster, row of tile
             int u = z * 8;
             y >>= 3; // num of tile
@@ -108,10 +110,10 @@ class Display {
             int[] tileBuffer = new int[64];
 
             for (int i = 0; i < 32; i++) {
-                if (tiledata == Ram.TILE_TABLE_ONE) {
-                    tile = ram.read(tilemap + tileNum);
+                if (tiledata == Mmu.TILE_TABLE_ONE) {
+                    tile = mmu.read(tilemap + tileNum);
                 } else {
-                    tile = BitTwiddles.toSignedByte(ram.read(tilemap + tileNum)) + 128; // This might be wrong
+                    tile = BitTwiddles.toSignedByte(mmu.read(tilemap + tileNum)) + 128; // This might be wrong
                 }
 
                 int t;
@@ -122,8 +124,8 @@ class Display {
                     int tmpAddr = tiledata + (tile << 4) + t;
                     t <<= 2;
 
-                    int b1 = ram.read(tmpAddr);
-                    int b2 = ram.read(tmpAddr + 1);
+                    int b1 = mmu.read(tmpAddr);
+                    int b2 = mmu.read(tmpAddr + 1);
 
                     tileBuffer[t + 7] = ((b2 & 1) | ((b1 & 1) << 1));
                     tileBuffer[t + 6] = (((b2 & 2) >> 1) | (((b1 & 2) >> 1) << 1));
@@ -135,12 +137,12 @@ class Display {
                     tileBuffer[t] = (((b2 & 128) >> 7) | (((b1 & 128) >> 7) << 1));
                 }
 
-                int x = BitTwiddles.toUnsignedByte((i << 3) - ram.read(Ram.SCX));
+                int x = BitTwiddles.toUnsignedByte((i << 3) - mmu.read(Mmu.SCX));
 
                 for (int j = 0; j < 8; j++) {
                     if (x < 160) {
                         try {
-                            buffer.setRGB(x, line, getColorFromPalette(Ram.BGP, tileBuffer[u + j]).getRGB());
+                            buffer.setRGB(x, line, getColorFromPalette(Mmu.BGP, tileBuffer[u + j]).getRGB());
                         } catch (ArrayIndexOutOfBoundsException e) {
                             System.err.println(String.format("Out of bounds at: (%d, %d)", x, line));
                             e.printStackTrace();
@@ -157,22 +159,22 @@ class Display {
     }
 
     private void drawWindow() {
-        int lcdc = ram.read(Ram.LCDC);
-        int wx = ram.read(Ram.WX), wy = ram.read(Ram.WY);
+        int lcdc = mmu.read(Mmu.LCDC);
+        int wx = mmu.read(Mmu.WX), wy = mmu.read(Mmu.WY);
         int tileMap = 0;
         int tileData = 0;
         if (((lcdc & BitTwiddles.bx00000001) == 1) && ((lcdc & BitTwiddles.bx00100000) == 1)) {
             if ((wx <= 166) && (wy <= line) && (wx >= 7) && (line <= 143)) {
                 if ((lcdc & BitTwiddles.bx01000000) == 0) {
-                    tileMap = Ram.TILE_MAP_ONE;
+                    tileMap = Mmu.TILE_MAP_ONE;
                 } else {
-                    tileMap = Ram.TILE_MAP_TWO;
+                    tileMap = Mmu.TILE_MAP_TWO;
                 }
 
                 if ((lcdc & BitTwiddles.bx00010000) == 0) {
-                    tileData = Ram.TILE_TABLE_TWO;
+                    tileData = Mmu.TILE_TABLE_TWO;
                 } else {
-                    tileData = Ram.TILE_TABLE_ONE;
+                    tileData = Mmu.TILE_TABLE_ONE;
                 }
 
                 int row = line - wy;
@@ -182,10 +184,10 @@ class Display {
                 int tile = 0;
 
                 for (int i = 0; i < 32; i++) {
-                    if (tileData == Ram.TILE_TABLE_ONE) {
-                        tile = ram.read(tileData + tileNum);
+                    if (tileData == Mmu.TILE_TABLE_ONE) {
+                        tile = mmu.read(tileData + tileNum);
                     } else {
-                        tile = BitTwiddles.toSignedByte(ram.read(tileData + tileNum)) + 128;
+                        tile = BitTwiddles.toSignedByte(mmu.read(tileData + tileNum)) + 128;
                     }
 
 
@@ -193,8 +195,8 @@ class Display {
                     int tmpAddr = tileData + (tile << 4) + z;
                     z <<= 2;
 
-                    int b1 = ram.read(tmpAddr);
-                    int b2 = ram.read(tmpAddr + 1);
+                    int b1 = mmu.read(tmpAddr);
+                    int b2 = mmu.read(tmpAddr + 1);
 
                     int[] tileBuff = new int[64];
 
@@ -212,7 +214,7 @@ class Display {
 
                     for (int j = 0; j < 8; j++) {
                         if ((x > 0) && (x < 160)) {
-                            buffer.setRGB(x, line, getColorFromPalette(Ram.BGP, tileBuff[z]).getRGB());
+                            buffer.setRGB(x, line, getColorFromPalette(Mmu.BGP, tileBuff[z]).getRGB());
                         }
 
                         x++;
@@ -229,20 +231,20 @@ class Display {
         int numSpritesToDisplay = 0, height = 0;
         int[] spritesToDraw = new int[40];
 
-        if ((ram.read(Ram.LCDC) & BitTwiddles.bx00000010) > 0) {
+        if ((mmu.read(Mmu.LCDC) & BitTwiddles.bx00000010) > 0) {
             numSpritesToDisplay = 0;
 
-            if ((ram.read(Ram.LCDC) & BitTwiddles.bx00000100) == 0)
+            if ((mmu.read(Mmu.LCDC) & BitTwiddles.bx00000100) == 0)
                 height = 7; // 8x8
             else
                 height = 15; // 8x16
         }
 
         for (int i = 0; i < 40; i++) {
-            int y = ram.read(Ram.OAM + (i << 2)) - 16; // x coords are -16 for some reason
-            int x = ram.read(Ram.OAM + (i << 2) + 1) - 8; // y coords are -8
+            int y = mmu.read(Mmu.OAM + (i << 2)) - 16; // x coords are -16 for some reason
+            int x = mmu.read(Mmu.OAM + (i << 2) + 1) - 8; // y coords are -8
             
-            int[] a = ram.readRange(Ram.OAM, Ram.OAM + 20);
+            int[] a = mmu.readRange(Mmu.OAM, Mmu.OAM + 20);
             
 //            System.out.println(String.fo
 // rmat("x: %d, y: %d\nox: %d, oy: %d", x, y, Ram.OAM + (i << 2) + 1, Ram.OAM + (i << 2)));
@@ -259,14 +261,14 @@ class Display {
 
         for (int i = 0; i < numSpritesToDisplay; i++) {
             int sprite = spritesToDraw[i] & BitTwiddles.bx00111111;
-            int y = ram.read(Ram.OAM + (sprite * 4)) - 16;
-            int x = ram.read(Ram.OAM + (sprite * 4) + 1) - 8;
-            int pattern = ram.read(Ram.OAM + (sprite * 4) + 2);
+            int y = mmu.read(Mmu.OAM + (sprite * 4)) - 16;
+            int x = mmu.read(Mmu.OAM + (sprite * 4) + 1) - 8;
+            int pattern = mmu.read(Mmu.OAM + (sprite * 4) + 2);
 
             if (height == 15)
                 pattern &= BitTwiddles.bx11111110;
 
-            int flags = ram.read(Ram.OAM + (x * 4) + 3);
+            int flags = mmu.read(Mmu.OAM + (x * 4) + 3);
             int palette = 1;
 
             if ((flags & BitTwiddles.bx00010000) == 1) {
@@ -274,8 +276,8 @@ class Display {
             }
 
             for (int j = 0; j <= (height * 2) + 1; j += 2) {
-                int b1 = ram.read(Ram.VRAM + (pattern << 4) + j);
-                int b2 = ram.read(Ram.VRAM + (pattern << 4) + j + 1);
+                int b1 = mmu.read(Mmu.VRAM + (pattern << 4) + j);
+                int b2 = mmu.read(Mmu.VRAM + (pattern << 4) + j + 1);
                 //System.out.println(String.format("b1: %d, b2: %d", b1, b2));
                 spriteBuff[(j << 2) + 7] =  ((b2 & BitTwiddles.bx00000001) | ((b1 & BitTwiddles.bx00000001) << 1));
                 spriteBuff[(j << 2) + 6] = (((b2 & BitTwiddles.bx00000010) >> 1) | (((b1 & BitTwiddles.bx00000010) >> 1) << 1));
@@ -322,7 +324,7 @@ class Display {
                 }
             }
 
-            int bgc = getColorFromPalette(Ram.BGP, 0).getRGB();
+            int bgc = getColorFromPalette(Mmu.BGP, 0).getRGB();
             int z = line - y;
 
             for (int j = 0; j < 8; j++) {
@@ -330,9 +332,9 @@ class Display {
                     if (spriteBuff[(z << 3) | j] > 0) { // if inside the screen and not transparant
                         if (((flags & BitTwiddles.bx10000000) == 0) || (buffer.getRGB(x + j, y + z) == bgc)) {
                             if (palette == 1) {
-                                buffer.setRGB(x + j, y + z, getColorFromPalette(Ram.OBP0, spriteBuff[(z << 3) | j]).getRGB());
+                                buffer.setRGB(x + j, y + z, getColorFromPalette(Mmu.OBP0, spriteBuff[(z << 3) | j]).getRGB());
                             } else {
-                                buffer.setRGB(x + j, y + z, getColorFromPalette(Ram.OBP1, spriteBuff[(z << 3) | j]).getRGB());
+                                buffer.setRGB(x + j, y + z, getColorFromPalette(Mmu.OBP1, spriteBuff[(z << 3) | j]).getRGB());
                             }
                         }
                     }
@@ -352,42 +354,42 @@ class Display {
         }
 
         line = (vblankClock / 456);
-        ram.write(Ram.LY, line);
+        mmu.write(Mmu.LY, line);
 
-        int lcdc = ram.read(Ram.LCDC);
+        int lcdc = mmu.read(Mmu.LCDC);
 
         if ((lcdc & BitTwiddles.bx10000000) == 1) {
-            if (ram.read(Ram.LY) == ram.read((Ram.LYC))) {
-                if ((ram.read(Ram.STAT) & BitTwiddles.bx00000100) == 0) {
-                    b = ram.read(Ram.STAT);
+            if (mmu.read(Mmu.LY) == mmu.read((Mmu.LYC))) {
+                if ((mmu.read(Mmu.STAT) & BitTwiddles.bx00000100) == 0) {
+                    b = mmu.read(Mmu.STAT);
                     b |= BitTwiddles.bx00000100;
-                    ram.write(Ram.STAT, b);
-                    if ((ram.read(Ram.STAT) & BitTwiddles.bx01000000) != 0) {
-                        ram.read(Ram.IF);
+                    mmu.write(Mmu.STAT, b);
+                    if ((mmu.read(Mmu.STAT) & BitTwiddles.bx01000000) != 0) {
+                        mmu.read(Mmu.IF);
                         b |= BitTwiddles.bx00000010;
-                        ram.write(Ram.IF, b);
+                        mmu.write(Mmu.IF, b);
                     }
                 }
             } else {
-                b = ram.read(Ram.STAT);
+                b = mmu.read(Mmu.STAT);
                 b &= BitTwiddles.bx11111011;
             }
         }
 
         if (vblankClock >= 65664) { // VBLANK
-	        if ((ram.read(Ram.STAT) & BitTwiddles.bx00000011) != BitTwiddles.bx00000001) {
-                b = ram.read(Ram.STAT);
+	        if ((mmu.read(Mmu.STAT) & BitTwiddles.bx00000011) != BitTwiddles.bx00000001) {
+                b = mmu.read(Mmu.STAT);
                 b &= BitTwiddles.bx11111100;
                 b |= BitTwiddles.bx00000001;
-                ram.write(Ram.STAT, b);
+                mmu.write(Mmu.STAT, b);
 
-                cpu.setInterrupt(Cpu.VBLANK);
+                mmu.interrupts.setInterrupt(Interrupts.VBLANK);
 
                 /*b = ram.read(Ram.STAT);
                 b |= BitTwiddles.bx00000001;
                 ram.write(Ram.STAT, b);*/
 
-                if ((ram.read(Ram.LCDC) & BitTwiddles.bx10000000) == 0) {
+                if ((mmu.read(Mmu.LCDC) & BitTwiddles.bx10000000) == 0) {
                     // TODO: TURN OFF LCD
                 }
 
@@ -400,32 +402,32 @@ class Display {
             if (modeClock >= 456)
                 modeClock -= 456;
             if (modeClock  <= 80) {
-                b = ram.read(Ram.STAT);
+                b = mmu.read(Mmu.STAT);
 
                 if ((b & BitTwiddles.bx00000011) != 2) {
                     b &= BitTwiddles.bx11111100;
                     b |= BitTwiddles.bx00000010;
-                    ram.write(Ram.STAT, b);
+                    mmu.write(Mmu.STAT, b);
 
-                    if ((ram.read(Ram.STAT) & BitTwiddles.bx00100000) != 0) {
-                        b = ram.read(Ram.IF);
+                    if ((mmu.read(Mmu.STAT) & BitTwiddles.bx00100000) != 0) {
+                        b = mmu.read(Mmu.IF);
                         b |= BitTwiddles.bx00000010;
-                        ram.write(Ram.IF, b);
+                        mmu.write(Mmu.IF, b);
                     }
                 }
             } else if (modeClock <= (172 + 80)) {
-                b = ram.read(Ram.STAT);
+                b = mmu.read(Mmu.STAT);
 
                 if ((b & BitTwiddles.bx00000011) != 3) {
                     b &= BitTwiddles.bx11111100;
                     b |= 3;
-                    ram.write(Ram.STAT, b);
+                    mmu.write(Mmu.STAT, b);
                 }
             } else {
-                b = ram.read(Ram.STAT);
+                b = mmu.read(Mmu.STAT);
 
                 if ((b & BitTwiddles.bx00000011) != 0) {
-                    b = ram.read(Ram.LCDC);
+                    b = mmu.read(Mmu.LCDC);
 
                     if ((b & BitTwiddles.bx10000000) > 0) {
                         if (lastLine != line) {
@@ -438,15 +440,15 @@ class Display {
                         }
                     }
 
-                    b = ram.read(Ram.STAT);
+                    b = mmu.read(Mmu.STAT);
                     b &= BitTwiddles.bx11111100;
                     b |= 0;
-                    ram.write(Ram.STAT, b);
+                    mmu.write(Mmu.STAT, b);
 
-                    if ((ram.read(Ram.STAT) & BitTwiddles.bx00001000) != 0) {
-                        b = ram.read(Ram.IF);
+                    if ((mmu.read(Mmu.STAT) & BitTwiddles.bx00001000) != 0) {
+                        b = mmu.read(Mmu.IF);
                         b |= BitTwiddles.bx00000010;
-                        ram.write(Ram.IF, b);
+                        mmu.write(Mmu.IF, b);
                     }
                 }
             }
@@ -454,12 +456,4 @@ class Display {
 
         //System.out.println(String.format("vBlank: %d", vblankClock));
     }
-
-	protected void setCpu(Cpu cpu) {
-		this.cpu = cpu;
-	}
-
-	protected Cpu getCpu() {
-		return cpu;
-	}
 }

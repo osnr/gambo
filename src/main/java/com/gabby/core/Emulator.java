@@ -33,20 +33,18 @@ import com.gabby.loader.*;
 
 class Emulator extends JComponent implements ActionListener {
     Display display;
-    private Ram ram;
+    private Mmu mmu;
     private Cpu cpu;
     public BufferedImage buffer;
     private DesktopInput input;
 
     public Emulator() {
-        ram = new Ram();
-        display = new Display(ram, this);
-        input = new DesktopInput(ram);
+    	this.mmu = new Mmu();
+    	
+        this.display = new Display(mmu, this);
+        this.input = new DesktopInput(mmu);
         
-        cpu = new Cpu(ram, display, input);
-
-        display.setCpu(cpu);
-        input.setCpu(cpu);
+        this.cpu = new Cpu(mmu, display);
         
         buffer = new BufferedImage(160, 144, BufferedImage.TYPE_INT_RGB);
     }
@@ -69,9 +67,9 @@ class Emulator extends JComponent implements ActionListener {
     public void loadRom(File f) {
         Rom rom = RomLoader.loadGameBoyRom(f);
         System.out.println("Loaded: " + rom.getTitle());
-        ram.getMemory().clear();
-        ram.getMemory().put(rom.getRom().array());
-        ram.getMemory().rewind();
+        mmu.getMemory().clear();
+        mmu.getMemory().put(rom.getRom().array());
+        mmu.getMemory().rewind();
 
         (new Thread() {
             public void run() {
@@ -103,7 +101,7 @@ class Emulator extends JComponent implements ActionListener {
                 if (ret == JFileChooser.APPROVE_OPTION) {
                     File f = fc.getSelectedFile();
                     FileOutputStream out = new FileOutputStream(f);
-                    out.write(ram.getMemory().array());
+                    out.write(mmu.getMemory().array());
                     out.write(cpu.a());
                     out.write(cpu.b());
                     out.write(cpu.c());
@@ -118,7 +116,7 @@ class Emulator extends JComponent implements ActionListener {
                     out.write(cpu.isHalfCarry() ? 1 : 0);
                     out.write(cpu.isCarry() ? 1 : 0);
                     out.write(cpu.getPc());
-                    out.write(cpu.getCounter());
+                    // out.write(cpu.getCounter());
                     out.close();
                 }
             } else if ("load state".equals(e.getActionCommand())) {
@@ -129,11 +127,11 @@ class Emulator extends JComponent implements ActionListener {
                 if (ret == JFileChooser.APPROVE_OPTION) {
                     File f = fc.getSelectedFile();
                     FileInputStream in = new FileInputStream(f);
-                    byte[] b = new byte[Ram.MEMORY_SIZE];
+                    byte[] b = new byte[Mmu.MEMORY_SIZE];
                     in.read(b);
-                    ram.getMemory().clear();
-                    ram.getMemory().put(b);
-                    ram.getMemory().rewind();
+                    mmu.getMemory().clear();
+                    mmu.getMemory().put(b);
+                    mmu.getMemory().rewind();
                     cpu.setA(in.read());
                     cpu.setB(in.read());
                     cpu.setC(in.read());
@@ -148,7 +146,7 @@ class Emulator extends JComponent implements ActionListener {
                     cpu.setHalfCarry(in.read() == 1);
                     cpu.setCarry(in.read() == 1);
                     cpu.setPc(in.read());
-                    cpu.setCounter(in.read());
+                    // cpu.setCounter(in.read());
                     in.close();
                 }
             }
