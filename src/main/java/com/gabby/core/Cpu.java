@@ -451,7 +451,7 @@ public class Cpu {
 
 	// bit manipulation
 	private void bit(int b, int r) {
-		bitAt(b, regs[r]);
+		bitCheck(b, regs[r]);
 	}
 	private void bitAt(int b, int addr) {
 		bitCheck(b, mmu.read(addr));
@@ -673,14 +673,6 @@ public class Cpu {
 
 			// check what tetris is reading about inputs
 			// (tetris flips the bits btw)
-			if (pc == 0x29b5 && regs[A] != 0x00) { // first part of input read (0x20 plug into (0xFF00), so dpad)
-				int dpad = regs[A];
-				System.out.println("Reading dpad, value: " + Integer.toHexString(dpad));
-			}
-			if (pc == 0x29d3 && regs[A] != 0x00) { // second part of input read (0x10 plug into (0xFF00), so buttons)
-				int buttons = regs[A];
-				System.out.println("Reading buttons, value: " + Integer.toHexString(buttons));
-			}
 			if (pc == 0x29e2 && mmu.read(0xFF81) != 0) {
 				int inputs = mmu.read(0xFF81);
 				
