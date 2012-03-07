@@ -442,11 +442,11 @@ public class Cpu {
 		setCarry(((tmp & 0x01) == 0x01));
 
 		tmp >>= 1;
-	mmu.write(addr, tmp);
+		mmu.write(addr, tmp);
 
-	setHalfCarry(false);
-	setSubtract(false);
-	setZero((tmp == 0));
+		setHalfCarry(false);
+		setSubtract(false);
+		setZero((tmp == 0));
 	}
 
 	// bit manipulation
@@ -481,7 +481,7 @@ public class Cpu {
 	// misc
 	private void swap(int r) {
 		// swap the nibbles of a byte
-		regs[r] = ((regs[r] >> 4) & 0x0F) | ((regs[r] << 4) & 0xF0);
+		regs[r] = ((regs[r] & 0x0F) << 4) | (regs[r] >> 4);
 
 		setZero((regs[r] == 0));    	
 		setSubtract(false);
@@ -492,7 +492,7 @@ public class Cpu {
 	private void swapAt(int addr) {
 		int tmp = mmu.read(addr);
 
-		tmp = ((tmp >> 4) & 0x0F) | ((tmp << 4) & 0xF0);
+		tmp = ((tmp & 0x0F) << 4) | (tmp >> 4);
 		mmu.write(addr, tmp);
 
 		setZero((tmp == 0));
@@ -671,7 +671,7 @@ public class Cpu {
 		while (true) {
 			if (isHalting()) continue;
 
-			if (pc == 0x29e2) System.out.println(Integer.toHexString(mmu.read(0xFF81)));
+			if (pc == 0x29e2 && mmu.read(0xFF81) != 0) System.out.println(Integer.toHexString(mmu.read(0xFF81)));
 			opcode = readPC();
 			
             //System.out.print(String.format("PC %x, opcode %x", pc - 1, opcode) + ": " + regs[A] + "," + regs[B] + "," + regs[C] + ","
@@ -889,7 +889,7 @@ public class Cpu {
 
 			case 0x2F: // CPL
 				// Complement A register (Flip all bits)
-				regs[A] = ~regs[A] & 0xFF;
+				regs[A] ^= 0xFF;
 
 				setSubtract(true);
 				setHalfCarry(true);
