@@ -2773,7 +2773,10 @@ public class Cpu {
 
 			clock.executedOp(opcode);
 			
-			display.step(clock.getDelta());
+			int delta = clock.getDelta();
+			
+			display.step(delta);
+			mmu.timers.step(delta);
 			
 			clock.step();
 			

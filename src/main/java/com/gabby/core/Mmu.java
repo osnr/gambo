@@ -37,11 +37,12 @@ public class Mmu {
     public static final int LCDC = 0xFF40;
     public static final int STAT = 0xFF41;
     public static final int SCX = 0xFF43;
-    public static final int SCY = 0xff42;
+    public static final int SCY = 0xFF42;
     public static final int WX = 0xFF4B;
     public static final int WY = 0xFF4A;
     public static final int LY = 0xFF44;
     public static final int LYC = 0xFF45;
+    public static final int DMA = 0xFF46;
     public static final int BGP = 0xFF47;
     public static final int OBP0 = 0xFF48;
     public static final int OBP1 = 0xFF49;
@@ -53,10 +54,69 @@ public class Mmu {
     public static final int TILE_MAP_ONE = 0x9800;
     public static final int TILE_MAP_TWO = 0x9C00;
 
+    public static final int DIV = 0xFF04;
+    public static final int TIMA = 0xFF05;
+    public static final int TMA = 0xFF06;
+    public static final int TMC = 0xFF07;
+    
     public static final int JOYP = 0xFF00;
 	
     // flags for 5 interrupts in here
     public static final int IE = 0xFFFF;
+    
+    class Timers {
+    	// timers
+    	// ------
+    	private int divCounter;
+    	private int timaCounter;
+    	
+    	private boolean isClockEnabled() {
+    		return (read(Mmu.TMC) & 0x02) != 0;
+    	}
+    	
+    	private void divide(int deltaClock) {
+    		divCounter += deltaClock;
+    		
+    		if (divCounter >= 255) {
+    			divCounter = 0;
+    			memory.put(Mmu.DIV, (byte) (read(Mmu.DIV) + 1)); // write directly to buffer
+    		}
+    	}
+    	
+    	int getClockFreq() {
+    		return read(Mmu.TMC) & 0x03;
+    	}
+    	
+    	void resetCounter() {
+    		switch (this.getClockFreq()) {
+    		case 0: timaCounter = 1024; break;
+    		case 1: timaCounter = 16; break;
+    		case 2: timaCounter = 64; break;
+    		case 3: timaCounter = 256;
+    		}
+    	}
+    	
+    	public void step(int deltaClock) {
+    		this.divide(deltaClock);
+    		
+    		if (this.isClockEnabled()) {
+    			timaCounter -= deltaClock;
+    			
+    			if (timaCounter <= 0) {
+    				this.resetCounter();
+    				
+    				if (read(Mmu.TIMA) == 0xFF) {
+    					write(Mmu.TIMA, read(Mmu.TMA));
+    					
+    					interrupts.setInterrupt(Interrupts.TIMER);
+    				} else {
+    					write(Mmu.TIMA, read(Mmu.TIMA) + 1);
+    				}
+    			}
+    		}
+    	}
+    }
+    public final Timers timers = new Timers();
     
     class Interrupts {
 		// interrupts
@@ -290,9 +350,17 @@ public class Mmu {
     public void write(int addr, int n) {
 	    if (addr < ROM_LIMIT) {
 	    	return;
-	    } else if (addr == 0xFF00) { // update JOYP register
+	    } else if (addr == Mmu.JOYP) { // update JOYP register
 		    inputs.updateJoyp(n);
-	    } else if (addr == 0xFF46) { // DMA transfer 
+	    } else if (addr == Mmu.TMC) { // change timer settings
+	    	int oldFreq = timers.getClockFreq();
+	    	memory.put(Mmu.TMC, (byte) n);
+	    	int newFreq = timers.getClockFreq();
+	    	
+	    	if (oldFreq != newFreq) {
+	    		timers.resetCounter();
+	    	}
+	    } else if (addr == Mmu.DMA) { // DMA transfer 
 	    	dmaTransfer(n);
 	    } else {
 	    	memory.put(addr, (byte) n);
