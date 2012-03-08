@@ -673,8 +673,7 @@ public class Cpu {
 
 			opcode = readPC();
 			
-            //System.out.print(String.format("PC %x, opcode %x", pc - 1, opcode) + ": " + regs[A] + "," + regs[B] + "," + regs[C] + ","
-            //                 + regs[D] + "," + regs[E] + "," + regs[F] + "," + regs[H] + "," + regs[L] + "," + sp + ": ");
+            System.out.print(String.format("PC %x, opcode %x\n", pc - 1, opcode));
 
 			switch (opcode) {
 			case 0x00: // NOP
@@ -2773,11 +2772,14 @@ public class Cpu {
 
 			clock.executedOp(opcode);
 			
-			display.step(clock.getDelta());
+			int delta = clock.getDelta();
 			
-			clock.step();
+			display.step(delta);
+			mmu.timers.step(delta);
 			
 			mmu.interrupts.checkInterrupts(this);
+			
+			clock.step();
 		}
 	}
 
