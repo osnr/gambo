@@ -673,11 +673,11 @@ public class Cpu {
 
 			opcode = readPC();
 			
-            System.out.print(String.format("PC %x, opcode %x\n", pc - 1, opcode));
+            // System.out.print(String.format("PC %x, opcode %x\n", pc - 1, opcode));
 
 			switch (opcode) {
 			case 0x00: // NOP
-			// No operation
+				// No operation
 				break;
 
 			case 0x01: // LD BC, nn

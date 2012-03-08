@@ -33,6 +33,8 @@ public class Mmu {
     public static final int WINDOW_HEIGHT = 144;
 	
     public static final int CART_TYPE = 0x0147;
+    public static final int ROM_SIZE = 0x0148;
+    public static final int RAM_SIZE = 0x0149;
     
     public static final int OAM = 0xFE00;
     public static final int IF = 0xFF0F;
@@ -129,7 +131,7 @@ public class Mmu {
 		public static final int SERIAL = 3;
 		public static final int INPUT = 4;
 	
-		private boolean interrupts = true; // IME (master flag)
+		private boolean interrupts = false; // IME (master flag)
 	
 		public void enableInterrupts() {
 			interrupts = true;
@@ -277,9 +279,6 @@ public class Mmu {
 		private ByteBuffer ram;
 		
 		public Banks() {
-			ram = ByteBuffer.allocate(0x8000);
-			ram.order(ByteOrder.LITTLE_ENDIAN);
-			
 			switch (cartridge.get(Mmu.CART_TYPE)) {
 			case 0x01:
 			case 0x02:
@@ -289,10 +288,14 @@ public class Mmu {
 			case 0x05:
 			case 0x06:
 				mbc = 2;
+				break;
 			case 0x12:
 			case 0x13:
 				mbc = 3;
 			}
+			
+			ram = ByteBuffer.allocate(0x8000);
+			ram.order(ByteOrder.LITTLE_ENDIAN);
 		}
 		
 		private void ramBankOn(int addr, int data) {
@@ -379,6 +382,9 @@ public class Mmu {
 	    }
 
 		public int readRom(int addr) {
+			if (addr == 0x7ff3) {
+				System.out.println("Passed the point of no return");
+			}
 			addr -= 0x4000;
 			return cartridge.get(addr + (romBank * 0x4000)) & 0xFF;
 		}
