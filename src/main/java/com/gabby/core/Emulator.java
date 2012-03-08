@@ -40,11 +40,6 @@ class Emulator extends JComponent implements ActionListener {
     private DesktopInput input;
 
     public Emulator() {
-    	this.mmu = new Mmu();
-        this.display = new Display(mmu, this);
-        this.input = new DesktopInput(mmu);
-        this.cpu = new Cpu(mmu, display);
-        
         buffer = new BufferedImage(160, 144, BufferedImage.TYPE_INT_RGB);
         scale = 1;
     }
