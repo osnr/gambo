@@ -51,36 +51,6 @@ class Emulator extends JComponent implements ActionListener {
         scale = 1;
     }
 
-    public void resizeBuffered() {
-        /*int width = buffer.getWidth();
-        int height = buffer.getHeight();
-
-        AffineTransform at = new AffineTransform();
-        at.scale(scale, scale);
-
-        AffineTransformOp op = new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
-        BufferedImage tmp = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB); // src cannot be the same as dst
-
-        op.filter(buffer, tmp);
-        buffer = tmp;*/
-        // Create new (blank) image of required (scaled) size
-
-        int width = 160 * scale;
-        int height = 144 * scale;
-
-        BufferedImage scaledImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-
-        Graphics2D g = scaledImage.createGraphics();
-        AffineTransform at = AffineTransform.getScaleInstance(scale, scale);
-        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-                RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-        g.drawImage(buffer, at, null);
-        g.dispose();
-
-        buffer = scaledImage;
-        System.out.println(width);
-    }
-
     @Override
     public void paint(Graphics graphics) {
         super.paint(graphics);
