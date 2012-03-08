@@ -21,6 +21,8 @@ package com.gabby.core;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.ColorModel;
 import java.awt.image.WritableRaster;
 import java.io.*;
@@ -35,25 +37,48 @@ class Emulator extends JComponent implements ActionListener {
     Display display;
     private Mmu mmu;
     private Cpu cpu;
+    private int scale;
     public BufferedImage buffer;
     private DesktopInput input;
 
     public Emulator() {
     	this.mmu = new Mmu();
-    	
         this.display = new Display(mmu, this);
         this.input = new DesktopInput(mmu);
-        
         this.cpu = new Cpu(mmu, display);
         
         buffer = new BufferedImage(160, 144, BufferedImage.TYPE_INT_RGB);
+        scale = 1;
     }
 
-    public void bufferFromBuffer(BufferedImage bi) {
-        ColorModel cm = bi.getColorModel();
-        boolean isAlphaPremultiplied = cm.isAlphaPremultiplied();
-        WritableRaster raster = bi.copyData(null);
-        buffer = new BufferedImage(cm, raster, isAlphaPremultiplied, null);
+    public void resizeBuffered() {
+        /*int width = buffer.getWidth();
+        int height = buffer.getHeight();
+
+        AffineTransform at = new AffineTransform();
+        at.scale(scale, scale);
+
+        AffineTransformOp op = new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
+        BufferedImage tmp = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB); // src cannot be the same as dst
+
+        op.filter(buffer, tmp);
+        buffer = tmp;*/
+        // Create new (blank) image of required (scaled) size
+
+        int width = 160 * scale;
+        int height = 144 * scale;
+
+        BufferedImage scaledImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+
+        Graphics2D g = scaledImage.createGraphics();
+        AffineTransform at = AffineTransform.getScaleInstance(scale, scale);
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        g.drawImage(buffer, at, null);
+        g.dispose();
+
+        buffer = scaledImage;
+        System.out.println(width);
     }
 
     @Override
@@ -61,6 +86,9 @@ class Emulator extends JComponent implements ActionListener {
         super.paint(graphics);
         
         Graphics2D g = (Graphics2D) graphics;
+
+        //resizeBuffered();
+        g.scale((double) scale, (double) scale);
         g.drawImage(buffer, null, 0, 0);
     }
     
@@ -157,16 +185,19 @@ class Emulator extends JComponent implements ActionListener {
                     display.setSizeMultiplyer(1);
                     this.getParent().setPreferredSize(new Dimension(160, 144));
                     SwingUtilities.getWindowAncestor(this).pack();
+                    scale = 1;
                 } else if ("320x288".equals(item.getText())) {
                     display.buffer = new BufferedImage(320, 288, BufferedImage.TYPE_INT_RGB);
                     display.setSizeMultiplyer(2);
                     this.getParent().setPreferredSize(new Dimension(320, 288));
                     SwingUtilities.getWindowAncestor(this).pack();
+                    scale = 2;
                 } else if ("640x576".equals(item.getText())) {
                     display.buffer = new BufferedImage(640, 576, BufferedImage.TYPE_INT_RGB);
                     display.setSizeMultiplyer(2);
                     this.getParent().setPreferredSize(new Dimension(640, 576));
                     SwingUtilities.getWindowAncestor(this).pack();
+                    scale = 4;
                 }
             }
         } catch (FileNotFoundException ex) {
