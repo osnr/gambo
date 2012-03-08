@@ -19,6 +19,8 @@
 
 package com.gabby.core;
 
+import java.util.Calendar;
+
 public class Cpu {
 	public static final int A = 0;
 	public static final int B = 1;
@@ -673,7 +675,8 @@ public class Cpu {
 
 			opcode = readPC();
 			
-            System.out.print(String.format("PC %x, opcode %x\n", pc - 1, opcode));
+            //System.out.print(String.format("PC %x, opcode %x\n", pc - 1, opcode));
+            //long timeStart = Calendar.getInstance().getTimeInMillis();
 
 			switch (opcode) {
 			case 0x00: // NOP
@@ -2780,6 +2783,18 @@ public class Cpu {
 			mmu.interrupts.checkInterrupts(this);
 			
 			clock.step();
+
+            /*long timeEnd = Calendar.getInstance().getTimeInMillis();
+            long deltaTime = (timeEnd - timeStart) / 1000;
+
+            if (Clock.CYCLES[opcode] * 4.19 > deltaTime) {
+                try {
+                    System.out.println(String.format("Clock.CYCLES[opcode] * 1.05: %f, deltaTime: %d", Clock.CYCLES[opcode] * 1.05, deltaTime));
+                    Thread.sleep((long) (Clock.CYCLES[opcode] * 1.05) - deltaTime);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }*/
 		}
 	}
 

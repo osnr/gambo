@@ -21,6 +21,7 @@ package com.gabby.core;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 
 import com.gabby.core.Mmu.Interrupts;
@@ -31,19 +32,16 @@ class Display {
     public static final int SCREEN_WIDTH = 256;
     public static final int SCREEN_HEIGHT = 256;
 
-    public static final int HBLANK_MODE = 0;
-    public static final int VBLANK_MODE = 1;
-    public static final int OAM_READ_MODE = 2;
-    public static final int VRAM_READ_MODE = 3;
-
     protected int modeClock, vblankClock;
     protected int mode;
     protected int line, lastLine;
     protected int sizeMultiplyer;
-
+    protected long lastSync, lastBigSync;
+    protected int framesSinceBigSync;
     protected Mmu mmu;
     BufferedImage buffer;
     Emulator emulator;
+
 
     public Display(Mmu mmu, Emulator emulator) {
         modeClock = vblankClock = mode = line = lastLine = 0;
@@ -398,6 +396,9 @@ class Display {
                     // TODO: TURN OFF LCD
                 }
 
+                // Sync timing
+                // syncTiming();
+
                 emulator.buffer = this.buffer;
                 emulator.repaint();
             }
@@ -466,5 +467,35 @@ class Display {
 
     public void setSizeMultiplyer(int sizeMultiplyer) {
         this.sizeMultiplyer = sizeMultiplyer;
+    }
+
+    public void syncTiming() {
+        long t = Calendar.getInstance().getTimeInMillis();
+        
+        if (framesSinceBigSync >= 2) {
+            while (t - lastBigSync < 50) {
+                try {
+                    Thread.sleep(t - lastBigSync);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                
+                t = Calendar.getInstance().getTimeInMillis();
+            }
+            
+            lastBigSync = t;
+        } else {
+            while (t - lastSync < 16) {
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                t = Calendar.getInstance().getTimeInMillis();
+            }
+        }
+
+        lastSync = t;
     }
 }
