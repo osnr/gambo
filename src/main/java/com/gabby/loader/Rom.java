@@ -44,7 +44,7 @@ public class Rom {
     public static final int TITLE_LENGTH = 0x0144 - 0x0134;
     public static final int NEW_LICENSEE_CODE_LENGTH = 0x0146 - 0x0144;
     public static final int GLOBAL_CHECKSUM_LENGTH = 0x0150 - 0x014E;
-    public static final int ROM_LENGTH = 0x8000;
+    public static final int ROM_LENGTH = 0x200000;
     
     public Rom() {
         entry = ByteBuffer.allocate(ENTRY_LENGTH);

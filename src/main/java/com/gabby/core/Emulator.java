@@ -39,13 +39,6 @@ class Emulator extends JComponent implements ActionListener {
     private DesktopInput input;
 
     public Emulator() {
-    	this.mmu = new Mmu();
-    	
-        this.display = new Display(mmu, this);
-        this.input = new DesktopInput(mmu);
-        
-        this.cpu = new Cpu(mmu, display);
-        
         buffer = new BufferedImage(160, 144, BufferedImage.TYPE_INT_RGB);
     }
 
@@ -67,10 +60,14 @@ class Emulator extends JComponent implements ActionListener {
     public void loadRom(File f) {
         Rom rom = RomLoader.loadGameBoyRom(f);
         System.out.println("Loaded: " + rom.getTitle());
-        mmu.getMemory().clear();
-        mmu.getMemory().put(rom.getRom().array());
-        mmu.getMemory().rewind();
 
+        this.mmu = new Mmu(rom.getRom());
+    	
+        this.display = new Display(mmu, this);
+        this.input = new DesktopInput(mmu);
+        
+        this.cpu = new Cpu(mmu, display);
+        
         (new Thread() {
             public void run() {
                 try {
@@ -101,7 +98,7 @@ class Emulator extends JComponent implements ActionListener {
                 if (ret == JFileChooser.APPROVE_OPTION) {
                     File f = fc.getSelectedFile();
                     FileOutputStream out = new FileOutputStream(f);
-                    out.write(mmu.getMemory().array());
+                    out.write(mmu.getCartridge().array());
                     out.write(cpu.a());
                     out.write(cpu.b());
                     out.write(cpu.c());
@@ -129,9 +126,9 @@ class Emulator extends JComponent implements ActionListener {
                     FileInputStream in = new FileInputStream(f);
                     byte[] b = new byte[Mmu.MEMORY_SIZE];
                     in.read(b);
-                    mmu.getMemory().clear();
-                    mmu.getMemory().put(b);
-                    mmu.getMemory().rewind();
+                    mmu.getCartridge().clear();
+                    mmu.getCartridge().put(b);
+                    mmu.getCartridge().rewind();
                     cpu.setA(in.read());
                     cpu.setB(in.read());
                     cpu.setC(in.read());

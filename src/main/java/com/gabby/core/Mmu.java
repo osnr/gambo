@@ -32,6 +32,8 @@ public class Mmu {
     public static final int WINDOW_WIDTH = 160;
     public static final int WINDOW_HEIGHT = 144;
 	
+    public static final int CART_TYPE = 0x0147;
+    
     public static final int OAM = 0xFE00;
     public static final int IF = 0xFF0F;
     public static final int LCDC = 0xFF40;
@@ -79,7 +81,7 @@ public class Mmu {
     		
     		if (divCounter >= 255) {
     			divCounter = 0;
-    			memory.put(Mmu.DIV, (byte) (read(Mmu.DIV) + 1)); // write directly to buffer
+    			cartridge.put(Mmu.DIV, (byte) (read(Mmu.DIV) + 1)); // write directly to buffer
     		}
     	}
     	
@@ -258,17 +260,154 @@ public class Mmu {
 	    
 	    public void updateJoyp(int data) {
 	    	// System.out.println("Updating joyp: " + Integer.toBinaryString(read(Mmu.JOYP)));
-	        memory.put(Mmu.JOYP, (byte) (this.joypValue(data) & 0xFF));
+	        cartridge.put(Mmu.JOYP, (byte) (this.joypValue(data) & 0xFF));
 	    }
 	}
-
 	public final Inputs inputs = new Inputs();
     
-    ByteBuffer memory;
+	class Banks {
+		private int mbc = 0;
+		
+		private boolean ramBanking;
+		private boolean romBanking;
+		
+		private int romBank = 1;
+		private int ramBank = 0;
+		
+		private ByteBuffer ram;
+		
+		public Banks() {
+			ram = ByteBuffer.allocate(0x8000);
+			ram.order(ByteOrder.LITTLE_ENDIAN);
+			
+			switch (cartridge.get(Mmu.CART_TYPE)) {
+			case 0x01:
+			case 0x02:
+			case 0x03:
+				mbc = 1;
+				break;
+			case 0x05:
+			case 0x06:
+				mbc = 2;
+			case 0x12:
+			case 0x13:
+				mbc = 3;
+			}
+		}
+		
+		private void ramBankOn(int addr, int data) {
+			if (mbc == 2 && ((addr & 0x08) != 0)) {
+				return;
+			} else {
+				switch (data & 0x0F) {
+				case 0x0A:
+					ramBanking = true;
+					break;
+				case 0x00:
+					ramBanking = false;
+				}
+			}
+		}
+		
+		private void switchRomBankLow(int data) {
+			if (mbc == 2) {
+				romBank = data & 0x0F;
+				if (romBank == 0) {
+					romBank++;
+				}
+				return;
+			} else if (mbc == 1) {
+				data &= 0x1F;
+				romBank &= 0xE0;
+			
+				romBank |= data;
+			
+				if (romBank == 0) {
+					romBank++;
+				}
+			}
+		}
+		
+		private void switchRomBankHigh(int data) {
+			romBank &= 0x1F;
+			data &= 0xE0;
+			
+			romBank |= data;
+			
+			if (romBank == 0) {
+				romBank++;
+			}
+		}
+		
+		private void switchRamBank(int data) {
+			ramBank = data & 0x03;
+		}
+		
+		private void romBankOn(int data) {
+			data &= 0x01;
+			
+			romBanking = (data == 0);
+			if (romBanking) {
+				romBank = 0;
+			}
+		}
+		
+	    void bank(int addr, int n) {
+	    	// game wrote to low memory,
+	    	// change banking settings
+	    	if (addr < 0x2000) {
+	    		if (mbc != 0) {
+	    			ramBankOn(addr, n);
+	    		}
+	    	} else if ((addr >= 0x200) && (addr < 0x4000)) {
+	    		if (mbc != 0) {
+	    			switchRomBankLow(n);
+	    		}
+	    	} else if ((addr >= 0x4000) && (addr < 0x6000)) {
+	    		if (mbc == 1) {
+	    			if (romBanking) {
+	    				switchRomBankHigh(n);
+	    			} else {
+	    				switchRamBank(n);
+	    			}
+	    		}
+	    	} else if ((addr >= 0x6000) && (addr < 0x8000)) {
+	    		if (mbc == 1) {
+	    			romBankOn(n);
+	    		}
+	    	}
+	    }
 
-    public Mmu() {
-        this.memory = ByteBuffer.allocate(0xFFFF + 1);
-        this.memory.order(ByteOrder.LITTLE_ENDIAN);
+		public int readRom(int addr) {
+			addr -= 0x4000;
+			return cartridge.get(addr + (romBank * 0x4000)) & 0xFF;
+		}
+		
+		public int readRam(int addr) {
+			addr -= 0xA000;
+			return ram.get(addr + (ramBank * 0x2000)) & 0xFF;
+		}
+		
+		public void writeRam(int addr, int n) {
+			if (ramBanking) {
+				addr -= 0xA000;
+				ram.put(addr + (ramBank * 0x2000), (byte) n);
+			}
+		}
+	}
+	final Banks banks;
+	
+	ByteBuffer cartridge;
+
+    public Mmu(ByteBuffer rom) {
+        cartridge = ByteBuffer.allocate(0x200000);
+        cartridge.order(ByteOrder.LITTLE_ENDIAN);
+        
+        cartridge.clear();
+        cartridge.put(rom.array());
+        cartridge.rewind();
+        
+        this.banks = new Banks();
     }
     
     // preload appropriate register values
@@ -307,13 +446,13 @@ public class Mmu {
 		this.write(0xFF4A, 0x00); // WY
 		this.write(0xFF4B, 0x00); // WX
     }
-	
-    public ByteBuffer getMemory() {
-        return memory;
+    
+    public ByteBuffer getCartridge() {
+    	return this.cartridge;
     }
-	
-    public void setMemory(ByteBuffer memory) {
-        this.memory = memory;
+    
+    public void setCartridge(ByteBuffer rom) {
+    	this.cartridge = rom;
     }
     
     protected void dmaTransfer(int data) {
@@ -328,7 +467,13 @@ public class Mmu {
     
     // read unsigned byte from a position in memory
     public int read(int addr) {
-        return memory.get(addr) & 0xFF; // unsign
+    	if ((addr >= 0x4000) && (addr <= 0x7FFF)) { // ROM bank read
+    		return banks.readRom(addr);
+    	} else if ((addr >= 0xA000) && (addr <= 0xBFFF)) { // RAM bank read
+    		return banks.readRam(addr);
+    	} else {
+    		return cartridge.get(addr) & 0xFF; // unsign
+    	}
     }
 
     // reads the interval [start, end)
@@ -336,25 +481,29 @@ public class Mmu {
         int[] b = new int[end - start];
         
         for (int i = start; i < end; i++) {
-            b[i - start] = read(i);
+            b[i - start] = this.read(i);
         }
 
         return b;
     }
     
     public int read16(int addr) {
-        return memory.getShort(addr) & 0xFFFF; // unsign
+    	return this.read(addr) | (this.read(addr + 1) << 8);
     }
-
+    
     // write to a position in memory
     public void write(int addr, int n) {
 	    if (addr < ROM_LIMIT) {
-	    	return;
+	    	// game is trying to do something with banks,
+	    	// if it's writing to a low location
+	    	banks.bank(addr, n);
+	    } else if ((addr >= 0xA000) && (addr < 0xC000)) {
+	    	banks.writeRam(addr, n);
 	    } else if (addr == Mmu.JOYP) { // update JOYP register
 		    inputs.updateJoyp(n);
 	    } else if (addr == Mmu.TMC) { // change timer settings
 	    	int oldFreq = timers.getClockFreq();
-	    	memory.put(Mmu.TMC, (byte) n);
+	    	cartridge.put(Mmu.TMC, (byte) n);
 	    	int newFreq = timers.getClockFreq();
 	    	
 	    	if (oldFreq != newFreq) {
@@ -363,7 +512,7 @@ public class Mmu {
 	    } else if (addr == Mmu.DMA) { // DMA transfer 
 	    	dmaTransfer(n);
 	    } else {
-	    	memory.put(addr, (byte) n);
+	    	cartridge.put(addr, (byte) n);
 	    }
     }
 
