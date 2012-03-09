@@ -39,9 +39,11 @@ public class Main implements Serializable {
                 //frame.setSize(160, 164);
                 frame.setLocationRelativeTo(null);
                 frame.setIgnoreRepaint(true);
+                frame.setResizable(false);
                 frame.getContentPane().setPreferredSize(new Dimension(160, 144));
 
                 JMenuBar menuBar = new JMenuBar();
+
                 JMenu fileMenu = new JMenu("File");
                 menuBar.add(fileMenu);
 
@@ -56,11 +58,33 @@ public class Main implements Serializable {
                 JMenuItem loadState = new JMenuItem("Load State");
                 loadState.addActionListener(emulator);
                 loadState.setActionCommand("load state");
+                
+                JMenu optionsMenu = new JMenu("Options");
+                menuBar.add(optionsMenu);
+                
+                JMenu screenSize = new JMenu("Screen Size");
+                
+                JMenuItem res160x144 = new JMenuItem("160x144");
+                res160x144.addActionListener(emulator);
+                res160x144.setActionCommand("change size");
+                screenSize.add(res160x144);
+
+                JMenuItem res320x288 = new JMenuItem("320x288");
+                res320x288.addActionListener(emulator);
+                res320x288.setActionCommand("change size");
+                screenSize.add(res320x288);
+
+                JMenuItem res640x576 = new JMenuItem("640x576");
+                res640x576.addActionListener(emulator);
+                res640x576.setActionCommand("change size");
+                screenSize.add(res640x576);
 
                 fileMenu.add(loadRom);
                 fileMenu.addSeparator();
                 fileMenu.add(saveState);
                 fileMenu.add(loadState);
+                
+                optionsMenu.add(screenSize);
 
                 frame.setJMenuBar(menuBar);
                 frame.pack();

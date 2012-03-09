@@ -19,6 +19,8 @@
 
 package com.gabby.core;
 
+import java.util.Calendar;
+
 public class Cpu {
 	public static final int A = 0;
 	public static final int B = 1;
@@ -672,11 +674,9 @@ public class Cpu {
 			if (!isHalting()) {
 				opcode = readPC();
 			}
-			
-			// System.out.print(String.format("PC %x, opcode %x\n", pc - 1, opcode));
-	
+
 			op(opcode);
-	            
+
 			clock.executedOp(opcode);
 				
 			delta = clock.getDelta();

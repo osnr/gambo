@@ -35,18 +35,13 @@ class Emulator extends JComponent implements ActionListener {
     Display display;
     private Mmu mmu;
     private Cpu cpu;
+    private int scale;
     public BufferedImage buffer;
     private DesktopInput input;
 
     public Emulator() {
         buffer = new BufferedImage(160, 144, BufferedImage.TYPE_INT_RGB);
-    }
-
-    public void bufferFromBuffer(BufferedImage bi) {
-        ColorModel cm = bi.getColorModel();
-        boolean isAlphaPremultiplied = cm.isAlphaPremultiplied();
-        WritableRaster raster = bi.copyData(null);
-        buffer = new BufferedImage(cm, raster, isAlphaPremultiplied, null);
+        scale = 1;
     }
 
     @Override
@@ -54,6 +49,9 @@ class Emulator extends JComponent implements ActionListener {
         super.paint(graphics);
         
         Graphics2D g = (Graphics2D) graphics;
+
+        //resizeBuffered();
+        g.scale((double) scale, (double) scale);
         g.drawImage(buffer, null, 0, 0);
     }
     
@@ -155,6 +153,28 @@ class Emulator extends JComponent implements ActionListener {
                     cpu.setPc(in.read());
                     // cpu.setCounter(in.read());
                     in.close();
+                }
+            } else if ("change size".equals(e.getActionCommand())) {
+                JMenuItem item = (JMenuItem) e.getSource();
+                
+                if ("160x144".equals(item.getText())) {
+                    display.buffer = new BufferedImage(160, 144, BufferedImage.TYPE_INT_RGB);
+                    display.setSizeMultiplyer(1);
+                    this.getParent().setPreferredSize(new Dimension(160, 144));
+                    SwingUtilities.getWindowAncestor(this).pack();
+                    scale = 1;
+                } else if ("320x288".equals(item.getText())) {
+                    display.buffer = new BufferedImage(320, 288, BufferedImage.TYPE_INT_RGB);
+                    display.setSizeMultiplyer(2);
+                    this.getParent().setPreferredSize(new Dimension(320, 288));
+                    SwingUtilities.getWindowAncestor(this).pack();
+                    scale = 2;
+                } else if ("640x576".equals(item.getText())) {
+                    display.buffer = new BufferedImage(640, 576, BufferedImage.TYPE_INT_RGB);
+                    display.setSizeMultiplyer(2);
+                    this.getParent().setPreferredSize(new Dimension(640, 576));
+                    SwingUtilities.getWindowAncestor(this).pack();
+                    scale = 4;
                 }
             }
         } catch (FileNotFoundException ex) {
