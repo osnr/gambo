@@ -70,7 +70,7 @@ public class Mmu {
     // flags for 5 interrupts in here
     public static final int IE = 0xFFFF;
     
-    class Timers {
+    public class Timers {
     	// timers
     	// ------
 	    private int divCounter;
@@ -124,7 +124,7 @@ public class Mmu {
     }
     public final Timers timers = new Timers();
     
-    class Interrupts {
+    public class Interrupts {
 		// interrupts
 		// ----------
 		public static final int VBLANK = 0;
@@ -218,7 +218,7 @@ public class Mmu {
     }
 	public final Interrupts interrupts = new Interrupts();
 	
-	class Inputs {
+	public class Inputs {
 		private int buttons = 0xDF; // pin 15
 		private int dpad = 0xEF; // pin 14
 

@@ -17,22 +17,32 @@
     along with Gabby.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.gabby.core;
+package com.gabby.desktop;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.image.ColorModel;
-import java.awt.image.WritableRaster;
-import java.io.*;
-
-import java.awt.image.BufferedImage;
-import java.awt.event.ActionListener;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
-import com.gabby.loader.*;
+import javax.swing.JComponent;
+import javax.swing.JFileChooser;
+import javax.swing.JMenuItem;
+import javax.swing.SwingUtilities;
 
-class Emulator extends JComponent implements ActionListener {
-    Display display;
+import com.gabby.core.Cpu;
+import com.gabby.core.Mmu;
+
+public class Emulator extends JComponent implements ActionListener {
+	private static final long serialVersionUID = 458596725723358140L;
+	
+	private DesktopDisplay display;
     private Mmu mmu;
     private Cpu cpu;
     private int scale;
@@ -47,7 +57,7 @@ class Emulator extends JComponent implements ActionListener {
     @Override
     public void paint(Graphics graphics) {
         super.paint(graphics);
-        
+
         Graphics2D g = (Graphics2D) graphics;
 
         //resizeBuffered();
@@ -66,7 +76,7 @@ class Emulator extends JComponent implements ActionListener {
             
             this.mmu = new Mmu(buf);
         	
-            this.display = new Display(mmu, this);
+            this.display = new DesktopDisplay(mmu, this);
             this.input = new DesktopInput(mmu);
             
             this.cpu = new Cpu(mmu, display);
@@ -159,19 +169,19 @@ class Emulator extends JComponent implements ActionListener {
                 
                 if ("160x144".equals(item.getText())) {
                     display.buffer = new BufferedImage(160, 144, BufferedImage.TYPE_INT_RGB);
-                    display.setSizeMultiplyer(1);
+
                     this.getParent().setPreferredSize(new Dimension(160, 144));
                     SwingUtilities.getWindowAncestor(this).pack();
                     scale = 1;
                 } else if ("320x288".equals(item.getText())) {
                     display.buffer = new BufferedImage(320, 288, BufferedImage.TYPE_INT_RGB);
-                    display.setSizeMultiplyer(2);
+
                     this.getParent().setPreferredSize(new Dimension(320, 288));
                     SwingUtilities.getWindowAncestor(this).pack();
                     scale = 2;
                 } else if ("640x576".equals(item.getText())) {
                     display.buffer = new BufferedImage(640, 576, BufferedImage.TYPE_INT_RGB);
-                    display.setSizeMultiplyer(2);
+
                     this.getParent().setPreferredSize(new Dimension(640, 576));
                     SwingUtilities.getWindowAncestor(this).pack();
                     scale = 4;

@@ -18,15 +18,12 @@
 
 package com.gabby.core;
 
-import java.awt.Color;
-import java.awt.image.BufferedImage;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collections;
 
 import com.gabby.core.Mmu.Interrupts;
 
-class Display {
+public abstract class Display {
     public static final int TILE_WIDTH = 8;
     public static final int TILE_HEIGHT = 8;
     public static final int SCREEN_WIDTH = 256;
@@ -35,42 +32,37 @@ class Display {
     protected int modeClock, vblankClock;
     protected int mode;
     protected int line, lastLine;
-    protected int sizeMultiplyer;
     protected long lastSync, lastBigSync;
     protected int framesSinceBigSync;
     protected Mmu mmu;
-    BufferedImage buffer;
-    Emulator emulator;
 
-
-    public Display(Mmu mmu, Emulator emulator) {
+    public Display(Mmu mmu) {
         modeClock = vblankClock = mode = line = lastLine = 0;
 
-        buffer = new BufferedImage(160, 144, BufferedImage.TYPE_INT_ARGB);
-        this.emulator = emulator;
-        this.emulator.buffer = buffer;
-
         this.mmu = mmu;
-        sizeMultiplyer = 1;
     }
+    
+    protected abstract int getPixel(int x, int y);
+    protected abstract void setPixel(int x, int y, int rgb);
 
-    private Color getColorFromPalette(int pal, int c) {
+    protected abstract void repaint();
+    
+    private int getColorFromPalette(int pal, int c) {
         int palb = mmu.read(pal);
 
-        int colorCode = (palb >> (c * 2)) & BitTwiddles.bx00000011;
+        int colorCode = (palb >> (c * 2)) & 0x03;
 
         switch (colorCode) {
-            case 0:
-                return Color.WHITE;
-            case 1:
-                return Color.LIGHT_GRAY;
-            case 2:
-                return Color.DARK_GRAY;
-            case 3:
-
-                return Color.BLACK;
-            default:
-                return Color.RED; // THINGS HAVE GONE HORRIBLY WRONG!
+            case 0: // white
+                return 0xFFFFFF;
+            case 1: // light gray
+                return 0xA9A9A9;
+            case 2: // dark gray
+                return 0x808080;
+            case 3: // black
+                return 0x000000;
+            default: // WTF
+                return 0xFF0000; // THINGS HAVE GONE HORRIBLY WRONG!
         }
     }
 
@@ -84,7 +76,7 @@ class Display {
         if ((mmu.read(Mmu.LCDC) & BitTwiddles.bx00000001) == 0) {
             // Screen is off, so draw black.
             for (int i = 0; i < 160; i++) {
-                buffer.setRGB(i, line, 0x000000000);
+                this.setPixel(i, line, 0x000000000);
             }
         } else {
             if ((mmu.read(Mmu.LCDC) & BitTwiddles.bx00010000) == 0) {
@@ -143,7 +135,7 @@ class Display {
                 for (int j = 0; j < 8; j++) {
                     if (x < 160) {
                         try {
-                            buffer.setRGB(x, line, getColorFromPalette(Mmu.BGP, tileBuffer[u + j]).getRGB());
+                            this.setPixel(x, line, getColorFromPalette(Mmu.BGP, tileBuffer[u + j]));
                         } catch (ArrayIndexOutOfBoundsException e) {
                             System.err.println(String.format("Out of bounds at: (%d, %d)", x, line));
                             e.printStackTrace();
@@ -215,7 +207,7 @@ class Display {
 
                     for (int j = 0; j < 8; j++) {
                         if ((x > 0) && (x < 160)) {
-                            buffer.setRGB(x, line, getColorFromPalette(Mmu.BGP, tileBuff[z]).getRGB());
+                            this.setPixel(x, line, getColorFromPalette(Mmu.BGP, tileBuff[z]));
                         }
 
                         x++;
@@ -232,10 +224,10 @@ class Display {
         int numSpritesToDisplay = 0, height = 0;
         int[] spritesToDraw = new int[40];
 
-        if ((mmu.read(Mmu.LCDC) & BitTwiddles.bx00000010) > 0) {
+        if ((mmu.read(Mmu.LCDC) & 0x02) > 0) {
             numSpritesToDisplay = 0;
 
-            if ((mmu.read(Mmu.LCDC) & BitTwiddles.bx00000100) == 0)
+            if ((mmu.read(Mmu.LCDC) & 0x04) == 0)
                 height = 7; // 8x8
             else
                 height = 15; // 8x16
@@ -327,17 +319,17 @@ class Display {
                 }
             }
 
-            int bgc = getColorFromPalette(Mmu.BGP, 0).getRGB();
+            int bgc = getColorFromPalette(Mmu.BGP, 0);
             int z = line - y;
 
             for (int j = 0; j < 8; j++) {
                 if (((x + j) >= 0) && ((y + z) >= 0) && ((x + j) < 160) && ((y + z) < 144)) {
                     if (spriteBuff[(z << 3) | j] > 0) { // if inside the screen and not transparant
-                        if (((flags & BitTwiddles.bx10000000) == 0) || (buffer.getRGB(x + j, y + z) == bgc)) {
+                        if (((flags & BitTwiddles.bx10000000) == 0) || (this.getPixel(x + j, y + z) == bgc)) {
                             if (palette == 1) {
-                                buffer.setRGB(x + j, y + z, getColorFromPalette(Mmu.OBP0, spriteBuff[(z << 3) | j]).getRGB());
+                                this.setPixel(x + j, y + z, getColorFromPalette(Mmu.OBP0, spriteBuff[(z << 3) | j]));
                             } else {
-                                buffer.setRGB(x + j, y + z, getColorFromPalette(Mmu.OBP1, spriteBuff[(z << 3) | j]).getRGB());
+                                this.setPixel(x + j, y + z, getColorFromPalette(Mmu.OBP1, spriteBuff[(z << 3) | j]));
                             }
                         }
                     }
@@ -399,8 +391,7 @@ class Display {
                 // Sync timing
                 syncTiming();
 
-                emulator.buffer = this.buffer;
-                emulator.repaint();
+                repaint();
             }
         } else {
             modeClock += deltaClock;
@@ -459,14 +450,6 @@ class Display {
                 }
             }
         }
-    }
-
-    public int getSizeMultiplyer() {
-        return sizeMultiplyer;
-    }
-
-    public void setSizeMultiplyer(int sizeMultiplyer) {
-        this.sizeMultiplyer = sizeMultiplyer;
     }
 
     public void syncTiming() {

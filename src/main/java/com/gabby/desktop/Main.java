@@ -17,15 +17,19 @@
     along with Gabby.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.gabby.core;
+package com.gabby.desktop;
 
-import javax.swing.*;
-import java.awt.*;
-import java.io.Serializable;
-import java.util.*;
+import java.awt.Dimension;
+import java.awt.EventQueue;
+import java.util.TimerTask;
 
-public class Main implements Serializable {
-    public static void main(final String[] args) {
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+
+public class Main {
+	public static void main(final String[] args) {
         System.setProperty("apple.laf.useScreenMenuBar", "true");
         System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Gabby");
         EventQueue.invokeLater(new Runnable() {

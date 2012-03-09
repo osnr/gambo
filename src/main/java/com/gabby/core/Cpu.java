@@ -19,8 +19,6 @@
 
 package com.gabby.core;
 
-import java.util.Calendar;
-
 public class Cpu {
 	public static final int A = 0;
 	public static final int B = 1;
@@ -30,8 +28,6 @@ public class Cpu {
 	public static final int F = 5;
 	public static final int H = 6;
 	public static final int L = 7;
-
-	private static final byte[] CYCLES = new byte[256];
 
 	// registers
 	// ---------
@@ -69,10 +65,6 @@ public class Cpu {
 		regs[A] = (nn & 0xFF00) >> 8;
 		regs[F] = nn & 0x00FF;
 	}
-	private void setAF(int n1, int n2) {
-		regs[A] = n1;
-		regs[F] = n2;
-	}
 
 	private int bc() { return regs[B] << 8 | regs[C]; }
 
@@ -80,20 +72,12 @@ public class Cpu {
 		regs[B] = (nn & 0xFF00) >> 8;
 		regs[C] = nn & 0x00FF;
 	}
-	private void setBC(int n1, int n2) {
-		regs[B] = n1;
-		regs[C] = n2;
-	}
-
+	
 	private int de() { return regs[D] << 8 | regs[E]; }
 
 	private void setDE(int nn) {
 		regs[D] = (nn & 0xFF00) >> 8;
 		regs[E] = nn & 0x00FF;
-	}
-	private void setDE(int n1, int n2) {
-		regs[D] = n1;
-		regs[E] = n2;
 	}
 
 	private int hl() { return regs[H] << 8 | regs[L]; }
@@ -101,10 +85,6 @@ public class Cpu {
 	private void setHL(int nn) {
 		regs[H] = (nn & 0xFF00) >> 8;
 		regs[L] = nn & 0x00FF;
-	}
-	private void setHL(int n1, int n2) {
-		regs[H] = n1;
-		regs[L] = n2;
 	}
 
 	private int sp = 0xFFFE; // stack pointer: 16-bit
