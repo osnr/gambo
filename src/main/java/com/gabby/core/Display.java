@@ -397,7 +397,7 @@ class Display {
                 }
 
                 // Sync timing
-                // syncTiming();
+                syncTiming();
 
                 emulator.buffer = this.buffer;
                 emulator.repaint();
