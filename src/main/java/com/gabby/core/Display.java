@@ -19,7 +19,6 @@
 package com.gabby.core;
 
 import java.util.Arrays;
-import java.util.Calendar;
 
 import com.gabby.core.Mmu.Interrupts;
 
@@ -32,8 +31,7 @@ public abstract class Display {
     protected int modeClock, vblankClock;
     protected int mode;
     protected int line, lastLine;
-    protected long lastSync, lastBigSync;
-    protected int framesSinceBigSync;
+
     protected Mmu mmu;
 
     public Display(Mmu mmu) {
@@ -338,7 +336,9 @@ public abstract class Display {
         }
     }
 
-    public void step(int deltaClock) {
+    // returns whether we're starting a new frame
+    // (and should delay)
+    public boolean step(int deltaClock) {
         int b = 0;
         vblankClock += deltaClock;
 
@@ -388,10 +388,9 @@ public abstract class Display {
                     // TODO: TURN OFF LCD
                 }
 
-                // Sync timing
-                syncTiming();
-
                 repaint();
+                
+                return true;
             }
         } else {
             modeClock += deltaClock;
@@ -450,35 +449,6 @@ public abstract class Display {
                 }
             }
         }
-    }
-
-    public void syncTiming() {
-        long t = Calendar.getInstance().getTimeInMillis();
-        
-        if (framesSinceBigSync >= 2) {
-            while (t - lastBigSync < 50) {
-                try {
-                    Thread.sleep(t - lastBigSync);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                
-                t = Calendar.getInstance().getTimeInMillis();
-            }
-            
-            lastBigSync = t;
-        } else {
-            while (t - lastSync < 16) {
-                try {
-                    Thread.sleep(1);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-                t = Calendar.getInstance().getTimeInMillis();
-            }
-        }
-
-        lastSync = t;
+        return false;
     }
 }

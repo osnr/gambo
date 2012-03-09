@@ -19,7 +19,8 @@
 
 package com.gabby.core;
 
-public class Cpu {
+
+public abstract class Cpu {
 	public static final int A = 0;
 	public static final int B = 1;
 	public static final int C = 2;
@@ -644,13 +645,17 @@ public class Cpu {
 		return mmu.read16(pc - 2);
 	}
 
-
+    protected abstract void timingWait();
+    
+    protected abstract boolean cycling();
+    protected abstract void timingSync();
+    
 	public void emulate(int initialPC) throws IllegalOperationException {
 		int opcode = -1, delta;
 		
 		pc = initialPC;
 
-		while (true) {
+		do {
 			if (!isHalting()) {
 				opcode = readPC();
 			}
@@ -660,14 +665,18 @@ public class Cpu {
 			clock.executedOp(opcode);
 				
 			delta = clock.getDelta();
-						
-			display.step(delta);
+
+			if (display.step(delta)) {
+				timingWait();
+			}
 			mmu.timers.step(delta);
 			
 			mmu.interrupts.checkInterrupts(this);
-			
+
 			clock.step();
-		}
+		} while (cycling());
+		
+		timingSync();
 	}
 	
 	protected void op(int opcode) throws IllegalOperationException {

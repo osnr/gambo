@@ -79,7 +79,7 @@ public class Emulator extends JComponent implements ActionListener {
             this.display = new DesktopDisplay(mmu, this);
             this.input = new DesktopInput(mmu);
             
-            this.cpu = new Cpu(mmu, display);
+            this.cpu = new DesktopCpu(mmu, display);
             
             (new Thread() {
                 public void run() {

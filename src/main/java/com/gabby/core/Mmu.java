@@ -142,7 +142,7 @@ public class Mmu {
 		public void disableInterrupts() {
 			interrupts = false;
 		}
-	
+
 		private boolean interrupt(int flags, int i) {
 			return (flags & (1 << i)) != 0;
 		}
