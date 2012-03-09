@@ -26,8 +26,7 @@ import com.gabby.core.Display;
 import com.gabby.core.Mmu;
 
 public class DesktopCpu extends Cpu {
-	long lastSync, lastBigSync;
-	int framesSinceBigSync;
+	long lastSync;
 	
 	public DesktopCpu(Mmu mmu, Display display) {
 		super(mmu, display);
@@ -48,15 +47,5 @@ public class DesktopCpu extends Cpu {
 		}
 
         lastSync = t;
-	}
-
-	@Override
-	protected boolean cycling() {
-		return true;
-	}
-
-	@Override
-	protected void timingSync() {
-		
 	}
 }
