@@ -58,26 +58,36 @@ class Emulator extends JComponent implements ActionListener {
     }
     
     public void loadRom(File f) {
-        Rom rom = RomLoader.loadGameBoyRom(f);
-        System.out.println("Loaded: " + rom.getTitle());
-
-        this.mmu = new Mmu(rom.getRom());
-    	
-        this.display = new Display(mmu, this);
-        this.input = new DesktopInput(mmu);
-        
-        this.cpu = new Cpu(mmu, display);
-        
-        (new Thread() {
-            public void run() {
-                try {
-                    cpu.emulate(0x100);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    System.err.println(String.format("Program counter: %x", cpu.getPc()));
+    	byte[] buf;
+        try {
+            FileInputStream in = new FileInputStream(f);
+            int size = (int) f.length();
+            buf = new byte[size];
+            
+            in.read(buf);
+            
+            this.mmu = new Mmu(buf);
+        	
+            this.display = new Display(mmu, this);
+            this.input = new DesktopInput(mmu);
+            
+            this.cpu = new Cpu(mmu, display);
+            
+            (new Thread() {
+                public void run() {
+                    try {
+                        cpu.emulate(0x100);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        System.err.println(String.format("Program counter: %x", cpu.getPc()));
+                    }
                 }
-            }
-        }).start();
+            }).start();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -98,7 +108,7 @@ class Emulator extends JComponent implements ActionListener {
                 if (ret == JFileChooser.APPROVE_OPTION) {
                     File f = fc.getSelectedFile();
                     FileOutputStream out = new FileOutputStream(f);
-                    out.write(mmu.getCartridge().array());
+                    out.write(mmu.getRom().array());
                     out.write(cpu.a());
                     out.write(cpu.b());
                     out.write(cpu.c());
@@ -126,9 +136,9 @@ class Emulator extends JComponent implements ActionListener {
                     FileInputStream in = new FileInputStream(f);
                     byte[] b = new byte[Mmu.MEMORY_SIZE];
                     in.read(b);
-                    mmu.getCartridge().clear();
-                    mmu.getCartridge().put(b);
-                    mmu.getCartridge().rewind();
+                    mmu.getRom().clear();
+                    mmu.getRom().put(b);
+                    mmu.getRom().rewind();
                     cpu.setA(in.read());
                     cpu.setB(in.read());
                     cpu.setC(in.read());

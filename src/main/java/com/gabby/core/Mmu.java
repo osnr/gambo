@@ -22,6 +22,9 @@ package com.gabby.core;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+import com.gabby.core.banking.Mbc0;
+import com.gabby.core.banking.Mbc1;
+
 public class Mmu {
     public static final int MEMORY_SIZE = 0xFFFF;
     
@@ -71,51 +74,51 @@ public class Mmu {
     class Timers {
     	// timers
     	// ------
-    	private int divCounter;
-    	private int timaCounter;
-    	
-    	private boolean isClockEnabled() {
-    		return (read(Mmu.TMC) & 0x02) != 0;
-    	}
-    	
-    	private void divide(int deltaClock) {
-    		divCounter += deltaClock;
-    		
-    		if (divCounter >= 255) {
-    			divCounter = 0;
-    			cartridge.put(Mmu.DIV, (byte) (read(Mmu.DIV) + 1)); // write directly to buffer
-    		}
-    	}
-    	
-    	int getClockFreq() {
-    		return read(Mmu.TMC) & 0x03;
-    	}
-    	
-    	void resetCounter() {
-    		switch (this.getClockFreq()) {
-    		case 0: timaCounter = 1024; break;
-    		case 1: timaCounter = 16; break;
-    		case 2: timaCounter = 64; break;
-    		case 3: timaCounter = 256;
-    		}
-    	}
-    	
-    	public void step(int deltaClock) {
-    		this.divide(deltaClock);
-    		
-    		if (this.isClockEnabled()) {
-    			timaCounter -= deltaClock;
-    			
-    			if (timaCounter <= 0) {
-    				this.resetCounter();
-    				
-    				if (read(Mmu.TIMA) == 0xFF) {
-    					write(Mmu.TIMA, read(Mmu.TMA));
-    					
-    					interrupts.setInterrupt(Interrupts.TIMER);
-    				} else {
-    					write(Mmu.TIMA, read(Mmu.TIMA) + 1);
-    				}
+	    private int divCounter;
+	    private int timaCounter;
+	    
+	    private boolean isClockEnabled() {
+		    return (read(Mmu.TMC) & 0x02) != 0;
+	    }
+	    
+	    private void divide(int deltaClock) {
+		    divCounter += deltaClock;
+		    
+		    if (divCounter >= 255) {
+			    divCounter = 0;
+			    memory.put(Mmu.DIV, (byte) (read(Mmu.DIV) + 1)); // write directly to buffer
+		    }
+	    }
+	    
+	    int getClockFreq() {
+		    return read(Mmu.TMC) & 0x03;
+	    }
+	    
+	    void resetCounter() {
+		    switch (this.getClockFreq()) {
+		    case 0: timaCounter = 1024; break;
+		    case 1: timaCounter = 16; break;
+		    case 2: timaCounter = 64; break;
+		    case 3: timaCounter = 256;
+		    }
+	    }
+	    
+	    public void step(int deltaClock) {
+		    this.divide(deltaClock);
+		    
+		    if (this.isClockEnabled()) {
+			    timaCounter -= deltaClock;
+			    
+			    if (timaCounter <= 0) {
+				    this.resetCounter();
+				
+				    if (rom.get(Mmu.TIMA) == 0xFF) {
+					    memory.put(Mmu.TIMA, (byte) read(Mmu.TMA));
+					    
+					    interrupts.setInterrupt(Interrupts.TIMER);
+				    } else {
+					    memory.put(Mmu.TIMA, (byte) (read(Mmu.TIMA) + 1));
+				    }
     			}
     		}
     	}
@@ -206,12 +209,12 @@ public class Mmu {
 		
 		private void setInterrupt(int ifl, int i) {
 			// trigger the interrupt itself
-			write(0xFF0F, ifl | (1 << i));
+			memory.put(0xFF0F, (byte) (ifl | (1 << i)));
 		}
 	
 		private void resetInterrupt(int ifl, int i) {
 			// untrigger the interrupt itself
-			write(0xFF0F, ifl & ~(0x01 << i));
+			memory.put(0xFF0F, (byte) (ifl & ~(0x01 << i)));
 		}
     }
 	public final Interrupts interrupts = new Interrupts();
@@ -262,158 +265,54 @@ public class Mmu {
 	    
 	    public void updateJoyp(int data) {
 	    	// System.out.println("Updating joyp: " + Integer.toBinaryString(read(Mmu.JOYP)));
-	        cartridge.put(Mmu.JOYP, (byte) (this.joypValue(data) & 0xFF));
+		    memory.put(Mmu.JOYP, (byte) this.joypValue(data));
 	    }
 	}
 	public final Inputs inputs = new Inputs();
     
-	class Banks {
-		private int mbc = 0;
-		
-		private boolean ramBanking;
-		private boolean romBanking;
-		
-		private int romBank = 1;
-		private int ramBank = 0;
-		
-		private ByteBuffer ram;
-		
-		public Banks() {
-			switch (cartridge.get(Mmu.CART_TYPE)) {
-			case 0x01:
-			case 0x02:
-			case 0x03:
-				mbc = 1;
-				break;
-			case 0x05:
-			case 0x06:
-				mbc = 2;
-				break;
-			case 0x12:
-			case 0x13:
-				mbc = 3;
-			}
-			
-			ram = ByteBuffer.allocate(0x8000);
-			ram.order(ByteOrder.LITTLE_ENDIAN);
-		}
-		
-		private void ramBankOn(int addr, int data) {
-			if (mbc == 2 && ((addr & 0x08) != 0)) {
-				return;
-			} else {
-				switch (data & 0x0F) {
-				case 0x0A:
-					ramBanking = true;
-					break;
-				case 0x00:
-					ramBanking = false;
-				}
-			}
-		}
-		
-		private void switchRomBankLow(int data) {
-			if (mbc == 2) {
-				romBank = data & 0x0F;
-				if (romBank == 0) {
-					romBank++;
-				}
-				return;
-			} else if (mbc == 1) {
-				data &= 0x1F;
-				romBank &= 0xE0;
-			
-				romBank |= data;
-			
-				if (romBank == 0) {
-					romBank++;
-				}
-			}
-		}
-		
-		private void switchRomBankHigh(int data) {
-			romBank &= 0x1F;
-			data &= 0xE0;
-			
-			romBank |= data;
-			
-			if (romBank == 0) {
-				romBank++;
-			}
-		}
-		
-		private void switchRamBank(int data) {
-			ramBank = data & 0x03;
-		}
-		
-		private void romBankOn(int data) {
-			data &= 0x01;
-			
-			romBanking = (data == 0);
-			if (romBanking) {
-				romBank = 0;
-			}
-		}
-		
-	    void bank(int addr, int n) {
-	    	// game wrote to low memory,
-	    	// change banking settings
-	    	if (addr < 0x2000) {
-	    		if (mbc != 0) {
-	    			ramBankOn(addr, n);
-	    		}
-	    	} else if ((addr >= 0x200) && (addr < 0x4000)) {
-	    		if (mbc != 0) {
-	    			switchRomBankLow(n);
-	    		}
-	    	} else if ((addr >= 0x4000) && (addr < 0x6000)) {
-	    		if (mbc == 1) {
-	    			if (romBanking) {
-	    				switchRomBankHigh(n);
-	    			} else {
-	    				switchRamBank(n);
-	    			}
-	    		}
-	    	} else if ((addr >= 0x6000) && (addr < 0x8000)) {
-	    		if (mbc == 1) {
-	    			romBankOn(n);
-	    		}
-	    	}
-	    }
+	public interface Mbc {
+		// game wrote to low memory,
+	    // change banking settings
+	    void bank(int addr, int data);
 
-		public int readRom(int addr) {
-			if (addr == 0x7ff3) {
-				System.out.println("Passed the point of no return");
-			}
-			addr -= 0x4000;
-			return cartridge.get(addr + (romBank * 0x4000)) & 0xFF;
-		}
+		int readRom(int addr);
+		int readRam(int addr);
 		
-		public int readRam(int addr) {
-			addr -= 0xA000;
-			return ram.get(addr + (ramBank * 0x2000)) & 0xFF;
-		}
-		
-		public void writeRam(int addr, int n) {
-			if (ramBanking) {
-				addr -= 0xA000;
-				ram.put(addr + (ramBank * 0x2000), (byte) n);
-			}
-		}
+		void writeRam(int addr, int n);
 	}
-	final Banks banks;
+	final Mbc mbc;
 	
-	ByteBuffer cartridge;
+	ByteBuffer rom;
+	ByteBuffer memory;
 
-    public Mmu(ByteBuffer rom) {
-        cartridge = ByteBuffer.allocate(0x200000);
-        cartridge.order(ByteOrder.LITTLE_ENDIAN);
+    public Mmu(byte[] cart) {
+	    rom = ByteBuffer.allocate(0x200000);
+	    rom.order(ByteOrder.LITTLE_ENDIAN);
+	    rom.clear();
+	    rom.put(cart);
+	    rom.rewind();
+	    
+	    memory = ByteBuffer.allocate(0x10000);
         
-        cartridge.clear();
-        cartridge.put(rom.array());
-        cartridge.rewind();
-        
-        this.banks = new Banks();
+	    switch (rom.get(Mmu.CART_TYPE)) {
+        case 0x00:
+        	mbc = new Mbc1(rom);
+        	break;
+        case 0x01:
+        case 0x02:
+        case 0x03:
+        	mbc = new Mbc1(rom);
+        	break;
+        case 0x05:
+        case 0x06:
+        	// mbc = new Mbc2();
+        	// break;
+        case 0x12:
+        case 0x13:
+        	// mbc = new Mbc3();
+        	default:
+        	mbc = null;
+        }
     }
     
     // preload appropriate register values
@@ -453,12 +352,12 @@ public class Mmu {
 		this.write(0xFF4B, 0x00); // WX
     }
     
-    public ByteBuffer getCartridge() {
-    	return this.cartridge;
+    public ByteBuffer getRom() {
+    	return this.rom;
     }
     
-    public void setCartridge(ByteBuffer rom) {
-    	this.cartridge = rom;
+    public void setRom(ByteBuffer rom) {
+    	this.rom = rom;
     }
     
     protected void dmaTransfer(int data) {
@@ -466,20 +365,22 @@ public class Mmu {
     	//System.out.println("Running DMA transfer from addr " + addr + " to 0xFE00.");
     	//System.out.println("Source memory: " + Arrays.toString(this.readRange(addr, addr + 0xA0)));
     	for (int i = 0; i < 0xA0; i++) { // copy A0 bytes to OAM
-    		this.write(0xFE00 + i, this.read(addr + i));
+    		this.write(0xFE00 + i, read(addr + i));
     	}
     	//System.out.println("Dest memory: " + Arrays.toString(this.readRange(0xFE00, 0xFE00 + 0xA0)));
     }
     
     // read unsigned byte from a position in memory
     public int read(int addr) {
-    	if ((addr >= 0x4000) && (addr <= 0x7FFF)) { // ROM bank read
-    		return banks.readRom(addr);
-    	} else if ((addr >= 0xA000) && (addr <= 0xBFFF)) { // RAM bank read
-    		return banks.readRam(addr);
-    	} else {
-    		return cartridge.get(addr) & 0xFF; // unsign
-    	}
+	    if ((addr >= 0x4000) && (addr <= 0x7FFF)) { // ROM bank read
+		    return mbc.readRom(addr);
+	    } else if ((addr >= 0xA000) && (addr <= 0xBFFF)) { // RAM bank read
+		    return mbc.readRam(addr);
+	    } else if (addr < 0x4000) { // unbanked ROM read
+		    return rom.get(addr) & 0xFF; // unsign
+	    } else { // main memory read
+	    	return memory.get(addr) & 0xFF;
+	    }
     }
 
     // reads the interval [start, end)
@@ -502,14 +403,14 @@ public class Mmu {
 	    if (addr < ROM_LIMIT) {
 	    	// game is trying to do something with banks,
 	    	// if it's writing to a low location
-	    	banks.bank(addr, n);
+	    	mbc.bank(addr, n);
 	    } else if ((addr >= 0xA000) && (addr < 0xC000)) {
-	    	banks.writeRam(addr, n);
+	    	mbc.writeRam(addr, n);
 	    } else if (addr == Mmu.JOYP) { // update JOYP register
 		    inputs.updateJoyp(n);
 	    } else if (addr == Mmu.TMC) { // change timer settings
-	    	int oldFreq = timers.getClockFreq();
-	    	cartridge.put(Mmu.TMC, (byte) n);
+		    int oldFreq = timers.getClockFreq();
+		    rom.put(Mmu.TMC, (byte) n);
 	    	int newFreq = timers.getClockFreq();
 	    	
 	    	if (oldFreq != newFreq) {
@@ -518,7 +419,7 @@ public class Mmu {
 	    } else if (addr == Mmu.DMA) { // DMA transfer 
 	    	dmaTransfer(n);
 	    } else {
-	    	cartridge.put(addr, (byte) n);
+		    memory.put(addr, (byte) n);
 	    }
     }
 
