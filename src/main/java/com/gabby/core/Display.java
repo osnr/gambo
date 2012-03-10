@@ -135,9 +135,9 @@ public abstract class Display {
                         try {
                             this.setPixel(x, line, getColorFromPalette(Mmu.BGP, tileBuffer[u + j]));
                         } catch (ArrayIndexOutOfBoundsException e) {
-                            System.err.println(String.format("Out of bounds at: (%d, %d)", x, line));
+                            System.err.println("Out of bounds at: ("+x+", "+line+")");
                             e.printStackTrace();
-                            System.exit(1);
+                            // System.exit(1);
                         }
                     }
 

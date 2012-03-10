@@ -19,10 +19,9 @@
 
 package com.gabby.core.banking;
 
-import java.nio.ByteBuffer;
-
 import com.gabby.core.Mmu;
 import com.gabby.core.Mmu.Mbc;
+import com.gabby.web.util.ByteBuffer;
 
 public class Mbc1 implements Mbc {
 	private ByteBuffer rom;

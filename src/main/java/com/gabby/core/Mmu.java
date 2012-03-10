@@ -19,10 +19,8 @@
 
 package com.gabby.core;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-
 import com.gabby.core.banking.Mbc1;
+import com.gabby.web.util.ByteBuffer;
 
 public class Mmu {
     public static final int MEMORY_SIZE = 0xFFFF;
@@ -286,7 +284,7 @@ public class Mmu {
 
     public Mmu(byte[] cart) {
 	    rom = ByteBuffer.allocate(0x200000);
-	    rom.order(ByteOrder.LITTLE_ENDIAN);
+	    // rom.order(ByteOrder.LITTLE_ENDIAN);
 	    rom.clear();
 	    rom.put(cart);
 	    rom.rewind();

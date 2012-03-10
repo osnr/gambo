@@ -668,10 +668,11 @@ public abstract class Cpu {
 				opcode = readPC();
 			}
 
+			// System.out.println("PC " + Integer.toHexString(pc) + ", opcode " + Integer.toHexString(opcode));
 			op(opcode);
 
 			clock.executedOp(opcode);
-				
+
 			delta = clock.getDelta();
 
 			newFrame = display.step(delta);
@@ -2789,7 +2790,7 @@ public abstract class Cpu {
 		private static final long serialVersionUID = 8646636447363934844L;
 
 		public IllegalOperationException(int opcode) {
-			super(String.format("Invalid opcode: %x", opcode));
+			super("Invalid opcode: " + Integer.toHexString(opcode));
 		}
 	}
 }

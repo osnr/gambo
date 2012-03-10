@@ -327,45 +327,6 @@ public class BitTwiddles {
     public static int getBit(int i, int b) {
         return getBit(i, (byte) (b & 0xFF));
     }
-
-    /** 
-     * @param i The distance from the significant bit to the target bit (from 0 to 7).
-     * @param second The first byte.
-     * @param first The second byte.
-     * @return The color for the pixel. If i is not within the specified range, then WHITE is returned.
-     */
-    public static Color getColorFromBytePair(int i, byte first, byte second) {
-
-        int a = getBit(i, first);
-        int b = getBit(i, second);
-
-        // System.out.println(first + ", " + second + ", " + i);
-
-        int c = (a << 1) + b;
-
-        switch(c) {
-        case 0:
-            return Color.WHITE;
-        case 1:
-            return Color.LIGHT_GRAY;
-        case 2:
-            return Color.DARK_GRAY;
-        case 3:
-            return Color.BLACK;
-        default:
-            return Color.BLACK;
-        }
-    }
-
-    /**
-     * @param i The distance from the significant bit to the target bit (from 0 to 7).
-     * @param second The first byte.
-     * @param first The second byte.
-     * @return The color for the pixel. If i is not within the specified range, then WHITE is returned.
-     */
-    public static Color getColorFromBytePair(int i, int first, int second) {
-        return getColorFromBytePair(i, (byte) (first & 0xFF), (byte) (second & 0xFF));
-    }
     
     public static int toUnsignedByte(int i) {
         if (i < 0) {
