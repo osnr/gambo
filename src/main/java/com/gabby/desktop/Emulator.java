@@ -48,23 +48,26 @@ public class Emulator extends JComponent implements ActionListener {
     private int scale;
     public BufferedImage buffer;
     private DesktopInput input;
+    private Thread cpuThread;
+    private boolean running; 
 
     public Emulator() {
         buffer = new BufferedImage(160, 144, BufferedImage.TYPE_INT_RGB);
+        running = false;
         scale = 1;
     }
 
     @Override
     public void paint(Graphics graphics) {
         super.paint(graphics);
+        if (running) {
+            Graphics2D g = (Graphics2D) graphics;
 
-        Graphics2D g = (Graphics2D) graphics;
-
-        //resizeBuffered();
-        g.scale((double) scale, (double) scale);
-        g.drawImage(buffer, null, 0, 0);
+            g.scale((double) scale, (double) scale);
+            g.drawImage(buffer, null, 0, 0);
+        }
     }
-    
+
     public void loadRom(File f) {
     	byte[] buf;
         try {
@@ -81,16 +84,20 @@ public class Emulator extends JComponent implements ActionListener {
             
             this.cpu = new DesktopCpu(mmu, display);
             
-            (new Thread() {
+            cpuThread = new Thread() {
                 public void run() {
                     try {
+                        running = true;
                         cpu.emulate(0x100);
+                        running = false;
                     } catch (Exception e) {
                         e.printStackTrace();
                         System.err.println(String.format("Program counter: %x", cpu.getPc()));
                     }
                 }
-            }).start();
+            };
+            
+            cpuThread.start();            
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -186,6 +193,8 @@ public class Emulator extends JComponent implements ActionListener {
                     SwingUtilities.getWindowAncestor(this).pack();
                     scale = 4;
                 }
+            } else if ("stop".equals(e.getActionCommand())) {
+                cpuThread.interrupt();
             }
         } catch (FileNotFoundException ex) {
             ex.printStackTrace();

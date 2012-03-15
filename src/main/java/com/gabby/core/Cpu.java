@@ -645,7 +645,7 @@ public abstract class Cpu {
 		return mmu.read16(pc - 2);
 	}
 
-    protected void timingWait() {
+    protected void timingWait() throws InterruptedException {
     	
     }
     
@@ -658,34 +658,38 @@ public abstract class Cpu {
     }
     
 	public void emulate(int initialPC) throws IllegalOperationException {
-		int opcode = -1, delta;
-		boolean newFrame;
-		
-		pc = initialPC;
+        try {
+            int opcode = -1, delta;
+            boolean newFrame;
 
-		do {
-			if (!isHalting()) {
-				opcode = readPC();
-			}
+            pc = initialPC;
 
-			op(opcode);
+            do {
+                if (!isHalting()) {
+                    opcode = readPC();
+                }
 
-			clock.executedOp(opcode);
-				
-			delta = clock.getDelta();
+                op(opcode);
 
-			newFrame = display.step(delta);
-			if (newFrame) {
-				timingWait();
-			}
-			mmu.timers.step(delta);
-			
-			mmu.interrupts.checkInterrupts(this);
+                clock.executedOp(opcode);
 
-			clock.step();
-		} while (cycling(newFrame));
-		
-		timingSync();
+                delta = clock.getDelta();
+
+                newFrame = display.step(delta);
+                if (newFrame) {
+                    timingWait();
+                }
+                mmu.timers.step(delta);
+
+                mmu.interrupts.checkInterrupts(this);
+
+                clock.step();
+            } while (cycling(newFrame));
+
+            timingSync();
+        } catch (InterruptedException e) {
+            return;
+        }
 	}
 	
 	protected void op(int opcode) throws IllegalOperationException {

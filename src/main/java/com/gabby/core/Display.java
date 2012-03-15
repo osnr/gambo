@@ -99,12 +99,20 @@ public abstract class Display {
 
             int lastTile = 999; // valid values are 0 to 255, so this forces the first one.
             int[] tileBuffer = new int[64];
-
+            
+            //System.out.print('[');
+            
             for (int i = 0; i < 32; i++) {
                 if (tiledata == Mmu.TILE_TABLE_ONE) {
                     tile = mmu.read(tilemap + tileNum);
                 } else {
                     tile = BitTwiddles.toSignedByte(mmu.read(tilemap + tileNum)) + 128; // This might be wrong
+                }
+                //System.out.print(tile + " ");
+                
+                if (tile == 0) {
+                    int foo = mmu.read(tilemap + tileNum);
+                    //System.out.println("WAT");
                 }
 
                 int t;
@@ -146,7 +154,46 @@ public abstract class Display {
 
                 tileNum++;
             }
+            
+            //System.out.println("]");
         }
+
+        /*int y = line + mmu.read(Mmu.SCY);
+        int x = mmu.read(Mmu.SCX);
+        int tx = x & 7;
+
+        int tileoff = (((y >> 3) << 5) + (x >> 3)) & 0x3FF; // do while, perhaps?
+
+        if ((mmu.read(Mmu.LCDC) & BitTwiddles.bx00000100) == 0) {
+            tileoff += Mmu.TILE_MAP_ONE;
+        } else {
+            tileoff += Mmu.TILE_MAP_TWO;
+        }
+
+        tileoff += (y & 7) << 1;
+        int data = mmu.read(tileoff) | (mmu.read(tileoff + 1) << 8);
+
+        for (int i = 0; i < 160; i++) {
+            int ix = i & 3;
+            
+            setPixel(i, line, getColorFromPalette(Mmu.BGP, ((data >> ix) & 1) | ((data >> (ix + 4)) & 1)));
+
+            tx = (tx + 1) & 7;
+            x = (x + 1) & 255;
+
+            if (tx == 0) {
+                tileoff = (((y >> 3) << 5) + (x >> 3)) & 0x3FF; // do while, perhaps?
+
+                if ((mmu.read(Mmu.LCDC) & BitTwiddles.bx00000100) == 0) {
+                    tileoff += Mmu.TILE_MAP_ONE;
+                } else {
+                    tileoff += Mmu.TILE_MAP_TWO;
+                }
+
+                tileoff += (y & 7) << 1;
+                data = mmu.read(tileoff) | (mmu.read(tileoff + 1) << 8);
+            }
+        } */
     }
 
     private void drawWindow() {
@@ -385,7 +432,11 @@ public abstract class Display {
                 ram.write(Ram.STAT, b);*/
 
                 if ((mmu.read(Mmu.LCDC) & BitTwiddles.bx10000000) == 0) {
-                    // TODO: TURN OFF LCD
+                    for (int i = 0; i < 160; i++) {
+                        for (int j = 0; j < 144; j++) {
+                            this.setPixel(0, 0, 0x000000);
+                        }
+                    }
                 }
 
                 repaint();
@@ -428,11 +479,9 @@ public abstract class Display {
                     if ((b & BitTwiddles.bx10000000) > 0) {
                         if (lastLine != line) {
                             lastLine = line;
-                            // TODO: Draw
-                            // scanline(line);
                             drawBackground();
-                            drawWindow();
-                            drawSprites();
+                            // drawWindow();
+                            // drawSprites();
                         }
                     }
 

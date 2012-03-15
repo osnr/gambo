@@ -63,6 +63,15 @@ public class Main {
                 loadState.addActionListener(emulator);
                 loadState.setActionCommand("load state");
                 
+                JMenu romMenu = new JMenu("ROM");
+                menuBar.add(romMenu);
+                
+                JMenuItem stop = new JMenuItem("Stop");
+                stop.addActionListener(emulator);
+                stop.setActionCommand("stop");
+
+                romMenu.add(stop);
+                
                 JMenu optionsMenu = new JMenu("Options");
                 menuBar.add(optionsMenu);
                 
@@ -86,7 +95,7 @@ public class Main {
                 fileMenu.add(loadRom);
                 fileMenu.addSeparator();
                 fileMenu.add(saveState);
-                fileMenu.add(loadState);
+                fileMenu.add(loadState);                
                 
                 optionsMenu.add(screenSize);
 
