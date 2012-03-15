@@ -480,8 +480,8 @@ public abstract class Display {
                         if (lastLine != line) {
                             lastLine = line;
                             drawBackground();
-                            // drawWindow();
-                            // drawSprites();
+                            drawWindow();
+                            drawSprites();
                         }
                     }
 
