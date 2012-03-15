@@ -31,62 +31,62 @@ class DesktopInput extends KeyAdapter {
     public DesktopInput(Mmu mmu) {
         this.mmu = mmu;
     }
-    
+
     public void keyPressed(KeyEvent e) {
-	    switch (e.getKeyCode()) {
-	    case KeyEvent.VK_X:
-	    	mmu.inputs.pressedButton(Inputs.BTN_B);
-            break;
-	    case KeyEvent.VK_Z:
-	    	mmu.inputs.pressedButton(Inputs.BTN_A);
-            break;
-	    case KeyEvent.VK_SHIFT:
-	    	mmu.inputs.pressedButton(Inputs.BTN_SELECT);
-            break;
-	    case KeyEvent.VK_ENTER:
-	    	mmu.inputs.pressedButton(Inputs.BTN_START);
-            break;
-	    case KeyEvent.VK_RIGHT:
-	    	mmu.inputs.pressedDpad(Inputs.DPD_RIGHT);
-            break;
-	    case KeyEvent.VK_LEFT:
-	    	mmu.inputs.pressedDpad(Inputs.DPD_LEFT);
-            break;
-	    case KeyEvent.VK_UP:
-	    	mmu.inputs.pressedDpad(Inputs.DPD_UP);
-            break;
-	    case KeyEvent.VK_DOWN:
-	    	mmu.inputs.pressedDpad(Inputs.DPD_DOWN);
-	    }
+        switch (e.getKeyCode()) {
+            case KeyEvent.VK_X:
+                mmu.inputs.pressedButton(Inputs.BTN_B);
+                break;
+            case KeyEvent.VK_Z:
+                mmu.inputs.pressedButton(Inputs.BTN_A);
+                break;
+            case KeyEvent.VK_SHIFT:
+                mmu.inputs.pressedButton(Inputs.BTN_SELECT);
+                break;
+            case KeyEvent.VK_ENTER:
+                mmu.inputs.pressedButton(Inputs.BTN_START);
+                break;
+            case KeyEvent.VK_RIGHT:
+                mmu.inputs.pressedDpad(Inputs.DPD_RIGHT);
+                break;
+            case KeyEvent.VK_LEFT:
+                mmu.inputs.pressedDpad(Inputs.DPD_LEFT);
+                break;
+            case KeyEvent.VK_UP:
+                mmu.inputs.pressedDpad(Inputs.DPD_UP);
+                break;
+            case KeyEvent.VK_DOWN:
+                mmu.inputs.pressedDpad(Inputs.DPD_DOWN);
+        }
     }
 
     public void keyReleased(KeyEvent e) {
-    	switch (e.getKeyCode()) {
-	    case KeyEvent.VK_X:
-	    	mmu.inputs.unpressedButton(Inputs.BTN_B);
-            break;
-	    case KeyEvent.VK_Z:
-	    	mmu.inputs.unpressedButton(Inputs.BTN_A);
-            break;
-	    case KeyEvent.VK_SHIFT:
-	    	mmu.inputs.unpressedButton(Inputs.BTN_SELECT);
-            break;
-	    case KeyEvent.VK_ENTER:
-	    	mmu.inputs.unpressedButton(Inputs.BTN_START);
-            break;
-	    case KeyEvent.VK_RIGHT:
-	    	mmu.inputs.unpressedDpad(Inputs.DPD_RIGHT);
-            break;
-	    case KeyEvent.VK_LEFT:
-	    	mmu.inputs.unpressedDpad(Inputs.DPD_LEFT);
-            break;
-	    case KeyEvent.VK_UP:
-	    	mmu.inputs.unpressedDpad(Inputs.DPD_UP);
-            break;
-	    case KeyEvent.VK_DOWN:
-	    	mmu.inputs.unpressedDpad(Inputs.DPD_DOWN);
-	    }
+        switch (e.getKeyCode()) {
+            case KeyEvent.VK_X:
+                mmu.inputs.unpressedButton(Inputs.BTN_B);
+                break;
+            case KeyEvent.VK_Z:
+                mmu.inputs.unpressedButton(Inputs.BTN_A);
+                break;
+            case KeyEvent.VK_SHIFT:
+                mmu.inputs.unpressedButton(Inputs.BTN_SELECT);
+                break;
+            case KeyEvent.VK_ENTER:
+                mmu.inputs.unpressedButton(Inputs.BTN_START);
+                break;
+            case KeyEvent.VK_RIGHT:
+                mmu.inputs.unpressedDpad(Inputs.DPD_RIGHT);
+                break;
+            case KeyEvent.VK_LEFT:
+                mmu.inputs.unpressedDpad(Inputs.DPD_LEFT);
+                break;
+            case KeyEvent.VK_UP:
+                mmu.inputs.unpressedDpad(Inputs.DPD_UP);
+                break;
+            case KeyEvent.VK_DOWN:
+                mmu.inputs.unpressedDpad(Inputs.DPD_DOWN);
+        }
     }
 
-    
+
 }

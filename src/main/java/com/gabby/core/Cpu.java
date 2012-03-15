@@ -645,7 +645,7 @@ public abstract class Cpu {
 		return mmu.read16(pc - 2);
 	}
 
-    protected void timingWait() {
+    protected void timingWait() throws InterruptedException {
     	
     }
     
@@ -658,35 +658,44 @@ public abstract class Cpu {
     }
     
 	public void emulate(int initialPC) throws IllegalOperationException {
-		int opcode = -1, delta;
-		boolean newFrame;
-		
-		pc = initialPC;
+        try {
+            int opcode = -1, delta;
+            boolean newFrame;
 
-		do {
-			if (!isHalting()) {
-				opcode = readPC();
-			}
+            pc = initialPC;
 
-			// System.out.println("PC " + Integer.toHexString(pc) + ", opcode " + Integer.toHexString(opcode));
-			op(opcode);
+            do {
+                if (!isHalting()) {
+                    opcode = readPC();
+                }
 
-			clock.executedOp(opcode);
+                int vramSum = 0;
 
-			delta = clock.getDelta();
+                for (int i = Mmu.VRAM; i < 0x9FFF; i++) vramSum += mmu.read(i);
 
-			newFrame = display.step(delta);
-			if (newFrame) {
-				timingWait();
-			}
-			mmu.timers.step(delta);
-			
-			mmu.interrupts.checkInterrupts(this);
+                System.out.printf("pc: %d, op: %d, vramSum: %d\n", pc, opcode, vramSum);
 
-			clock.step();
-		} while (cycling(newFrame));
-		
-		timingSync();
+                op(opcode);
+
+                clock.executedOp(opcode);
+
+                delta = clock.getDelta();
+
+                newFrame = display.step(delta);
+                if (newFrame) {
+                    timingWait();
+                }
+                mmu.timers.step(delta);
+
+                mmu.interrupts.checkInterrupts(this);
+
+                clock.step();
+            } while (cycling(newFrame));
+
+            timingSync();
+        } catch (InterruptedException e) {
+            return;
+        }
 	}
 	
 	protected void op(int opcode) throws IllegalOperationException {
@@ -2790,7 +2799,7 @@ public abstract class Cpu {
 		private static final long serialVersionUID = 8646636447363934844L;
 
 		public IllegalOperationException(int opcode) {
-			super("Invalid opcode: " + Integer.toHexString(opcode));
+			super(String.format("Invalid opcode: %x", opcode));
 		}
 	}
 }
