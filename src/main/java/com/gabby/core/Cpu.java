@@ -669,6 +669,12 @@ public abstract class Cpu {
                     opcode = readPC();
                 }
 
+                int vramSum = 0;
+
+                for (int i = Mmu.VRAM; i < 0x9FFF; i++) vramSum += mmu.read(i);
+
+                System.out.printf("pc: %d, op: %d, vramSum: %d\n", pc, opcode, vramSum);
+
                 op(opcode);
 
                 clock.executedOp(opcode);
