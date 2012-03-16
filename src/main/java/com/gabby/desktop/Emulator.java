@@ -123,7 +123,7 @@ public class Emulator extends JComponent implements ActionListener {
                 if (ret == JFileChooser.APPROVE_OPTION) {
                     File f = fc.getSelectedFile();
                     FileOutputStream out = new FileOutputStream(f);
-                    out.write(mmu.getRom());
+
                     out.write(cpu.a());
                     out.write(cpu.b());
                     out.write(cpu.c());
@@ -138,12 +138,15 @@ public class Emulator extends JComponent implements ActionListener {
                     out.write(cpu.isHalfCarry() ? 1 : 0);
                     out.write(cpu.isCarry() ? 1 : 0);
                     out.write(cpu.getPc());
-                    // out.write(cpu.getCounter());
+
+                    out.write(mmu.getAllMemory());
+                    
                     out.close();
                 }
             } else if ("load state".equals(e.getActionCommand())) {
                 JFileChooser fc = new JFileChooser();
 
+                fc.setApproveButtonText("Load");
                 int ret = fc.showOpenDialog(this);
 
                 if (ret == JFileChooser.APPROVE_OPTION) {
@@ -151,7 +154,12 @@ public class Emulator extends JComponent implements ActionListener {
                     FileInputStream in = new FileInputStream(f);
                     byte[] b = new byte[Mmu.MEMORY_SIZE];
                     in.read(b);
-                    mmu.setRom(b);
+
+                    mmu = new Mmu(b);
+                    this.display = new DesktopDisplay(mmu, this);
+                    this.input = new DesktopInput(mmu);
+                    this.cpu = new DesktopCpu(mmu, display);
+
                     cpu.setA(in.read());
                     cpu.setB(in.read());
                     cpu.setC(in.read());
@@ -166,8 +174,26 @@ public class Emulator extends JComponent implements ActionListener {
                     cpu.setHalfCarry(in.read() == 1);
                     cpu.setCarry(in.read() == 1);
                     cpu.setPc(in.read());
-                    // cpu.setCounter(in.read());
+
+                    for (int i = 0; i < 0x10000; i++)
+                        mmu.write(in.read(), i);
+                    
                     in.close();
+
+                    cpuThread = new Thread() {
+                        public void run() {
+                            try {
+                                running = true;
+                                cpu.emulate(0x100);
+                                running = false;
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                System.err.println(String.format("Program counter: %x", cpu.getPc()));
+                            }
+                        }
+                    };
+
+                    cpuThread.start();
                 }
             } else if ("change size".equals(e.getActionCommand())) {
                 JMenuItem item = (JMenuItem) e.getSource();

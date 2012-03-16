@@ -21,6 +21,8 @@ package com.gabby.core;
 
 import com.gabby.core.banking.Mbc1;
 
+import java.util.Arrays;
+
 public class Mmu {
     public static final int MEMORY_SIZE = 0xFFFF;
     
@@ -355,8 +357,32 @@ public class Mmu {
     	return this.rom;
     }
     
+    public byte[] getAllMemory() {
+	    byte[] ramDump = mbc.dumpRam();
+        byte[] everything = new byte[memory.length + ramDump.length];
+        
+        for (int i = 0; i < memory.length; i++)
+            everything[i] = memory[i];
+        
+        for (int i = memory.length; i < everything.length; i++) {
+            everything[i] = ramDump[i];
+        }
+
+        return everything;
+    }
+    
     public void setRom(byte[] rom) {
     	this.rom = rom;
+    }
+
+    public void setAllMemory(byte[] data) {
+        memory = new byte[0x10000];
+        
+        for (int i = 0; i < 0x10000; i++) {
+            memory[i] = data[i];
+        }
+
+        mbc.loadRam(Arrays.copyOfRange(data, 0x10000, data.length));
     }
     
     protected void dmaTransfer(int data) {

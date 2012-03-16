@@ -23,19 +23,6 @@ public class BitTwiddlesTest {
     }
 
     @Test
-    public void testGetColorFromBytePair() {
-        byte b1 = (byte) 0xFC;
-        byte b2 = (byte) 0xC2;
-
-        Color[] actual = new Color[8];
-        Color[] expected = {Color.BLACK, Color.BLACK, Color.DARK_GRAY, Color.DARK_GRAY, Color.DARK_GRAY, Color.DARK_GRAY, Color.LIGHT_GRAY, Color.WHITE};
-        
-        for (int i = 0; i < 8; i++)
-            actual[i] = BitTwiddles.getColorFromBytePair(i, b1, b2);
-        Assert.assertArrayEquals(expected, actual);
-    }
-
-    @Test
     public void testToUnisgnedByte() {
         int a = BitTwiddles.toUnsignedByte(-16);
         int b = BitTwiddles.toUnsignedByte(16);
