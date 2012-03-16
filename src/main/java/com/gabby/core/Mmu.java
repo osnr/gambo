@@ -276,6 +276,9 @@ public class Mmu {
 		int readRam(int addr);
 		
 		void writeRam(int addr, int n);
+
+		byte[] dumpRam();
+		void loadRam(byte[] ram);
 	}
 	final Mbc mbc;
 	

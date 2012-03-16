@@ -85,7 +85,6 @@ public class Mbc1 implements Mbc {
 			}
 		} else {
 			throw new RuntimeException("Tried to access RAM");
-			// return 0x00;
 		}
 	}
 
@@ -99,5 +98,15 @@ public class Mbc1 implements Mbc {
 				ram.put((ramBank << 13) | (addr & 0x1FFF), (byte) n);
 			}
 		}
+	}
+	
+	@Override
+	public byte[] dumpRam() {
+		return ram.array();
+	}
+
+	@Override
+	public void loadRam(byte[] ram) {
+		this.ram = ByteBuffer.wrap(ram);
 	}
 }

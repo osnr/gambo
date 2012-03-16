@@ -2684,7 +2684,6 @@ public abstract class Cpu {
 			break;
 		
 		case 0xE2: // LD (0xFF00 + C), A
-			// why 0xFF00 + C?
 			mmu.write(0xFF00 + regs[C], regs[A]);
 			break;
 		

@@ -6,7 +6,11 @@ public class ByteBuffer extends Object {
 	public static ByteBuffer allocate(int capacity) {
 		return new ByteBuffer(new byte[capacity]);
 	}
-	
+
+	public static ByteBuffer wrap(byte[] arr) {
+		return new ByteBuffer(arr);
+	}
+
 	private ByteBuffer(byte[] arr) {
 		buf = arr;
 	}
