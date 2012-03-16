@@ -669,11 +669,7 @@ public abstract class Cpu {
                     opcode = readPC();
                 }
 
-                int vramSum = 0;
-
-                for (int i = Mmu.VRAM; i < 0x9FFF; i++) vramSum += mmu.read(i);
-
-                System.out.printf("pc: %d, op: %d, vramSum: %d\n", pc, opcode, vramSum);
+                // System.out.printf("pc: %d, op: %d, vram ", pc - 1, opcode);
 
                 op(opcode);
 
@@ -967,7 +963,7 @@ public abstract class Cpu {
 		
 		case 0x3A: // LDD A, (HL)
 			regs[A] = mmu.read(hl()); 
-			dec(A);
+			setHL(hl() - 1);
 			break;
 		
 		case 0x3B: // DEC SP
@@ -1879,7 +1875,7 @@ public abstract class Cpu {
 				break;
 		
 			case 0x4E: // BIT 1,(HL)
-				bit(1, hl());
+				bitAt(1, hl());
 				break;
 		
 			case 0x4F: // BIT 1,A
