@@ -21,11 +21,10 @@ package com.gabby.core.banking;
 
 import com.gabby.core.Mmu;
 import com.gabby.core.Mmu.Mbc;
-import com.gabby.web.util.ByteBuffer;
 
 public class Mbc1 implements Mbc {
-	private ByteBuffer rom;
-	private ByteBuffer ram;
+	private byte[] rom;
+	private byte[] ram;
 	
 	private boolean ramEnabled = false; // 0x0000 - 0x1FFF
 	private int romBank = 0x01; // 0x2000 - 0x3FFF
@@ -33,7 +32,7 @@ public class Mbc1 implements Mbc {
 	private boolean romOnlyMode = false;
 	
 	private int getRamSize() {
-		switch (rom.get(Mmu.RAM_SIZE)) {
+		switch (rom[Mmu.RAM_SIZE]) {
 		case 0: return 0;
 		case 1: return 0x800;
 		case 2: return 0x2000;
@@ -43,10 +42,10 @@ public class Mbc1 implements Mbc {
 		}
 	}
 	
-	public Mbc1(ByteBuffer rom) {
+	public Mbc1(byte[] rom) {
 		this.rom = rom;
 		
-		this.ram = ByteBuffer.allocate(getRamSize());
+		this.ram = new byte[getRamSize()];
 	}
 	
 	@Override
@@ -68,9 +67,9 @@ public class Mbc1 implements Mbc {
 	public int readRom(int addr) {
 		// 0x4000 - 0x7FFF
 		if (!romOnlyMode) {
-			return rom.get((ramBank << 19) | (romBank << 14) | (addr & 0x3FFF)) & 0xFF;
+			return rom[(ramBank << 19) | (romBank << 14) | (addr & 0x3FFF)] & 0xFF;
 		} else {
-			return rom.get((romBank << 14) | (addr & 0x3FFF)) & 0xFF;
+			return rom[(romBank << 14) | (addr & 0x3FFF)] & 0xFF;
 		}
 	}
 
@@ -79,9 +78,9 @@ public class Mbc1 implements Mbc {
 		// 0xA000 - 0xBFFF
 		if (ramEnabled) {
 			if (!romOnlyMode) {
-				return ram.get(addr & 0x1FFF) & 0xFF;
+				return ram[addr & 0x1FFF] & 0xFF;
 			} else {
-				return ram.get((ramBank << 13) | (addr & 0x1FFF)) & 0xFF;
+				return ram[(ramBank << 13) | (addr & 0x1FFF)] & 0xFF;
 			}
 		} else {
 			throw new RuntimeException("Tried to access RAM");
@@ -93,20 +92,20 @@ public class Mbc1 implements Mbc {
 		// game writing from 0xA000 - 0xBFFF
 		if (ramEnabled) {
 			if (romOnlyMode) {
-				ram.put(addr & 0x1FFF, (byte) n);
+				ram[addr & 0x1FFF] = (byte) n;
 			} else {
-				ram.put((ramBank << 13) | (addr & 0x1FFF), (byte) n);
+				ram[(ramBank << 13) | (addr & 0x1FFF)] = (byte) n;
 			}
 		}
 	}
 	
 	@Override
 	public byte[] dumpRam() {
-		return ram.array();
+		return ram;
 	}
 
 	@Override
 	public void loadRam(byte[] ram) {
-		this.ram = ByteBuffer.wrap(ram);
+		this.ram = ram;
 	}
 }

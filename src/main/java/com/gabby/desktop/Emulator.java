@@ -123,7 +123,7 @@ public class Emulator extends JComponent implements ActionListener {
                 if (ret == JFileChooser.APPROVE_OPTION) {
                     File f = fc.getSelectedFile();
                     FileOutputStream out = new FileOutputStream(f);
-                    out.write(mmu.getRom().array());
+                    out.write(mmu.getRom());
                     out.write(cpu.a());
                     out.write(cpu.b());
                     out.write(cpu.c());
@@ -151,9 +151,7 @@ public class Emulator extends JComponent implements ActionListener {
                     FileInputStream in = new FileInputStream(f);
                     byte[] b = new byte[Mmu.MEMORY_SIZE];
                     in.read(b);
-                    mmu.getRom().clear();
-                    mmu.getRom().put(b);
-                    mmu.getRom().rewind();
+                    mmu.setRom(b);
                     cpu.setA(in.read());
                     cpu.setB(in.read());
                     cpu.setC(in.read());

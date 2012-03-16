@@ -20,7 +20,6 @@
 package com.gabby.core;
 
 import com.gabby.core.banking.Mbc1;
-import com.gabby.web.util.ByteBuffer;
 
 public class Mmu {
     public static final int MEMORY_SIZE = 0xFFFF;
@@ -83,7 +82,7 @@ public class Mmu {
 		    
 		    if (divCounter >= 255) {
 			    divCounter = 0;
-			    memory.put(Mmu.DIV, (byte) (read(Mmu.DIV) + 1)); // write directly to buffer
+			    memory[Mmu.DIV] = (byte) (read(Mmu.DIV) + 1); // write directly to buffer
 		    }
 	    }
 	    
@@ -109,12 +108,12 @@ public class Mmu {
 			    if (timaCounter <= 0) {
 				    this.resetCounter();
 				
-				    if (rom.get(Mmu.TIMA) == 0xFF) {
-					    memory.put(Mmu.TIMA, (byte) read(Mmu.TMA));
+				    if (rom[Mmu.TIMA] == 0xFF) {
+					    memory[Mmu.TIMA] = (byte) read(Mmu.TMA);
 					    
 					    interrupts.setInterrupt(Interrupts.TIMER);
 				    } else {
-					    memory.put(Mmu.TIMA, (byte) (read(Mmu.TIMA) + 1));
+					    memory[Mmu.TIMA] = (byte) (read(Mmu.TIMA) + 1);
 				    }
     			}
     		}
@@ -206,12 +205,12 @@ public class Mmu {
 		
 		private void setInterrupt(int ifl, int i) {
 			// trigger the interrupt itself
-			memory.put(0xFF0F, (byte) (ifl | (1 << i)));
+			memory[0xFF0F] = (byte) (ifl | (1 << i));
 		}
 	
 		private void resetInterrupt(int ifl, int i) {
 			// untrigger the interrupt itself
-			memory.put(0xFF0F, (byte) (ifl & ~(0x01 << i)));
+			memory[0xFF0F] = (byte) (ifl & ~(0x01 << i));
 		}
     }
 	public final Interrupts interrupts = new Interrupts();
@@ -262,7 +261,7 @@ public class Mmu {
 	    
 	    public void updateJoyp(int data) {
 	    	// System.out.println("Updating joyp: " + Integer.toBinaryString(read(Mmu.JOYP)));
-		    memory.put(Mmu.JOYP, (byte) this.joypValue(data));
+		    memory[Mmu.JOYP] = (byte) this.joypValue(data);
 	    }
 	}
 	public final Inputs inputs = new Inputs();
@@ -282,19 +281,19 @@ public class Mmu {
 	}
 	final Mbc mbc;
 	
-	ByteBuffer rom;
-	ByteBuffer memory;
+	byte[] rom;
+	byte[] memory;
 
     public Mmu(byte[] cart) {
-	    rom = ByteBuffer.allocate(0x200000);
-	    // rom.order(ByteOrder.LITTLE_ENDIAN);
-	    rom.clear();
-	    rom.put(cart);
-	    rom.rewind();
+	    rom = new byte[0x200000];
+
+	    for (int i = 0; i < cart.length; i++) {
+		    rom[i] = cart[i];
+	    }
 	    
-	    memory = ByteBuffer.allocate(0x10000);
+	    memory = new byte[0x10000];
         
-	    switch (rom.get(Mmu.CART_TYPE)) {
+	    switch (rom[Mmu.CART_TYPE]) {
         case 0x00:
         	mbc = new Mbc1(rom);
         	break;
@@ -352,11 +351,11 @@ public class Mmu {
 		this.write(0xFF4B, 0x00); // WX
     }
     
-    public ByteBuffer getRom() {
+    public byte[] getRom() {
     	return this.rom;
     }
     
-    public void setRom(ByteBuffer rom) {
+    public void setRom(byte[] rom) {
     	this.rom = rom;
     }
     
@@ -377,9 +376,9 @@ public class Mmu {
 	    } else if ((addr >= 0xA000) && (addr <= 0xBFFF)) { // RAM bank read
 		    return mbc.readRam(addr);
 	    } else if (addr < 0x4000) { // unbanked ROM read
-		    return rom.get(addr) & 0xFF; // unsign
+		    return rom[addr] & 0xFF; // unsign
 	    } else { // main memory read
-	    	return memory.get(addr) & 0xFF;
+	    	return memory[addr] & 0xFF;
 	    }
     }
 
@@ -410,7 +409,7 @@ public class Mmu {
 		    inputs.updateJoyp(n);
 	    } else if (addr == Mmu.TMC) { // change timer settings
 		    int oldFreq = timers.getClockFreq();
-		    rom.put(Mmu.TMC, (byte) n);
+		    memory[Mmu.TMC] = (byte) n;
 	    	int newFreq = timers.getClockFreq();
 	    	
 	    	if (oldFreq != newFreq) {
@@ -419,7 +418,7 @@ public class Mmu {
 	    } else if (addr == Mmu.DMA) { // DMA transfer 
 	    	dmaTransfer(n);
 	    } else {
-		    memory.put(addr, (byte) n);
+		    memory[addr] = (byte) n;
 	    }
     }
 
