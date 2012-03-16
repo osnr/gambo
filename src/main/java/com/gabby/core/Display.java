@@ -175,11 +175,10 @@ public abstract class Display {
 
                 for (int i = 0; i < 32; i++) {
                     if (tileData == Mmu.TILE_TABLE_ONE) {
-                        tile = mmu.read(tileData + tileNum);
+                        tile = mmu.read(tileMap + tileNum);
                     } else {
-	                    tile = (byte) (mmu.read(tileData + tileNum)) + 128;
+	                    tile = ((byte) mmu.read(tileMap + tileNum)) + 128;
                     }
-
 
                     int z = row << 1;
                     int tmpAddr = tileData + (tile << 4) + z;
@@ -279,7 +278,7 @@ public abstract class Display {
             }
 
             if ((flags & BitTwiddles.bx00100000) != 0) {
-                for (int j = 0; j < height; j++) { // x-axis flip
+                for (int j = 0; j <= height; j++) { // x-axis flip
                     int t = spriteBuff[(j << 3) + 0];
                     spriteBuff[(j << 3) + 0] = spriteBuff[(j << 3) + 7];
                     spriteBuff[(j << 3) + 7] = t;
