@@ -25,11 +25,8 @@ import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
+import java.util.Scanner;
 
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -117,29 +114,85 @@ public class Emulator extends JComponent implements ActionListener {
                 }
             } else if ("save state".equals(e.getActionCommand())) {
                 JFileChooser fc = new JFileChooser();
+                fc.setApproveButtonText("Save");
 
                 int ret = fc.showOpenDialog(this);
 
                 if (ret == JFileChooser.APPROVE_OPTION) {
                     File f = fc.getSelectedFile();
-                    FileOutputStream out = new FileOutputStream(f);
+                    BufferedWriter out = new BufferedWriter(new FileWriter(f));
 
-                    out.write(cpu.a());
-                    out.write(cpu.b());
-                    out.write(cpu.c());
-                    out.write(cpu.d());
-                    out.write(cpu.e());
-                    out.write(cpu.f());
-                    out.write(cpu.h());
-                    out.write(cpu.l());
-                    out.write(cpu.sp());
-                    out.write(cpu.isZero() ? 1 : 0);
-                    out.write(cpu.isSubtract() ? 1 : 0);
-                    out.write(cpu.isHalfCarry() ? 1 : 0);
-                    out.write(cpu.isCarry() ? 1 : 0);
-                    out.write(cpu.getPc());
+                    /*out.writeInt(cpu.a());       // 0
+                    p = out.getFilePointer();
+                    out.writeInt(cpu.b());       // 3
+                    p = out.getFilePointer();
+                    out.writeInt(cpu.c());       // 0
+                    p = out.getFilePointer();
+                    out.writeInt(cpu.d());       // 255
+                    p = out.getFilePointer();
+                    out.writeInt(cpu.e());      // 138
+                    p = out.getFilePointer();
+                    out.writeInt(cpu.f());      // 64
+                    p = out.getFilePointer();
+                    out.writeInt(cpu.h());      // 194
+                    p = out.getFilePointer();
+                    out.writeInt(cpu.l());      // 5
+                    p = out.getFilePointer();
+                    out.writeInt(cpu.sp());     // 53247
+                    p = out.getFilePointer();
+                    out.writeInt(cpu.isZero() ? 1 : 0); // 1
+                    p = out.getFilePointer();
+                    out.writeInt(cpu.isSubtract() ? 1 : 0);  // 0
+                    p = out.getFilePointer();
+                    out.writeInt(cpu.isHalfCarry() ? 1 : 0); // 1
+                    p = out.getFilePointer();
+                    out.writeInt(cpu.isCarry() ? 1 : 0); // 0
+                    p = out.getFilePointer();
+                    out.writeInt(cpu.getPc()); // 752
+                    p = out.getFilePointer();
 
-                    out.write(mmu.getAllMemory());
+                    int size = mmu.getAllMemory().length;
+
+
+                    out.writeInt(size);
+                    out.write(mmu.getAllMemory());*/
+                    
+                    String s = "";
+                    
+                    s += cpu.a();
+                    s += " ";
+                    s += cpu.b();
+                    s += " ";
+                    s += cpu.c();
+                    s += " ";
+                    s += cpu.d();
+                    s += " ";
+                    s += cpu.e();
+                    s += " ";
+                    s += cpu.f();
+                    s += " ";
+                    s += cpu.h();
+                    s += " ";
+                    s += cpu.l();
+                    s += " ";
+                    s += cpu.sp();
+                    s += " ";
+                    s += (cpu.isZero() ? 1 : 0);
+                    s += " ";
+                    s += (cpu.isSubtract() ? 1 : 0);
+                    s += " ";
+                    s += (cpu.isHalfCarry() ? 1 : 0);
+                    s += " ";
+                    s += (cpu.isCarry() ? 1 : 0);
+                    s += " ";
+                    s += cpu.getPc();
+                    
+                    byte[] b = mmu.getAllMemory();
+                    
+                    for (int i = 0; i < b.length; i++)
+                        s += " " + b[i];
+                    
+                    out.write(s);
                     
                     out.close();
                 }
@@ -151,40 +204,67 @@ public class Emulator extends JComponent implements ActionListener {
 
                 if (ret == JFileChooser.APPROVE_OPTION) {
                     File f = fc.getSelectedFile();
-                    FileInputStream in = new FileInputStream(f);
-                    byte[] b = new byte[Mmu.MEMORY_SIZE];
-                    in.read(b);
+                    Scanner in = new Scanner(f);
 
-                    mmu = new Mmu(b);
                     this.display = new DesktopDisplay(mmu, this);
                     this.input = new DesktopInput(mmu);
                     this.cpu = new DesktopCpu(mmu, display);
 
-                    cpu.setA(in.read());
-                    cpu.setB(in.read());
-                    cpu.setC(in.read());
-                    cpu.setD(in.read());
-                    cpu.setE(in.read());
-                    cpu.setF(in.read());
-                    cpu.setH(in.read());
-                    cpu.setL(in.read());
-                    cpu.setSP(in.read());
-                    cpu.setZero(in.read() == 1);
-                    cpu.setSubtract(in.read() == 1);
-                    cpu.setHalfCarry(in.read() == 1);
-                    cpu.setCarry(in.read() == 1);
-                    cpu.setPc(in.read());
-
-                    for (int i = 0; i < 0x10000; i++)
-                        mmu.write(in.read(), i);
+                    /*cpu.setA(in.readInt());
+                    p = in.getFilePointer();
+                    cpu.setB(in.readInt());
+                    p = in.getFilePointer();
+                    cpu.setC(in.readInt());
+                    p = in.getFilePointer();
+                    cpu.setD(in.readInt());
+                    p = in.getFilePointer();
+                    cpu.setE(in.readInt());
+                    p = in.getFilePointer();
+                    cpu.setF(in.readInt());
+                    p = in.getFilePointer();
+                    cpu.setH(in.readInt());
+                    p = in.getFilePointer();
+                    cpu.setL(in.readInt());
+                    p = in.getFilePointer();
+                    cpu.setSP(in.readInt());
+                    p = in.getFilePointer();
+                    cpu.setZero(in.readInt() == 1);
+                    p = in.getFilePointer();
+                    cpu.setSubtract(in.readInt() == 1);
+                    p = in.getFilePointer();
+                    cpu.setHalfCarry(in.readInt() == 1);
+                    p = in.getFilePointer();
+                    cpu.setCarry(in.readInt() == 1);
+                    p = in.getFilePointer();
+                    cpu.setPc(in.readInt());
+                    p = in.getFilePointer();*/
                     
+                    cpu.setA(in.nextInt());
+                    cpu.setB(in.nextInt());
+                    cpu.setC(in.nextInt());
+                    cpu.setD(in.nextInt());
+                    cpu.setE(in.nextInt());
+                    cpu.setF(in.nextInt());
+                    cpu.setH(in.nextInt());
+                    cpu.setL(in.nextInt());
+                    cpu.setSP(in.nextInt());
+                    cpu.setZero(in.nextInt() == 1);
+                    cpu.setSubtract(in.nextInt() == 1);
+                    cpu.setHalfCarry(in.nextInt() == 1);
+                    cpu.setCarry(in.nextInt() == 1);
+                    cpu.setPc(in.nextInt());
+                                        
                     in.close();
+                    
+                    if (cpuThread != null)
+                        cpuThread.interrupt();
 
                     cpuThread = new Thread() {
                         public void run() {
                             try {
                                 running = true;
-                                cpu.emulate(0x100);
+                                System.out.println("running");
+                                cpu.emulate(cpu.getPc());
                                 running = false;
                             } catch (Exception e) {
                                 e.printStackTrace();
