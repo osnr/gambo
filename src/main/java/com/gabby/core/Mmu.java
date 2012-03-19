@@ -20,6 +20,8 @@
 package com.gabby.core;
 
 import com.gabby.core.banking.Mbc1;
+import com.gabby.core.banking.Mbc3;
+import com.gabby.core.banking.Mbc5;
 
 import java.util.Arrays;
 
@@ -294,7 +296,7 @@ public class Mmu {
 	    }
 	    
 	    memory = new byte[0x10000];
-        
+
 	    switch (rom[Mmu.CART_TYPE]) {
         case 0x00:
         	mbc = new Mbc1(rom);
@@ -307,11 +309,22 @@ public class Mmu {
         case 0x05:
         case 0x06:
         	// mbc = new Mbc2();
-        	// break;
+	        mbc = null;
+	        break;
         case 0x12:
         case 0x13:
-        	// mbc = new Mbc3();
-        	default:
+        	mbc = new Mbc3(rom);
+	        break;
+	    case 0x19:
+	    case 0x1A:
+	    case 0x1B:
+	    case 0x1C:
+	    case 0x1D:
+	    case 0x1E:
+	        mbc = new Mbc5(rom);
+	        break;
+
+	    default:
         	mbc = null;
         }
     }

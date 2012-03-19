@@ -108,7 +108,7 @@ public abstract class Cpu {
 		regs[r] = (regs[r] + 1) & 0xFF;
 
 		setZero((regs[r] == 0));
-		setHalfCarry((regs[r] & 0xF) == 0); // don't know what this does
+		setHalfCarry((regs[r] & 0xF) == 0);
 		setSubtract(false);
 	}
 	private void incAt(int addr) {
@@ -116,7 +116,7 @@ public abstract class Cpu {
 		mmu.write(addr, tmp);
 
 		setZero((tmp == 0));
-		setHalfCarry((tmp & 0xF) == 0); // WTF?
+		setHalfCarry((tmp & 0xF) == 0);
 		setSubtract(false);
 	}
 
@@ -124,7 +124,7 @@ public abstract class Cpu {
 		regs[r] = (regs[r] - 1) & 0xFF;
 
 		setZero((regs[r] == 0));
-		setHalfCarry((regs[r] & 0xF) == 0xF); // don't know what this does
+		setHalfCarry((regs[r] & 0xF) == 0xF);
 		setSubtract(true);
 	}
 	private void decAt(int addr) {
@@ -132,7 +132,7 @@ public abstract class Cpu {
 		mmu.write(addr, tmp);
 
 		setZero((tmp == 0));
-		setHalfCarry((tmp & 0xF) == 0xF); // ?
+		setHalfCarry((tmp & 0xF) == 0xF);
 		setSubtract(true);
 	}
 
@@ -142,7 +142,7 @@ public abstract class Cpu {
 	private void addTo(int r, int n) {
 		int tmp = regs[r] + n;
 
-		setHalfCarry(((tmp & 0xF) < (regs[r] & 0xF))); // ??
+		setHalfCarry(((tmp & 0xF) < (regs[r] & 0xF)));
 		setCarry((tmp > 0xFF));
 
 		regs[r] = tmp & 0xFF;
@@ -153,13 +153,12 @@ public abstract class Cpu {
 
 	private void addHL(int nn) {
 		int tmp = hl() + nn;
-		setHalfCarry(((hl() & 0xFFF) > (tmp & 0xFFF))); // ??
+		setHalfCarry(((hl() & 0xFFF) > (tmp & 0xFFF)));
 		setCarry((tmp > 0xFFFF));
 		setHL(tmp & 0xFFFF);
 		setSubtract(false);
 	}
 	private void setHLAfterAdd(int n1, int n2) {
-		// WTF
 		int tmp = (n2 << 24) >> 24;
 		setHL((n1 + tmp) & 0xFFFF);
 		tmp = n1 ^ tmp ^ hl();
@@ -170,8 +169,7 @@ public abstract class Cpu {
 		setSubtract(false);
 	}
 	private void addSP(int n) {
-		// I don't even remotely understand this method.
-		int tmp2 = (n << 24) >> 24; // ??
+		int tmp2 = (n << 24) >> 24;
 		int tmp = (sp + tmp2) & 0xFFFF;
 		tmp2 = sp ^ tmp2 ^ tmp;
 		sp = tmp;
@@ -190,7 +188,7 @@ public abstract class Cpu {
 		// Add n and carry flag value to r
 		int tmp = regs[r] + n + (isCarry() ? 1 : 0);
 
-		setHalfCarry((((tmp & 0xF) + (regs[r] & 0xF) + (isCarry() ? 1 : 0)) > 0xF)); // ??
+		setHalfCarry((((tmp & 0xF) + (regs[r] & 0xF) + (isCarry() ? 1 : 0)) > 0xF));
 		setCarry((tmp > 0xFF));
 
 		regs[r] = tmp & 0xFF;
@@ -205,7 +203,7 @@ public abstract class Cpu {
 	private void subTo(int r, int n) {
 		int tmp = regs[r] - n;
 
-		setHalfCarry(((regs[r] & 0xF) < (tmp & 0xF))); // ??
+		setHalfCarry(((regs[r] & 0xF) < (tmp & 0xF)));
 		setCarry((tmp < 0));
 
 		regs[r] = tmp & 0xFF;
@@ -220,7 +218,7 @@ public abstract class Cpu {
 	private void sbcTo(int r, int n) {
 		int tmp = regs[r] - n - (isCarry() ? 1 : 0);
 
-		setHalfCarry((((regs[r] & 0xF) - (n & 0xF) - (isCarry() ? 1 : 0)) < 0)); // ??
+		setHalfCarry((((regs[r] & 0xF) - (n & 0xF) - (isCarry() ? 1 : 0)) < 0));
 		setCarry((tmp < 0));
 
 		regs[r] = tmp & 0xFF;
@@ -238,7 +236,7 @@ public abstract class Cpu {
 		regs[A] &= (n & 0xFF);
 
 		setZero((regs[A] == 0));
-		setHalfCarry(true); // ??
+		setHalfCarry(true);
 		setSubtract(false);
 		setCarry(false);
 	}
@@ -277,7 +275,7 @@ public abstract class Cpu {
 		// (Basically equiv. to subtraction w/ discarded result)
 		int tmp = regs[A] - n;
 
-		setHalfCarry(((tmp & 0xF) > (regs[A] & 0xF))); // ??
+		setHalfCarry(((tmp & 0xF) > (regs[A] & 0xF)));
 		setCarry((tmp < 0));
 		setZero((tmp == 0));
 		setSubtract(true);
@@ -669,7 +667,7 @@ public abstract class Cpu {
                     opcode = readPC();
                 }
 
-                // System.out.printf("pc: %d, op: %d, vram ", pc - 1, opcode);
+                System.out.printf("pc: %s, op: %s\n", Integer.toHexString(pc - 1), Integer.toHexString(opcode));
 
                 op(opcode);
 
