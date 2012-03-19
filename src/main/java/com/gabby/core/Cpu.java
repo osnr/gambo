@@ -283,8 +283,8 @@ public abstract class Cpu {
 
 	private void rl(int r) {
 		int c = isCarry() ? 1 : 0;
-		setCarry((regs[A] > 0x7F));
-		regs[A] = ((regs[A] << 1) & 0xFF) | c;
+		setCarry((regs[r] > 0x7F));
+		regs[r] = ((regs[r] << 1) & 0xFF) | c;
 
 		setZero(false);
 		setSubtract(false);
@@ -324,8 +324,8 @@ public abstract class Cpu {
 
 	private void rr(int r) {
 		int c = isCarry() ? 0x80 : 0;
-		setCarry(((regs[A] & 1) == 1));
-		regs[A] = (regs[A] >> 1) | c;
+		setCarry(((regs[r] & 1) == 1));
+		regs[r] = (regs[r] >> 1) | c;
 
 		setZero(false);
 		setSubtract(false);
@@ -667,7 +667,7 @@ public abstract class Cpu {
                     opcode = readPC();
                 }
 
-                System.out.printf("pc: %s, op: %s\n", Integer.toHexString(pc - 1), Integer.toHexString(opcode));
+                //                System.out.println(String.format("pc: %x, op: %x, %x, %x, %x, %x, %x, %x, %x, %x, %x", pc - 1, opcode, regs[A], regs[B], regs[C], regs[D], regs[E], regs[F], regs[H], regs[L], sp));
 
                 op(opcode);
 

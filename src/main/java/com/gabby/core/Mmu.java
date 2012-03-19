@@ -84,8 +84,8 @@ public class Mmu {
 	    private void divide(int deltaClock) {
 		    divCounter += deltaClock;
 		    
-		    if (divCounter >= 255) {
-			    divCounter = 0;
+		    if (divCounter > 0xFF) {
+			    divCounter -= 0x100;
 			    memory[Mmu.DIV] = (byte) (read(Mmu.DIV) + 1); // write directly to buffer
 		    }
 	    }
@@ -111,7 +111,7 @@ public class Mmu {
 			    
 			    if (timaCounter <= 0) {
 				    this.resetCounter();
-				
+
 				    if (rom[Mmu.TIMA] == 0xFF) {
 					    memory[Mmu.TIMA] = (byte) read(Mmu.TMA);
 					    
