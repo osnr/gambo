@@ -106,12 +106,6 @@ public class Main {
                 emulator.processArguments(args);
                 
                 frame.addKeyListener(emulator.getInput());
-
-                (new java.util.Timer()).scheduleAtFixedRate((new TimerTask() {
-                    public void run() {
-                        emulator.repaint();
-                    }
-                }), 0, 17);
             }
         });
     }

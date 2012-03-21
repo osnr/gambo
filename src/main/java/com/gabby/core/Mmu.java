@@ -311,6 +311,8 @@ public class Mmu {
         	// mbc = new Mbc2();
 	        mbc = null;
 	        break;
+	    case 0x10:
+	    case 0x11:
         case 0x12:
         case 0x13:
         	mbc = new Mbc3(rom);
@@ -400,22 +402,22 @@ public class Mmu {
     
     protected void dmaTransfer(int data) {
     	int addr = data << 8; // source address is data * 0x100
-    	//System.out.println("Running DMA transfer from addr " + addr + " to 0xFE00.");
-    	//System.out.println("Source memory: " + Arrays.toString(this.readRange(addr, addr + 0xA0)));
     	for (int i = 0; i < 0xA0; i++) { // copy A0 bytes to OAM
     		this.write(0xFE00 + i, read(addr + i));
     	}
-    	//System.out.println("Dest memory: " + Arrays.toString(this.readRange(0xFE00, 0xFE00 + 0xA0)));
     }
     
     // read unsigned byte from a position in memory
     public int read(int addr) {
 	    if ((addr >= 0x4000) && (addr <= 0x7FFF)) { // ROM bank read
 		    return mbc.readRom(addr);
+
 	    } else if ((addr >= 0xA000) && (addr <= 0xBFFF)) { // RAM bank read
 		    return mbc.readRam(addr);
+
 	    } else if (addr < 0x4000) { // unbanked ROM read
 		    return rom[addr] & 0xFF; // unsign
+
 	    } else { // main memory read
 	    	return memory[addr] & 0xFF;
 	    }

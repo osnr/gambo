@@ -188,7 +188,7 @@ public abstract class Cpu {
 		// Add n and carry flag value to r
 		int tmp = regs[r] + n + (isCarry() ? 1 : 0);
 
-		setHalfCarry((((tmp & 0xF) + (regs[r] & 0xF) + (isCarry() ? 1 : 0)) > 0xF));
+		setHalfCarry((((n & 0xF) + (regs[r] & 0xF) + (isCarry() ? 1 : 0)) > 0xF));
 		setCarry((tmp > 0xFF));
 
 		regs[r] = tmp & 0xFF;
@@ -667,7 +667,7 @@ public abstract class Cpu {
                     opcode = readPC();
                 }
 
-                //                System.out.println(String.format("pc: %x, op: %x, %x, %x, %x, %x, %x, %x, %x, %x, %x", pc - 1, opcode, regs[A], regs[B], regs[C], regs[D], regs[E], regs[F], regs[H], regs[L], sp));
+                // System.out.println(String.format("pc: %x, op: %x, %x, %x, %x, %x, %x, %x, %x, %x, %x", pc - 1, opcode, regs[A], regs[B], regs[C], regs[D], regs[E], regs[F], regs[H], regs[L], sp));
 
                 op(opcode);
 
@@ -983,6 +983,8 @@ public abstract class Cpu {
 		case 0x3F: // CCF
 			// flip carry flag
 			setCarry(!isCarry());
+			setSubtract(false);
+			setHalfCarry(false);
 			break;
 		
 		case 0x40: // LD B, B
