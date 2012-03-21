@@ -396,8 +396,13 @@ public class Mmu {
         for (int i = 0; i < 0x10000; i++) {
             memory[i] = data[i];
         }
+        
+        byte[] ram = new byte[data.length - 0x10000];
+        for (int i = 0x10000; i < data.length; i++) {
+        	ram[i] = data[i];
+        }
 
-        mbc.loadRam(Arrays.copyOfRange(data, 0x10000, data.length));
+        mbc.loadRam(ram);
     }
     
     protected void dmaTransfer(int data) {

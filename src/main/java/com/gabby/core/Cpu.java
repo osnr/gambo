@@ -643,8 +643,8 @@ public abstract class Cpu {
 		return mmu.read16(pc - 2);
 	}
 
-    protected void timingWait() throws InterruptedException {
-    	
+    protected boolean timingWait() {
+    	return true;
     }
     
     protected boolean cycling(boolean newFrame) {
@@ -652,44 +652,42 @@ public abstract class Cpu {
     }
 
     protected void timingSync() {
-    	
+
     }
     
 	public void emulate(int initialPC) throws IllegalOperationException {
-        try {
-            int opcode = -1, delta;
-            boolean newFrame;
+		int opcode = -1, delta;
+		boolean newFrame;
 
-            pc = initialPC;
+		pc = initialPC;
 
-            do {
-                if (!isHalting()) {
-                    opcode = readPC();
-                }
+		do {
+			if (!isHalting()) {
+				opcode = readPC();
+			}
 
-                // System.out.println(String.format("pc: %x, op: %x, %x, %x, %x, %x, %x, %x, %x, %x, %x", pc - 1, opcode, regs[A], regs[B], regs[C], regs[D], regs[E], regs[F], regs[H], regs[L], sp));
+			// System.out.println(String.format("pc: %x, op: %x, %x, %x, %x, %x, %x, %x, %x, %x, %x", pc - 1, opcode, regs[A], regs[B], regs[C], regs[D], regs[E], regs[F], regs[H], regs[L], sp));
 
-                op(opcode);
+			op(opcode);
 
-                clock.executedOp(opcode);
+			clock.executedOp(opcode);
 
-                delta = clock.getDelta();
+			delta = clock.getDelta();
 
-                newFrame = display.step(delta);
-                if (newFrame) {
-                    timingWait();
-                }
-                mmu.timers.step(delta);
+			newFrame = display.step(delta);
+			if (newFrame) {
+				if (!timingWait()) {
+					return;
+				}
+			}
+			mmu.timers.step(delta);
 
-                mmu.interrupts.checkInterrupts(this);
+			mmu.interrupts.checkInterrupts(this);
 
-                clock.step();
-            } while (cycling(newFrame));
+			clock.step();
+		} while (cycling(newFrame));
 
-            timingSync();
-        } catch (InterruptedException e) {
-            return;
-        }
+		timingSync();
 	}
 	
 	protected void op(int opcode) throws IllegalOperationException {
@@ -2794,7 +2792,7 @@ public abstract class Cpu {
 		private static final long serialVersionUID = 8646636447363934844L;
 
 		public IllegalOperationException(int opcode) {
-			super(String.format("Invalid opcode: %x", opcode));
+			super("Invalid opcode: " + Integer.toHexString(opcode));
 		}
 	}
 }

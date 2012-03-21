@@ -33,19 +33,21 @@ public class DesktopCpu extends Cpu {
 	}
 	
 	@Override
-	protected void timingWait() throws InterruptedException {
-		long t = Calendar.getInstance().getTimeInMillis();
+	protected boolean timingWait() {
+		try {
+			long t = Calendar.getInstance().getTimeInMillis();
 
-		while (t - lastSync < 16) {
-			//try {
+			while (t - lastSync < 16) {
 				Thread.sleep(1);
-			//} catch (InterruptedException e) {
-				//e.printStackTrace();
-			//}
 
-			t = Calendar.getInstance().getTimeInMillis();
+				t = Calendar.getInstance().getTimeInMillis();
+			}
+
+			lastSync = t;
+			
+			return true;
+		} catch (InterruptedException e) {
+			return false;
 		}
-
-        lastSync = t;
 	}
 }
