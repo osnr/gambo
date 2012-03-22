@@ -23,8 +23,6 @@ import com.gabby.core.banking.Mbc1;
 import com.gabby.core.banking.Mbc3;
 import com.gabby.core.banking.Mbc5;
 
-import java.util.Arrays;
-
 public class Mmu {
     public static final int MEMORY_SIZE = 0xFFFF;
     
