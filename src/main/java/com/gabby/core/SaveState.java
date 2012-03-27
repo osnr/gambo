@@ -3,12 +3,16 @@ package com.gabby.core;
 import java.io.*;
 
 public class SaveState implements Serializable {
-    int a, b, c, d, e, f, h, l;
-    int pc, sp;
-    byte[] memory;
-    int divCounter, timaCounter;
-    int modeClock, vblankClock;
-    int buttons, dpad;
+    public int a, b, c, d, e, f, h, l;
+    public int pc, sp;
+    public byte[] memory;
+    public int divCounter, timaCounter;
+    public int modeClock, vblankClock;
+    public int buttons, dpad;
+
+    public SaveState() {
+        memory = new byte[Mmu.MEMORY_SIZE];
+    }
 
     public SaveState(Cpu cpu, Mmu mmu, Display display) {
         this.a = cpu.a();
