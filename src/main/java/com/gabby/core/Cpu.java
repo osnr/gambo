@@ -667,9 +667,9 @@ public abstract class Cpu {
 			}
 
 			// System.out.println(String.format("pc: %x, op: %x, %x, %x, %x, %x, %x, %x, %x, %x, %x", pc - 1, opcode, regs[A], regs[B], regs[C], regs[D], regs[E], regs[F], regs[H], regs[L], sp));
-
+            System.out.printf("pc: %#xd, op: %#xd\n", pc, opcode);
 			op(opcode);
-            //System.out.printf("pc: %#xd, op: %#xd\n", pc, opcode);
+
 
 			clock.executedOp(opcode);
 

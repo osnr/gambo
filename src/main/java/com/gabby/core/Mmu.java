@@ -72,10 +72,18 @@ public class Mmu {
     public static final int IE = 0xFFFF;
     
     public class Timers {
-    	// timers
+        // timers
     	// ------
 	    private int divCounter;
 	    private int timaCounter;
+
+        public int getDivCounter() {
+            return divCounter;
+        }
+
+        public int getTimaCounter() {
+            return timaCounter;
+        }
 	    
 	    private boolean isClockEnabled() {
 		    return (read(Mmu.TMC) & 0x02) != 0;
@@ -232,8 +240,16 @@ public class Mmu {
 		public static final int DPD_LEFT = 0xFD;
 		public static final int DPD_UP = 0xFB;
 		public static final int DPD_DOWN = 0xF7;
-		
-		public void pressedButton(int btn) {
+
+        public int getButtons() {
+            return buttons;
+        }
+
+        public int getDpad() {
+            return dpad;
+        }
+
+        public void pressedButton(int btn) {
 			this.buttons &= btn;
 			interrupts.setInterrupt(Interrupts.INPUT);
 		}
