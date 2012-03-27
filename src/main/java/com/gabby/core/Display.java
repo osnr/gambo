@@ -28,9 +28,9 @@ public abstract class Display {
     public static final int SCREEN_WIDTH = 256;
     public static final int SCREEN_HEIGHT = 256;
 
-    protected int modeClock, vblankClock;
-    protected int mode;
-    protected int line, lastLine;
+    private int modeClock, vblankClock;
+    private int mode;
+    private int line, lastLine;
 
     protected Mmu mmu;
 
@@ -39,7 +39,15 @@ public abstract class Display {
 
         this.mmu = mmu;
     }
-    
+
+    public int getModeClock() {
+        return modeClock;
+    }
+
+    public int getVblankClock() {
+        return vblankClock;
+    }
+
     protected abstract int getPixel(int x, int y);
     protected abstract void setPixel(int x, int y, int rgb);
 
