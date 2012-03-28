@@ -197,9 +197,7 @@ public class Emulator extends JComponent implements ActionListener {
                     
                     out.close();  */
 
-                    ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(f));
-                    out.writeObject(new SaveState(cpu, mmu, display));
-                    out.close();
+                    cpu.saveState(f.getPath());
                 }
             } else if ("load state".equals(e.getActionCommand())) {
                 JFileChooser fc = new JFileChooser();

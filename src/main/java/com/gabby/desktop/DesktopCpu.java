@@ -51,6 +51,9 @@ public class DesktopCpu extends Cpu {
             try {
                 ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(savePath));
                 out.writeObject(new SaveState(this, mmu, display));
+                out.close();
+                savePath = "";
+                saveState = false;
             } catch (IOException e) {
                 e.printStackTrace();
             }
