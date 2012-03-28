@@ -622,10 +622,10 @@ public abstract class Cpu {
 	}
 
 	// memory access
-	private Mmu mmu;
+	protected Mmu mmu;
 	
 	// display
-	private Display display;
+	protected Display display;
 	
 	// internal clock
 	private Clock clock;
@@ -656,7 +656,6 @@ public abstract class Cpu {
     }
     
 	public void emulate(int initialPC) throws IllegalOperationException {
-		int opcode = -1, delta;
 		boolean newFrame;
 
 		pc = initialPC;

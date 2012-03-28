@@ -19,18 +19,45 @@
 
 package com.gabby.desktop;
 
+import java.io.*;
 import java.util.Calendar;
 
 import com.gabby.core.Cpu;
 import com.gabby.core.Display;
 import com.gabby.core.Mmu;
+import com.gabby.core.SaveState;
 
 public class DesktopCpu extends Cpu {
 	long lastSync;
+    boolean saveState = false;
+    String savePath = "";
 	
 	public DesktopCpu(Mmu mmu, Display display) {
 		super(mmu, display);
 	}
+
+    /**
+     * Tells the CPU to save as soon as it finishes its current opcode and associated operations.
+     * @param path Path to which the state is saved.
+     */
+    public void saveState(String path) {
+        savePath = path;
+        saveState = true;
+    }
+
+    @Override
+    protected boolean emulateOp() throws IllegalOperationException {
+        if (saveState) {
+            try {
+                ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(savePath));
+                out.writeObject(new SaveState(this, mmu, display));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return super.emulateOp();
+    }
 	
 	@Override
 	protected boolean timingWait() {
