@@ -35,13 +35,14 @@ import javax.swing.SwingUtilities;
 
 import com.gabby.core.Cpu;
 import com.gabby.core.Mmu;
+import com.gabby.core.SaveState;
 
 public class Emulator extends JComponent implements ActionListener {
 	private static final long serialVersionUID = 458596725723358140L;
 	
 	private DesktopDisplay display;
     private Mmu mmu;
-    private Cpu cpu;
+    private DesktopCpu cpu;
     private int scale;
     public BufferedImage buffer;
     private DesktopInput input;
@@ -120,7 +121,7 @@ public class Emulator extends JComponent implements ActionListener {
 
                 if (ret == JFileChooser.APPROVE_OPTION) {
                     File f = fc.getSelectedFile();
-                    BufferedWriter out = new BufferedWriter(new FileWriter(f));
+/*                    BufferedWriter out = new BufferedWriter(new FileWriter(f));
 
                     /*out.writeInt(cpu.a());       // 0
                     p = out.getFilePointer();
@@ -155,7 +156,7 @@ public class Emulator extends JComponent implements ActionListener {
 
 
                     out.writeInt(size);
-                    out.write(mmu.getAllMemory());*/
+                    out.write(mmu.getAllMemory());*//*
                     
                     String s = "";
                     
@@ -194,6 +195,10 @@ public class Emulator extends JComponent implements ActionListener {
                     
                     out.write(s);
                     
+                    out.close();  */
+
+                    ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(f));
+                    out.writeObject(new SaveState(cpu, mmu, display));
                     out.close();
                 }
             } else if ("load state".equals(e.getActionCommand())) {

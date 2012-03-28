@@ -662,34 +662,43 @@ public abstract class Cpu {
 		pc = initialPC;
 
 		do {
-			if (!isHalting()) {
-				opcode = readPC();
-			}
-
-			// System.out.println(String.format("pc: %x, op: %x, %x, %x, %x, %x, %x, %x, %x, %x, %x", pc - 1, opcode, regs[A], regs[B], regs[C], regs[D], regs[E], regs[F], regs[H], regs[L], sp));
-            System.out.printf("pc: %#xd, op: %#xd\n", pc, opcode);
-			op(opcode);
-
-
-			clock.executedOp(opcode);
-
-			delta = clock.getDelta();
-
-			newFrame = display.step(delta);
-			if (newFrame) {
-				if (!timingWait()) {
-					return;
-				}
-			}
-			mmu.timers.step(delta);
-
-			mmu.interrupts.checkInterrupts(this);
-
-			clock.step();
+			newFrame = emulateOp();
 		} while (cycling(newFrame));
 
 		timingSync();
 	}
+    
+    private int opcode = -1;
+
+    protected boolean emulateOp() throws IllegalOperationException {
+        int delta;
+        boolean newFrame;
+
+        if (!isHalting()) {
+            opcode = readPC();
+        }
+
+        // System.out.println(String.format("pc: %x, op: %x, %x, %x, %x, %x, %x, %x, %x, %x, %x", pc - 1, opcode, regs[A], regs[B], regs[C], regs[D], regs[E], regs[F], regs[H], regs[L], sp));
+        // System.out.printf("pc: %#xd, op: %#xd\n", pc, opcode);
+        op(opcode);
+
+
+        clock.executedOp(opcode);
+        delta = clock.getDelta();
+        newFrame = display.step(delta);
+
+        if (newFrame) {
+            if (!timingWait()) {
+                throw new RuntimeException();
+            }
+        }
+        mmu.timers.step(delta);
+
+        mmu.interrupts.checkInterrupts(this);
+
+        clock.step();
+        return newFrame;
+    }
 	
 	protected void op(int opcode) throws IllegalOperationException {
 		switch (opcode) {
