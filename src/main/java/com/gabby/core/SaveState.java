@@ -2,7 +2,7 @@ package com.gabby.core;
 
 import java.io.*;
 
-public abstract class SaveState implements Serializable {
+public class SaveState implements Serializable {
     public int a, b, c, d, e, f, h, l;
     public int pc, sp;
     public byte[] memory;
@@ -85,14 +85,4 @@ public abstract class SaveState implements Serializable {
             e.printStackTrace();
         }
     }
-    
-    public Mmu getMmu(byte[] cart) {
-        Mmu mmu = new Mmu(cart);
-        
-        return mmu;
-    }
-    
-    public abstract Display getDisplay();
-    
-    public abstract Cpu getCpu();
 }

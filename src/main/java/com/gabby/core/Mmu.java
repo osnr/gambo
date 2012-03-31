@@ -82,8 +82,16 @@ public class Mmu {
         public int getTimaCounter() {
             return timaCounter;
         }
-	    
-	    private boolean isClockEnabled() {
+
+        public void setDivCounter(int divCounter) {
+            this.divCounter = divCounter;
+        }
+
+        public void setTimaCounter(int timaCounter) {
+            this.timaCounter = timaCounter;
+        }
+
+        private boolean isClockEnabled() {
 		    return (read(Mmu.TMC) & 0x02) != 0;
 	    }
 	    
@@ -245,6 +253,14 @@ public class Mmu {
 
         public int getDpad() {
             return dpad;
+        }
+
+        public void setButtons(int buttons) {
+            this.buttons = buttons;
+        }
+
+        public void setDpad(int dpad) {
+            this.dpad = dpad;
         }
 
         public void pressedButton(int btn) {
@@ -490,5 +506,15 @@ public class Mmu {
     public void write16(int addr, int nn) {
     	this.write(addr, (byte) (nn & 0xFF));
     	this.write(addr + 1, (byte) ((nn >> 8) & 0xFF));
+    }
+    
+    public void loadFromSaveState(SaveState s) {
+        setAllMemory(s.memory);
+        
+        timers.setDivCounter(s.divCounter);
+        timers.setTimaCounter(s.timaCounter);
+        
+        inputs.setButtons(s.buttons);
+        inputs.setDpad(s.dpad);
     }
 }

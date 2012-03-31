@@ -48,6 +48,14 @@ public abstract class Display {
         return vblankClock;
     }
 
+    public void setModeClock(int modeClock) {
+        this.modeClock = modeClock;
+    }
+
+    public void setVblankClock(int vblankClock) {
+        this.vblankClock = vblankClock;
+    }
+
     protected abstract int getPixel(int x, int y);
     protected abstract void setPixel(int x, int y, int rgb);
 
@@ -451,5 +459,10 @@ public abstract class Display {
             }
         }
         return false;
+    }
+    
+    public void loadFromSaveState(SaveState s) {
+        setModeClock(s.modeClock);
+        setVblankClock(s.vblankClock);
     }
 }

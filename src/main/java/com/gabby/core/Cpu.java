@@ -2797,6 +2797,20 @@ public abstract class Cpu {
 		}
 	}
 
+    public void loadFromSaveState(SaveState s) {
+        setA(s.a);
+        setB(s.b);
+        setC(s.c);
+        setD(s.d);
+        setE(s.e);
+        setF(s.f);
+        setH(s.h);
+        setL(s.l);
+
+        setPc(s.pc);
+        setSP(s.sp);
+    }
+
 	public class IllegalOperationException extends Exception {
 		private static final long serialVersionUID = 8646636447363934844L;
 
