@@ -29,8 +29,8 @@ import com.gabby.core.SaveState;
 
 public class DesktopCpu extends Cpu {
 	long lastSync;
-    boolean saveState = false;
-    String savePath = "";
+    private boolean saveState = false, loadState = false;
+    private String path = "";
 	
 	public DesktopCpu(Mmu mmu, Display display) {
 		super(mmu, display);
@@ -41,20 +41,45 @@ public class DesktopCpu extends Cpu {
      * @param path Path to which the state is saved.
      */
     public void saveState(String path) {
-        savePath = path;
+        this.path = path;
         saveState = true;
+    }
+       
+    public void loadState(String path) {
+        this.path = path;
+        this.loadState = true;
     }
 
     @Override
     protected boolean emulateOp() throws IllegalOperationException {
         if (saveState) {
             try {
-                ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(savePath));
+                ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(path));
                 out.writeObject(new SaveState(this, mmu, display));
                 out.close();
-                savePath = "";
+
+                path = "";
                 saveState = false;
             } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else if (loadState) {
+            try {
+                ObjectInputStream in = new ObjectInputStream(new FileInputStream(path));
+                SaveState s = (SaveState) in.readObject();
+                in.close();
+
+                this.loadFromSaveState(s);
+                mmu.loadFromSaveState(s);
+                display.loadFromSaveState(s);
+
+                path = "";
+                loadState = false;
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             }
         }
