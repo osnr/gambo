@@ -677,7 +677,7 @@ public abstract class Cpu {
             opcode = readPC();
         }
 
-        // System.out.println(String.format("pc: %x, op: %x, %x, %x, %x, %x, %x, %x, %x, %x, %x", pc - 1, opcode, regs[A], regs[B], regs[C], regs[D], regs[E], regs[F], regs[H], regs[L], sp));
+        // System.out.println(String.format("pc: %x, op: %x; %x, %x, %x, %x, %x, %x, %x, %x, %x; LY: %x", pc - 1, opcode, regs[A], regs[B], regs[C], regs[D], regs[E], regs[F], regs[H], regs[L], sp, mmu.read(0xFF44)));
         // System.out.printf("pc: %#xd, op: %#xd\n", pc, opcode);
         op(opcode);
 

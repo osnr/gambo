@@ -493,6 +493,8 @@ public class Mmu {
 	    	}
 	    } else if (addr == Mmu.DMA) { // DMA transfer 
 	    	dmaTransfer(n);
+	    } else if (addr == Mmu.LY) { // reset scanline to 0
+		    memory[Mmu.LY] = 0;
 	    } else {
 		    memory[addr] = (byte) n;
 	    }
@@ -508,6 +510,10 @@ public class Mmu {
     	this.write(addr + 1, (byte) ((nn >> 8) & 0xFF));
     }
     
+	public byte[] getMemory() {
+		return memory;
+	}
+
     public void loadFromSaveState(SaveState s) {
         setAllMemory(s.memory);
         

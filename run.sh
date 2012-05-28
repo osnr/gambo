@@ -1,2 +1,2 @@
 #/usr/bin/bash
-java -cp target/classes com.gabby.desktop.Main
+java -cp target/classes com.gabby.desktop.Main $1
