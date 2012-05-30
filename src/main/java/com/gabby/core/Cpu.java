@@ -677,7 +677,8 @@ public abstract class Cpu {
             opcode = readPC();
         }
 
-        System.out.println(String.format("pc: %x, op: %x; %x, %x, %x, %x, %x, %x, %x, %x, %x; LY: %d", pc - 1, opcode, regs[A], regs[B], regs[C], regs[D], regs[E], 0, regs[H], regs[L], sp, mmu.read(0xFF44)));
+        //System.out.println("pc: "+Integer.toHexString(pc-1)+", op: "+Integer.toHexString(opcode)+"; "+Integer.toHexString(regs[A])+", "+Integer.toHexString(regs[B])+", "+Integer.toHexString(regs[C])+", "+Integer.toHexString(regs[D])+", "+Integer.toHexString(regs[E])+", 0, "+Integer.toHexString(regs[H])+", "+Integer.toHexString(regs[L])+", "+Integer.toHexString(sp)+"; SCX: "+mmu.read(0xFF43));
+        //System.out.println("pc: "+Integer.toHexString(pc-1)+", op: "+Integer.toHexString(opcode)+", scx: "+Integer.toHexString(mmu.read(0xFF43)));
         // System.out.printf("pc: %#xd, op: %#xd\n", pc, opcode);
         op(opcode);
 

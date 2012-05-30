@@ -169,8 +169,8 @@ public class Mmu {
 			if (this.interrupt(ie, Interrupts.VBLANK) &&
 					this.interrupt(ifl, Interrupts.VBLANK)) {
 				if (interrupts) {
-					this.resetInterrupt(ifl, VBLANK);
-					this.disableInterrupts();
+					resetInterrupt(ifl, VBLANK);
+					disableInterrupts();
 					cpu.call(0x0040);
 				}
 				cpu.setHalting(false);
@@ -206,8 +206,8 @@ public class Mmu {
 				cpu.setHalting(false);
 			}
 	
-			if (this.interrupt(ie, INPUT) &&
-					this.interrupt(ifl, INPUT)) {
+			if (this.interrupt(ie, Interrupts.INPUT) &&
+					this.interrupt(ifl, Interrupts.INPUT)) {
 				if (interrupts) {
 					this.resetInterrupt(ifl, INPUT);
 					this.disableInterrupts();
@@ -294,7 +294,6 @@ public class Mmu {
 	    }
 	    
 	    public void updateJoyp(int data) {
-	    	// System.out.println("Updating joyp: " + Integer.toBinaryString(read(Mmu.JOYP)));
 		    memory[Mmu.JOYP] = (byte) this.joypValue(data);
 	    }
 	}

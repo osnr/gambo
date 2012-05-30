@@ -462,8 +462,7 @@ public abstract class Display {
 	// executed on each operation
     // returns whether we're starting a new frame
     public boolean step(int deltaClock) {
-	    updateStatus();
-
+	    boolean newFrame = false;
         int lcdc = mmu.read(Mmu.LCDC);
 
         if ((lcdc & 0x80) != 0) { // if LCD control is set to on
@@ -475,10 +474,12 @@ public abstract class Display {
         }
 
         if (lineCounter <= 0) {
-	        return nextLine();
+	        newFrame = nextLine();
         }
 
-        return false;
+        updateStatus();
+
+        return newFrame;
     }
     
     public void loadFromSaveState(SaveState s) {
