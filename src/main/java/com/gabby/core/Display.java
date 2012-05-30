@@ -28,7 +28,7 @@ public abstract class Display {
     public static final int SCREEN_WIDTH = 256;
     public static final int SCREEN_HEIGHT = 256;
 
-    private int lineCounter;
+    private int lineCounter = 456;
     private int mode;
     private int line, lastLine;
 
@@ -369,7 +369,7 @@ public abstract class Display {
 		mmu.getMemory()[Mmu.LY] = (byte) (mmu.read(Mmu.LY) + 1);
 		line = mmu.read(Mmu.LY);
 
-		lineCounter = 456;
+		lineCounter += 456;
 
 		if (line == 144) {
 			vblank();
@@ -392,9 +392,11 @@ public abstract class Display {
 		if ((lcdc & 0x80) == 0) { // if LCD control is set to off
 	        // LCD is disabled
 	        // reset vblank clock, scanline
-			lineCounter = 456;
-	        line = 0;
-	        mmu.write(Mmu.LY, 0);
+
+			// TODO ambiguous: should the line / linecounter be reset?
+			// lineCounter += 456;
+	        // line = 0;
+	        // mmu.write(Mmu.LY, 0);
 
 	        // set mode to 1
 	        stat &= 0xFB;
@@ -465,12 +467,15 @@ public abstract class Display {
         int lcdc = mmu.read(Mmu.LCDC);
 
         if ((lcdc & 0x80) != 0) { // if LCD control is set to on
+	        // TODO ambiguous: should we change lineCounter even if
+	        // LCD control is off?
+
 	        // scanline increments every 456 cycles
 	        lineCounter -= deltaClock;
+        }
 
-	        if (lineCounter <= 0) {
-		        return nextLine();
-	        }
+        if (lineCounter <= 0) {
+	        return nextLine();
         }
 
         return false;

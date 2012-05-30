@@ -305,7 +305,7 @@ public abstract class Cpu {
 
 	private void rlc(int r) {
 		setCarry((regs[r] > 0x7F));
-		regs[r] = ((regs[r] << 1) & 0xFF);
+		regs[r] = ((regs[r] << 1) & 0xFF) | (regs[r] >> 7);
 
 		setZero(false);
 		setSubtract(false);
@@ -315,7 +315,7 @@ public abstract class Cpu {
 		int tmp = mmu.read(addr);
 
 		setCarry((tmp > 0x7F));
-		mmu.write(addr, ((tmp << 1) & 0xFF));
+		mmu.write(addr, ((tmp << 1) & 0xFF) | (tmp >> 7));
 
 		setZero(false);
 		setSubtract(false);
@@ -677,10 +677,9 @@ public abstract class Cpu {
             opcode = readPC();
         }
 
-        // System.out.println(String.format("pc: %x, op: %x; %x, %x, %x, %x, %x, %x, %x, %x, %x; LY: %x", pc - 1, opcode, regs[A], regs[B], regs[C], regs[D], regs[E], regs[F], regs[H], regs[L], sp, mmu.read(0xFF44)));
+        System.out.println(String.format("pc: %x, op: %x; %x, %x, %x, %x, %x, %x, %x, %x, %x; LY: %d", pc - 1, opcode, regs[A], regs[B], regs[C], regs[D], regs[E], 0, regs[H], regs[L], sp, mmu.read(0xFF44)));
         // System.out.printf("pc: %#xd, op: %#xd\n", pc, opcode);
         op(opcode);
-
 
         clock.executedOp(opcode);
         delta = clock.getDelta();
@@ -704,7 +703,7 @@ public abstract class Cpu {
 		case 0x00: // NOP
 			// No operation
 			break;
-		
+			
 		case 0x01: // LD BC, nn
 			setBC(readPC16());
 			break;
@@ -2682,7 +2681,7 @@ public abstract class Cpu {
 			break;
 		
 		case 0xE0: // LDH (n), A
-			// Put A into memory address 0xFF00 + n ?
+			// Put A into memory address 0xFF00 + n
 			mmu.write(0xFF00 + readPC(), regs[A]);
 			break;
 		
