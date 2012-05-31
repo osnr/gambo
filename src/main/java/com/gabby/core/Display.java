@@ -64,80 +64,55 @@ public abstract class Display {
         }
     }
 
-    private void drawBackground() {
-        int tiledata;
-        int tilemap;
+	private int tile(int x, int y) {
+		int lcdc = mmu.read(Mmu.LCDC);
 
-        if ((mmu.read(Mmu.LCDC) & 0x10) == 0) {
-	        tiledata = Mmu.TILE_TABLE_TWO;
+		int mapAddr;
+		int dataAddr;
+
+		if ((lcdc & 0x08) == 0) {
+	        mapAddr = Mmu.TILE_MAP_ONE;
         } else {
-	        tiledata = Mmu.TILE_TABLE_ONE;
+	        mapAddr = Mmu.TILE_MAP_TWO;
         }
 
-        if ((mmu.read(Mmu.LCDC) & 0x08) == 0) {
-	        tilemap = Mmu.TILE_MAP_ONE;
-        } else {
-	        tilemap = Mmu.TILE_MAP_TWO;
-        }
+        mapAddr += (((y >> 3) << 5) + (x >> 3)) & 0x03FF;
 
-        int y = line + mmu.read(Mmu.SCY);
-        int z = y & 0x07; // row of tile
-        int u = z << 3;
-        y >>= 3; // num of tile
+		// if BG & window tile data is in table 2
+		if ((lcdc & 0x10) == 0) {
+			// pattern #0 should be at 0x9000, not 0x8800
+			dataAddr = Mmu.TILE_TABLE_TWO + 0x800 + ((byte) mmu.read(mapAddr) << 4);
+		} else {
+			dataAddr = Mmu.TILE_TABLE_ONE + (mmu.read(mapAddr) << 4);
+		}
+		dataAddr += (y & 7) << 1;
 
-        int tileNum = y << 5;
-        int tile;
+		return (mmu.read(dataAddr + 0) << 0) | (mmu.read(dataAddr + 1) << 8);
+	}
 
-        int lastTile = 999; // valid values are 0 to 255, so this forces the first one.
-        int[] tileBuffer = new int[64];
-            
-        for (int i = 0; i < 32; i++) {
-	        if (tiledata == Mmu.TILE_TABLE_ONE) {
-		        tile = mmu.read(tilemap + tileNum);
-	        } else {
-		        tile = (byte) (mmu.read(tilemap + tileNum)) + 128;
-	        }
-                
-	        int t;
+	private void drawBackground() {
+		int iy = (mmu.read(Mmu.LY) + mmu.read(Mmu.SCY)) & 0xFF;
+		int ix = mmu.read(Mmu.SCX);
 
-	        if (tile != lastTile) {
-		        lastTile = tile;
-		        t = z << 1;
-		        int tmpAddr = tiledata + (tile << 4) + t;
-		        t <<= 2;
+		int tx = ix & 7;
 
-		        int b1 = mmu.read(tmpAddr);
-		        int b2 = mmu.read(tmpAddr + 1);
+		// get tile data for (ix, iy) from the selected tilemap (0 or 1) in LCDC
+		int data = tile(ix, iy);
 
-		        tileBuffer[t + 7] = ((b2 & 1) | ((b1 & 1) << 1));
-		        tileBuffer[t + 6] = (((b2 & 2) >> 1) | (((b1 & 2) >> 1) << 1));
-		        tileBuffer[t + 5] = (((b2 & 4) >> 2) | (((b1 & 4) >> 2) << 1));
-		        tileBuffer[t + 4] = (((b2 & 8) >> 3) | (((b1 & 8) >> 3) << 1));
-		        tileBuffer[t + 3] = (((b2 & 16) >> 4) | (((b1 & 16) >> 4) << 1));
-		        tileBuffer[t + 2] = (((b2 & 32) >> 5) | (((b1 & 32) >> 5) << 1));
-		        tileBuffer[t + 1] = (((b2 & 64) >> 6) | (((b1 & 64) >> 6) << 1));
-		        tileBuffer[t] = (((b2 & 128) >> 7) | (((b1 & 128) >> 7) << 1));
-	        }
+		for (int ox = 0; ox < 160; ox++) {
+			int color = ( ((data & (0x0080 >> tx)) != 0) ? 1 : 0 )
+				| ( ((data & (0x8000 >> tx)) != 0) ? 2 : 0 );
 
-	        int x = ((i << 3) - mmu.read(Mmu.SCX)) & 0xFF;
+			this.setPixel(ox, line, getColorFromPalette(Mmu.BGP, color));
 
-	        for (int j = 0; j < 8; j++) {
-		        if (x < 160) {
-			        try {
-				        this.setPixel(x, line, getColorFromPalette(Mmu.BGP, tileBuffer[u + j]));
-			        } catch (ArrayIndexOutOfBoundsException e) {
-				        System.err.println("Out of bounds at: ("+x+", "+line+")");
-				        e.printStackTrace();
-				        // System.exit(1);
-			        }
-		        }
+			ix = (ix + 1) & 0xFF;
+			tx = (tx + 1) & 7;
 
-		        x++;
-	        }
-
-	        tileNum++;
-        }
-    }
+			if (tx == 0) {
+				data = tile(ix, iy);
+			}
+		}
+	}
 
     private void drawWindow() {
         int lcdc = mmu.read(Mmu.LCDC);
