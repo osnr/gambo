@@ -67,6 +67,10 @@ public class Emulator extends JComponent implements ActionListener {
     public void loadRom(File f) {
         byte[] buf;
         try {
+            if (running) {
+                stopEmulation();
+            }
+            
             FileInputStream in = new FileInputStream(f);
             int size = (int) f.length();
             buf = new byte[size];
@@ -74,7 +78,6 @@ public class Emulator extends JComponent implements ActionListener {
             in.read(buf);
 
             this.mmu = new Mmu(buf);
-
             this.display = new DesktopDisplay(mmu, this);
             this.input = new DesktopInput(mmu);
 
@@ -83,9 +86,11 @@ public class Emulator extends JComponent implements ActionListener {
             cpuThread = new Thread() {
                 public void run() {
                     try {
-                        running = true;
-                        cpu.emulate(0x100);
-                        running = false;
+                        if (!running) {
+                            running = true;
+                            cpu.emulate(0x100);
+                            running = false;
+                        }
                     } catch (Exception e) {
                         e.printStackTrace();
                         System.err.println(String.format("Program counter: %x", cpu.getPc()));

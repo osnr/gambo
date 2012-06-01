@@ -30,6 +30,7 @@ public abstract class Cpu {
 	public static final int L = 7;
 
     private boolean running = false;
+    private boolean paused = false;
 
 	// registers
 	// ---------
@@ -664,7 +665,7 @@ public abstract class Cpu {
 
 		do {
 			newFrame = emulateOp();
-		} while (cycling(newFrame) && running);
+		} while (cycling(newFrame) && running && !paused);
 
 		timingSync();
 	}
@@ -2815,6 +2816,10 @@ public abstract class Cpu {
 
     public void stop() {
         this.running = false;
+    }
+
+    public void pause() {
+        this.paused = true;
     }
 
 	public class IllegalOperationException extends Exception {

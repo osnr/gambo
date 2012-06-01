@@ -21,12 +21,11 @@ package com.gabby.desktop;
 
 import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.event.ActionEvent;
+import java.io.File;
 import java.util.TimerTask;
 
-import javax.swing.JFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
+import javax.swing.*;
 
 public class Main {
 	public static void main(final String[] args) {
@@ -35,6 +34,10 @@ public class Main {
         EventQueue.invokeLater(new Runnable() {
             @Override
             public void run() {
+                final String homeDirPath = System.getProperty("user.home");
+                final String romDirPath = homeDirPath + "/.gabby/roms/";
+                final String savesDirPath = homeDirPath + "/.gabby/saves/";
+                
                 JFrame frame = new JFrame("Gabby");
                 final Emulator emulator = new Emulator();
 
@@ -51,9 +54,28 @@ public class Main {
                 JMenu fileMenu = new JMenu("File");
                 menuBar.add(fileMenu);
 
-                JMenuItem loadRom = new JMenuItem("Load ROM");
+                /*JMenuItem loadRom = new JMenuItem("Load ROM");
                 loadRom.addActionListener(emulator);
-                loadRom.setActionCommand("load rom");
+                loadRom.setActionCommand("load rom");*/
+
+                JMenu loadRom = new JMenu("Load ROM");
+
+                File romDir = new File(romDirPath);
+                final String[] romNames = romDir.list();
+                
+                for (int i = 0; i < romNames.length; i++) {
+                    JMenuItem rom = new JMenuItem(romNames[i]);
+                    
+                    rom.setAction(new RomMenuAction(romNames[i], emulator, romDirPath + romNames[i]));
+                    loadRom.add(rom);
+                }
+                
+                loadRom.addSeparator();
+
+                JMenuItem loadOtherRom = new JMenuItem("Load Other ROM");
+                loadOtherRom.setActionCommand("load rom");
+
+                loadRom.add(loadOtherRom);
 
                 JMenuItem saveState = new JMenuItem("Save State");
                 saveState.addActionListener(emulator);
@@ -108,5 +130,21 @@ public class Main {
                 frame.addKeyListener(emulator.getInput());
             }
         });
+    }
+
+    private static class RomMenuAction extends AbstractAction {
+        private Emulator emulator;
+        private String romPath;
+        
+        RomMenuAction(String name, Emulator emulator, String romPath) {
+            super(name);
+            
+            this.emulator = emulator;
+            this.romPath = romPath;
+        }
+        @Override
+        public void actionPerformed(ActionEvent actionEvent) {
+            emulator.loadRom(new File(romPath));
+        }
     }
 }
