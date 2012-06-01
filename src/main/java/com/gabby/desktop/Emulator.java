@@ -19,9 +19,7 @@
 
 package com.gabby.desktop;
 
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
@@ -110,7 +108,10 @@ public class Emulator extends JComponent implements ActionListener {
             int ret = fc.showOpenDialog(this);
 
             if (ret == JFileChooser.APPROVE_OPTION) {
-                //cpuThread.interrupt();
+                if (running) {
+                    stopEmulation();
+                }
+
                 loadRom(fc.getSelectedFile());
             }
         } else if ("save state".equals(e.getActionCommand())) {
@@ -121,83 +122,7 @@ public class Emulator extends JComponent implements ActionListener {
 
             if (ret == JFileChooser.APPROVE_OPTION) {
                 File f = fc.getSelectedFile();
-
-/*                    BufferedWriter out = new BufferedWriter(new FileWriter(f));
-
-                    /*out.writeInt(cpu.a());       // 0
-                    p = out.getFilePointer();
-                    out.writeInt(cpu.b());       // 3
-                    p = out.getFilePointer();
-                    out.writeInt(cpu.c());       // 0
-                    p = out.getFilePointer();
-                    out.writeInt(cpu.d());       // 255
-                    p = out.getFilePointer();
-                    out.writeInt(cpu.e());      // 138
-                    p = out.getFilePointer();
-                    out.writeInt(cpu.f());      // 64
-                    p = out.getFilePointer();
-                    out.writeInt(cpu.h());      // 194
-                    p = out.getFilePointer();
-                    out.writeInt(cpu.l());      // 5
-                    p = out.getFilePointer();
-                    out.writeInt(cpu.sp());     // 53247
-                    p = out.getFilePointer();
-                    out.writeInt(cpu.isZero() ? 1 : 0); // 1
-                    p = out.getFilePointer();
-                    out.writeInt(cpu.isSubtract() ? 1 : 0);  // 0
-                    p = out.getFilePointer();
-                    out.writeInt(cpu.isHalfCarry() ? 1 : 0); // 1
-                    p = out.getFilePointer();
-                    out.writeInt(cpu.isCarry() ? 1 : 0); // 0
-                    p = out.getFilePointer();
-                    out.writeInt(cpu.getPc()); // 752
-                    p = out.getFilePointer();
-
-                    int size = mmu.getAllMemory().length;
-
-
-                    out.writeInt(size);
-                    out.write(mmu.getAllMemory());*//*
-                    
-                    String s = "";
-                    
-                    s += cpu.a();
-                    s += " ";
-                    s += cpu.b();
-                    s += " ";
-                    s += cpu.c();
-                    s += " ";
-                    s += cpu.d();
-                    s += " ";
-                    s += cpu.e();
-                    s += " ";
-                    s += cpu.f();
-                    s += " ";
-                    s += cpu.h();
-                    s += " ";
-                    s += cpu.l();
-                    s += " ";
-                    s += cpu.sp();
-                    s += " ";
-                    s += (cpu.isZero() ? 1 : 0);
-                    s += " ";
-                    s += (cpu.isSubtract() ? 1 : 0);
-                    s += " ";
-                    s += (cpu.isHalfCarry() ? 1 : 0);
-                    s += " ";
-                    s += (cpu.isCarry() ? 1 : 0);
-                    s += " ";
-                    s += cpu.getPc();
-                    
-                    byte[] b = mmu.getAllMemory();
-                    
-                    for (int i = 0; i < b.length; i++)
-                        s += " " + b[i];
-                    
-                    out.write(s);
-                    
-                    out.close();  */
-
+                
                 cpu.saveState(f.getPath());
             }
         } else if ("load state".equals(e.getActionCommand())) {
@@ -208,78 +133,7 @@ public class Emulator extends JComponent implements ActionListener {
 
             if (ret == JFileChooser.APPROVE_OPTION) {
                 File f = fc.getSelectedFile();
-                cpu.loadState(f.getPath());
-
-                /*Scanner in = new Scanner(f);
-
-              this.display = new DesktopDisplay(mmu, this);
-              this.input = new DesktopInput(mmu);
-              this.cpu = new DesktopCpu(mmu, display);
-
-              cpu.setA(in.readInt());
-              p = in.getFilePointer();
-              cpu.setB(in.readInt());
-              p = in.getFilePointer();
-              cpu.setC(in.readInt());
-              p = in.getFilePointer();
-              cpu.setD(in.readInt());
-              p = in.getFilePointer();
-              cpu.setE(in.readInt());
-              p = in.getFilePointer();
-              cpu.setF(in.readInt());
-              p = in.getFilePointer();
-              cpu.setH(in.readInt());
-              p = in.getFilePointer();
-              cpu.setL(in.readInt());
-              p = in.getFilePointer();
-              cpu.setSP(in.readInt());
-              p = in.getFilePointer();
-              cpu.setZero(in.readInt() == 1);
-              p = in.getFilePointer();
-              cpu.setSubtract(in.readInt() == 1);
-              p = in.getFilePointer();
-              cpu.setHalfCarry(in.readInt() == 1);
-              p = in.getFilePointer();
-              cpu.setCarry(in.readInt() == 1);
-              p = in.getFilePointer();
-              cpu.setPc(in.readInt());
-              p = in.getFilePointer();*/
-
-                /*cpu.setA(in.nextInt());
-                cpu.setB(in.nextInt());
-                cpu.setC(in.nextInt());
-                cpu.setD(in.nextInt());
-                cpu.setE(in.nextInt());
-                cpu.setF(in.nextInt());
-                cpu.setH(in.nextInt());
-                cpu.setL(in.nextInt());
-                cpu.setSP(in.nextInt());
-                cpu.setZero(in.nextInt() == 1);
-                cpu.setSubtract(in.nextInt() == 1);
-                cpu.setHalfCarry(in.nextInt() == 1);
-                cpu.setCarry(in.nextInt() == 1);
-                cpu.setPc(in.nextInt());
-
-                in.close();
-
-                if (cpuThread != null)
-                    cpuThread.interrupt();
-
-                cpuThread = new Thread() {
-                    public void run() {
-                        try {
-                            running = true;
-                            System.out.println("running");
-                            cpu.emulate(cpu.getPc());
-                            running = false;
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            System.err.println(String.format("Program counter: %x", cpu.getPc()));
-                        }
-                    }
-                };
-
-                cpuThread.start();*/
+                cpu.loadState(f.getPath());                
             }
         } else if ("change size".equals(e.getActionCommand())) {
             JMenuItem item = (JMenuItem) e.getSource();
@@ -303,16 +157,24 @@ public class Emulator extends JComponent implements ActionListener {
                 SwingUtilities.getWindowAncestor(this).pack();
                 scale = 4;
             }
-        } else if ("stop".equals(e.getActionCommand())) {
-            cpuThread.interrupt();
+        } else if ("stop".equals(e.getActionCommand())) {            
+            stopEmulation();            
         }
+    }
+    
+    private void stopEmulation() {
+        cpu.stop();
+        Graphics2D g = buffer.createGraphics();
+        
+        g.setPaint(Color.WHITE);
+        g.fill(new Rectangle(0, 0, buffer.getWidth(), buffer.getHeight()));
     }
 
     public void processArguments(String[] args) {
         if (args.length > 0) {
             loadRom(new File(args[0]));
         }
-    }
+    }    
 
     protected void setInput(DesktopInput input) {
         this.input = input;

@@ -29,6 +29,8 @@ public abstract class Cpu {
 	public static final int H = 6;
 	public static final int L = 7;
 
+    private boolean running = false;
+
 	// registers
 	// ---------
 	// 8-bit registers: unsigned bytes
@@ -658,10 +660,11 @@ public abstract class Cpu {
 		boolean newFrame;
 
 		pc = initialPC;
+        running = true;
 
 		do {
 			newFrame = emulateOp();
-		} while (cycling(newFrame));
+		} while (cycling(newFrame) && running);
 
 		timingSync();
 	}
@@ -2808,6 +2811,10 @@ public abstract class Cpu {
 
         setPc(s.pc);
         setSP(s.sp);
+    }
+
+    public void stop() {
+        this.running = false;
     }
 
 	public class IllegalOperationException extends Exception {
