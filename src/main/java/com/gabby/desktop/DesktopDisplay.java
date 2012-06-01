@@ -42,7 +42,13 @@ class DesktopDisplay extends Display {
 
 	@Override
 	protected void setPixel(int x, int y, int rgb) {
-		buffer.setRGB(x, y, rgb);
+        try {
+		    buffer.setRGB(x, y, rgb);
+        } catch (ArrayIndexOutOfBoundsException e) {
+            System.out.printf("Tried to set out of bounds pixel at: (%d, %d)\n", x, y);
+            e.printStackTrace();
+            System.exit(1);
+        }
 	}
 
 	@Override

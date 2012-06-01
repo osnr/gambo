@@ -7,7 +7,7 @@ public class SaveState implements Serializable {
     public int pc, sp;
     public byte[] memory;
     public int divCounter, timaCounter;
-    public int modeClock, vblankClock;
+    public int mode, line, lineCounter;
     public int buttons, dpad;
 
     public SaveState() {
@@ -32,8 +32,9 @@ public class SaveState implements Serializable {
         this.divCounter = mmu.timers.getDivCounter();
         this.timaCounter = mmu.timers.getTimaCounter();
         
-        this.modeClock = display.getModeClock();
-        this.vblankClock = display.getVblankClock();
+        this.mode = display.getMode();
+        this.line = display.getLine();
+        this.lineCounter = display.getLineCounter();
 
         this.buttons = mmu.inputs.getButtons();
         this.dpad = mmu.inputs.getDpad();
@@ -57,8 +58,9 @@ public class SaveState implements Serializable {
         this.timaCounter = s.timaCounter;
         this.divCounter = s.divCounter;
 
-        this.modeClock = s.modeClock;
-        this.vblankClock = s.vblankClock;
+        this.mode = s.mode;
+        this.line = s.line;
+        this.lineCounter = s.lineCounter;
 
         this.buttons = s.buttons;
         this.dpad = s.dpad;

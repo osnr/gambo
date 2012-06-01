@@ -110,6 +110,7 @@ public class Emulator extends JComponent implements ActionListener {
             int ret = fc.showOpenDialog(this);
 
             if (ret == JFileChooser.APPROVE_OPTION) {
+                //cpuThread.interrupt();
                 loadRom(fc.getSelectedFile());
             }
         } else if ("save state".equals(e.getActionCommand())) {
