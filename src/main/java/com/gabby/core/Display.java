@@ -30,14 +30,38 @@ public abstract class Display {
 
     private int lineCounter = 456;
     private int mode;
-    private int line, lastLine;
+    private int line;
 
     protected Mmu mmu;
 
     public Display(Mmu mmu) {
-        mode = line = lastLine = 0;
+        mode = line = 0;
 
         this.mmu = mmu;
+    }
+
+    public int getLineCounter() {
+        return lineCounter;
+    }
+
+    public void setLineCounter(int lineCounter) {
+        this.lineCounter = lineCounter;
+    }
+
+    public int getMode() {
+        return mode;
+    }
+
+    public void setMode(int mode) {
+        this.mode = mode;
+    }
+
+    public int getLine() {
+        return line;
+    }
+
+    public void setLine(int line) {
+        this.line = line;
     }
 
     protected abstract int getPixel(int x, int y);
@@ -458,6 +482,8 @@ public abstract class Display {
     }
     
     public void loadFromSaveState(SaveState s) {
-
+        mode = s.mode;
+        line = s.line;
+        lineCounter = s.lineCounter;
     }
 }
