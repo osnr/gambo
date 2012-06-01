@@ -20,6 +20,7 @@
 package com.gabby.core;
 
 
+
 public abstract class Cpu {
 	public static final int A = 0;
 	public static final int B = 1;

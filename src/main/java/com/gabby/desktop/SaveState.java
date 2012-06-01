@@ -32,8 +32,8 @@ public class SaveState implements Serializable {
         this.divCounter = mmu.timers.getDivCounter();
         this.timaCounter = mmu.timers.getTimaCounter();
         
-        this.modeClock = display.getModeClock();
-        this.vblankClock = display.getVblankClock();
+        // this.modeClock = display.getModeClock();
+        // this.vblankClock = display.getVblankClock();
 
         this.buttons = mmu.inputs.getButtons();
         this.dpad = mmu.inputs.getDpad();
@@ -57,8 +57,8 @@ public class SaveState implements Serializable {
         this.timaCounter = s.timaCounter;
         this.divCounter = s.divCounter;
 
-        this.modeClock = s.modeClock;
-        this.vblankClock = s.vblankClock;
+        // this.modeClock = s.modeClock;
+        // this.vblankClock = s.vblankClock;
 
         this.buttons = s.buttons;
         this.dpad = s.dpad;

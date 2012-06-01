@@ -25,17 +25,17 @@ import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
-import java.io.*;
-import java.util.Scanner;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
 import javax.swing.SwingUtilities;
 
-import com.gabby.core.Cpu;
 import com.gabby.core.Mmu;
-import com.gabby.core.SaveState;
 
 public class Emulator extends JComponent implements ActionListener {
     private static final long serialVersionUID = 458596725723358140L;
