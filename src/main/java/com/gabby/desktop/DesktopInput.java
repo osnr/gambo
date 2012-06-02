@@ -22,19 +22,22 @@ package com.gabby.desktop;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
+import com.gabby.core.Cpu;
 import com.gabby.core.Mmu;
 import com.gabby.core.Mmu.Inputs;
 
 class DesktopInput extends KeyAdapter {
     protected Mmu mmu;
+    protected Cpu cpu;
 
-    public DesktopInput(Mmu mmu) {
+    public DesktopInput(Mmu mmu, Cpu cpu) {
         this.mmu = mmu;
+        this.cpu = cpu;
     }
 
     public void keyPressed(KeyEvent e) {
         switch (e.getKeyCode()) {
-            case KeyEvent.VK_X:
+            case KeyEvent.VK_X:    
                 mmu.inputs.pressedButton(Inputs.BTN_B);
                 break;
             case KeyEvent.VK_Z:
@@ -57,6 +60,14 @@ class DesktopInput extends KeyAdapter {
                 break;
             case KeyEvent.VK_DOWN:
                 mmu.inputs.pressedDpad(Inputs.DPD_DOWN);
+            case KeyEvent.VK_P:
+                if (!cpu.isPaused())
+                    cpu.pause();
+                else
+                    cpu.unpause();
+                break;
+            default:
+                break;
         }
     }
 

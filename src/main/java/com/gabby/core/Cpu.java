@@ -658,14 +658,16 @@ public abstract class Cpu {
     }
     
 	public void emulate(int initialPC) throws IllegalOperationException {
-		boolean newFrame;
+		boolean newFrame = true; // is this ok?
 
 		pc = initialPC;
         running = true;
 
 		do {
-			newFrame = emulateOp();
-		} while (cycling(newFrame) && running && !paused);
+            if (!paused) {
+			    newFrame = emulateOp();
+            }
+		} while (cycling(newFrame) && running);
 
 		timingSync();
 	}
@@ -2820,6 +2822,14 @@ public abstract class Cpu {
 
     public void pause() {
         this.paused = true;
+    }
+
+    public void unpause() {
+        this.paused = false;
+    }
+
+    public boolean isPaused() {
+        return this.paused;
     }
 
 	public class IllegalOperationException extends Exception {
