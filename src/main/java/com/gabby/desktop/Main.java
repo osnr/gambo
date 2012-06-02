@@ -31,13 +31,12 @@ public class Main {
 	public static void main(final String[] args) {
         System.setProperty("apple.laf.useScreenMenuBar", "true");
         System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Gabby");
+
         EventQueue.invokeLater(new Runnable() {
             @Override
             public void run() {
-                final String homeDirPath = System.getProperty("user.home");
-                final String romDirPath = homeDirPath + "/.gabby/roms/";
-                final String savesDirPath = homeDirPath + "/.gabby/saves/";
-                
+                final String workingDirPath = System.getProperty("user.dir") + "/";
+
                 JFrame frame = new JFrame("Gabby");
                 final Emulator emulator = new Emulator();
 
@@ -54,22 +53,24 @@ public class Main {
                 JMenu fileMenu = new JMenu("File");
                 menuBar.add(fileMenu);
 
-                /*JMenuItem loadRom = new JMenuItem("Load ROM");
-                loadRom.addActionListener(emulator);
-                loadRom.setActionCommand("load rom");*/
-
                 JMenu loadRom = new JMenu("Load ROM");
 
-                File romDir = new File(romDirPath);
-                final String[] romNames = romDir.list();
+                File romDir = new File(workingDirPath);
+                String[] romNames = romDir.list();
+
+                boolean listed = false;
                 
                 for (int i = 0; i < romNames.length; i++) {
-                    JMenuItem rom = new JMenuItem(romNames[i]);
-                    
-                    rom.setAction(new RomMenuAction(romNames[i], emulator, romDirPath + romNames[i]));
-                    loadRom.add(rom);
+                    if (romNames[i].toLowerCase().endsWith(".gb")) {
+                        JMenuItem rom = new JMenuItem(romNames[i]);
+                        rom.setAction(new RomMenuAction(romNames[i], emulator, workingDirPath + romNames[i]));
+                        loadRom.add(rom);
+                        listed = true;
+                    }
                 }
-                
+
+                if (!listed)
+                    loadRom.add(new JMenuItem("No ROMs Found"));
                 loadRom.addSeparator();
 
                 JMenuItem loadOtherRom = new JMenuItem("Load Other ROM");

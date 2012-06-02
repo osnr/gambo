@@ -98,7 +98,4 @@ class DesktopInput extends KeyAdapter {
                 mmu.inputs.unpressedDpad(Inputs.DPD_DOWN);
         }
     }
-
-
-
 }

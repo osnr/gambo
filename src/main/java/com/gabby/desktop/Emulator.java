@@ -46,6 +46,7 @@ public class Emulator extends JComponent implements ActionListener {
     private DesktopInput input;
     private Thread cpuThread;
     private boolean running;
+    private String romName;
 
     public Emulator() {
         buffer = new BufferedImage(160, 144, BufferedImage.TYPE_INT_RGB);
@@ -96,7 +97,8 @@ public class Emulator extends JComponent implements ActionListener {
                     }
                 }
             };
-
+            
+            romName = f.getName();
             cpuThread.start();
         } catch (FileNotFoundException e) {
             e.printStackTrace();

@@ -409,7 +409,7 @@ public class Mmu {
             everything[i] = memory[i];
         
         for (int i = memory.length; i < everything.length; i++) {
-            everything[i] = ramDump[i];
+            everything[i] = ramDump[i - memory.length];
         }
 
         return everything;
