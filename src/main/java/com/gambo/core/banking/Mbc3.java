@@ -17,19 +17,19 @@
     along with Gabby.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.gabby.core.banking;
+package com.gambo.core.banking;
 
-import com.gabby.core.Mmu;
-import com.gabby.core.Mmu.Mbc;
+import com.gambo.core.Mmu;
+import com.gambo.core.Mmu.Mbc;
 
-public class Mbc5 implements Mbc {
+public class Mbc3 implements Mbc {
 	private byte[] rom;
 	private byte[] ram;
 	
 	private boolean ramEnabled = false; // 0x0000 - 0x1FFF
-	private int romBank = 0x01; // 0x2000 - 0x3FFF + 0x3000 - 0x3FFF
+	private int romBank = 0x01; // 0x2000 - 0x3FFF
 	private int ramBank = 0x00; // 0x4000 - 0x5FFF
-
+	
 	private int getRamSize() {
 		switch (rom[Mmu.RAM_SIZE]) {
 		case 0: return 0;
@@ -41,7 +41,7 @@ public class Mbc5 implements Mbc {
 		}
 	}
 	
-	public Mbc5(byte[] rom) {
+	public Mbc3(byte[] rom) {
 		this.rom = rom;
 		
 		this.ram = new byte[getRamSize()];
@@ -53,16 +53,15 @@ public class Mbc5 implements Mbc {
 		// change banking settings
 		if ((addr & 0xE000) == 0x0000) { // 0x0000 - 0x1FFF
 			ramEnabled = (data & 0x0F) == 0x0A;
-		} else if ((addr & 0xF000) == 0x2000) { // 0x2000 - 0x2FFF
-			romBank = (romBank & 0x0100) | data;
-		} else if ((addr & 0xF000) == 0x3000) { // 0x3000 - 0x3FFF
-			romBank = ((data & 0x01) << 8) | (romBank & 0x00FF);
+
+		} else if ((addr & 0xE000) == 0x2000) { // 0x2000 - 0x3FFF
+			romBank = (data & 0x7F) + ((data & 0x7F) == 0 ? 1 : 0);
+
 		} else if ((addr & 0xE000) == 0x4000) { // 0x4000 - 0x5FFF
-			ramBank = data & 0x0F;
-		} else if ((addr & 0xE000) == 0xA000) { // 0xA000 - 0xBFFF
-			if (ramEnabled) {
-				writeRam((ramBank << 13) | (addr & 0x1FFF), data);
-			}
+			ramBank = data;
+
+		} else if ((addr & 0xE000) == 0x6000) { // 0x6000 - 0x7FFF
+			// TODO insert RTC stuff here
 		}
 	}
 
@@ -76,7 +75,12 @@ public class Mbc5 implements Mbc {
 	public int readRam(int addr) {
 		// 0xA000 - 0xBFFF
 		if (ramEnabled) {
-			return ram[(ramBank << 13) | (addr & 0x1FFF)] & 0xFF;
+			if ((ramBank >= 0x00) && (ramBank <= 0x03)) {
+				return ram[(ramBank << 13) | (addr & 0x1FFF)] & 0xFF;
+			} else {
+				// TODO insert RTC stuff here
+				return 0x00;
+			}
 		} else {
 			throw new RuntimeException("Tried to access RAM");
 		}
@@ -86,7 +90,11 @@ public class Mbc5 implements Mbc {
 	public void writeRam(int addr, int n) {
 		// game writing from 0xA000 - 0xBFFF
 		if (ramEnabled) {
-			ram[(ramBank << 13) | (addr & 0x1FFF)] = (byte) n;
+			if ((ramBank >= 0x00) && (ramBank <= 0x03)) {
+				ram[(ramBank << 13) | (addr & 0x1FFF)] = (byte) n;
+			} else {
+				// TODO insert RTC stuff here
+			}
 		}
 	}
 	

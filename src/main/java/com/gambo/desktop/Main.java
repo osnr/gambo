@@ -17,7 +17,7 @@
     along with Gabby.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.gabby.desktop;
+package com.gambo.desktop;
 
 import java.awt.Dimension;
 import java.awt.EventQueue;

@@ -17,7 +17,7 @@
     along with Gabby.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.gabby.core;
+package com.gambo.core;
 
 import java.awt.Color;
 

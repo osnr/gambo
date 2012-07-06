@@ -17,10 +17,10 @@
     along with Gabby.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.gabby.core.banking;
+package com.gambo.core.banking;
 
-import com.gabby.core.Mmu;
-import com.gabby.core.Mmu.Mbc;
+import com.gambo.core.Mmu;
+import com.gambo.core.Mmu.Mbc;
 
 public class Mbc1 implements Mbc {
 	private byte[] rom;

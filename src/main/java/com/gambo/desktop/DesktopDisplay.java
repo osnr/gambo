@@ -17,12 +17,12 @@
     along with Gabby.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.gabby.desktop;
+package com.gambo.desktop;
 
 import java.awt.image.BufferedImage;
 
-import com.gabby.core.Display;
-import com.gabby.core.Mmu;
+import com.gambo.core.Display;
+import com.gambo.core.Mmu;
 
 class DesktopDisplay extends Display {
     BufferedImage buffer;

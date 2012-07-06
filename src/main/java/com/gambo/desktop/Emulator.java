@@ -17,7 +17,7 @@
     along with Gabby.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.gabby.desktop;
+package com.gambo.desktop;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -33,7 +33,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
 import javax.swing.SwingUtilities;
 
-import com.gabby.core.Mmu;
+import com.gambo.core.Mmu;
 
 public class Emulator extends JComponent implements ActionListener {
     private static final long serialVersionUID = 458596725723358140L;

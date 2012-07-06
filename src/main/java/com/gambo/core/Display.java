@@ -16,11 +16,11 @@
     along with Gabby.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.gabby.core;
+package com.gambo.core;
 
 import java.util.Arrays;
 
-import com.gabby.core.Mmu.Interrupts;
+import com.gambo.core.Mmu.Interrupts;
 
 public abstract class Display {
     public static final int TILE_WIDTH = 8;

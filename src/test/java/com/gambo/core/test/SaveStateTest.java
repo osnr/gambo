@@ -1,6 +1,7 @@
-package com.gabby.core.test;
+package com.gambo.core.test;
 
-import com.gabby.core.SaveState;
+import com.gambo.core.SaveState;
+
 import org.junit.Assert;
 import org.junit.Test;
 

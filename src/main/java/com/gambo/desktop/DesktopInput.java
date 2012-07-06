@@ -17,14 +17,14 @@
     along with Gabby.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.gabby.desktop;
+package com.gambo.desktop;
 
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
-import com.gabby.core.Cpu;
-import com.gabby.core.Mmu;
-import com.gabby.core.Mmu.Inputs;
+import com.gambo.core.Cpu;
+import com.gambo.core.Mmu;
+import com.gambo.core.Mmu.Inputs;
 
 class DesktopInput extends KeyAdapter {
     protected Mmu mmu;

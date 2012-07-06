@@ -17,15 +17,15 @@
     along with Gabby.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.gabby.desktop;
+package com.gambo.desktop;
 
 import java.io.*;
 import java.util.Calendar;
 
-import com.gabby.core.Cpu;
-import com.gabby.core.Display;
-import com.gabby.core.Mmu;
-import com.gabby.core.SaveState;
+import com.gambo.core.Cpu;
+import com.gambo.core.Display;
+import com.gambo.core.Mmu;
+import com.gambo.core.SaveState;
 
 public class DesktopCpu extends Cpu {
 	long lastSync;

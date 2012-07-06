@@ -1,4 +1,4 @@
-package com.gabby.core;
+package com.gambo.core;
 
 import java.io.*;
 

@@ -26,8 +26,8 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>com.gabby.core.Emulator</mainClass>
-              <packageName>com.gabby.core</packageName>
+              <mainClass>com.gambo.core.Emulator</mainClass>
+              <packageName>com.gambo.core</packageName>
             </manifest>
             <manifestEntries>
               <mode>development</mode>
