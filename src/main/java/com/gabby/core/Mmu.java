@@ -405,9 +405,9 @@ public class Mmu {
 	    byte[] ramDump = mbc.dumpRam();
         byte[] everything = new byte[memory.length + ramDump.length];
         
-        for (int i = 0; i < memory.length; i++)
+        for (int i = 0; i < memory.length; i++) {
             everything[i] = memory[i];
-        
+        }
         for (int i = memory.length; i < everything.length; i++) {
             everything[i] = ramDump[i - memory.length];
         }
