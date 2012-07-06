@@ -1,4 +1,3 @@
-syntax: glob
 target
 *.class
 *.orig
