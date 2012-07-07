@@ -19,8 +19,6 @@
 
 package com.gambo.core;
 
-import java.awt.Color;
-
 public class BitTwiddles {
 	public static final int bx00000000 = 0;
 	public static final int bx00000001 = 1;
