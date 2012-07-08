@@ -30,14 +30,14 @@ import javax.swing.*;
 public class Main {
 	public static void main(final String[] args) {
         System.setProperty("apple.laf.useScreenMenuBar", "true");
-        System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Gabby");
+        System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Gambo");
 
         EventQueue.invokeLater(new Runnable() {
             @Override
             public void run() {
                 final String workingDirPath = System.getProperty("user.dir") + "/";
 
-                JFrame frame = new JFrame("Gabby");
+                JFrame frame = new JFrame("Gambo");
                 final Emulator emulator = new Emulator();
 
                 frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
