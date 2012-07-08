@@ -105,4 +105,9 @@ public class DesktopCpu extends Cpu {
 			return false;
 		}
 	}
+
+	@Override
+	protected void log(int op, int[] regs) {
+		System.out.printf("pc: %#x, op: %#x, a: %d, b: %d, c: %d, d: %d, e: %d, f: %d, h: %d, l: %d\n", getPc(), op, a(), b(), c(), d(), e(), f(), h(), l());
+	}
 }

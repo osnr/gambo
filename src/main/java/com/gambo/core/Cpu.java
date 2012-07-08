@@ -685,6 +685,7 @@ public abstract class Cpu {
         //System.out.println("pc: "+Integer.toHexString(pc-1)+", op: "+Integer.toHexString(opcode)+"; "+Integer.toHexString(regs[A])+", "+Integer.toHexString(regs[B])+", "+Integer.toHexString(regs[C])+", "+Integer.toHexString(regs[D])+", "+Integer.toHexString(regs[E])+", 0, "+Integer.toHexString(regs[H])+", "+Integer.toHexString(regs[L])+", "+Integer.toHexString(sp)+"; SCX: "+mmu.read(0xFF43));
         //System.out.println("pc: "+Integer.toHexString(pc-1)+", op: "+Integer.toHexString(opcode)+", scx: "+Integer.toHexString(mmu.read(0xFF43)));
         // System.out.printf("pc: %#xd, op: %#xd\n", pc, opcode);
+	log(opcode, regs);
         op(opcode);
 
         clock.executedOp(opcode);
@@ -2827,6 +2828,8 @@ public abstract class Cpu {
     public void unpause() {
         this.paused = false;
     }
+
+    protected abstract void log(int opcode, int[] regs);
 
     public boolean isPaused() {
         return this.paused;
