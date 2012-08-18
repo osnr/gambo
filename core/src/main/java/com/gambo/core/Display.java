@@ -159,7 +159,7 @@ public abstract class Display {
 
 	        int row = line - wy;
 	        int y = (row >> 3);
-	        row &= BitTwiddles.bx00000111;
+	        row &= 0x07;
 	        int tileNum = y << 5;
 	        int tile = 0;
 
@@ -179,14 +179,14 @@ public abstract class Display {
 
 		        int[] tileBuff = new int[64];
 
-		        tileBuff[z + 7] = ((b2 & BitTwiddles.bx00000001) | ((b1 & BitTwiddles.bx00000001) << 1));
-		        tileBuff[z + 6] = (((b2 & BitTwiddles.bx00000010) >> 1) | (((b1 & BitTwiddles.bx00000010) >> 1) << 1));
-		        tileBuff[z + 5] = (((b2 & BitTwiddles.bx00000100) >> 2) | (((b1 & BitTwiddles.bx00000100) >> 2) << 1));
-		        tileBuff[z + 4] = (((b2 & BitTwiddles.bx00001000) >> 3) | (((b1 & BitTwiddles.bx00001000) >> 3) << 1));
-		        tileBuff[z + 3] = (((b2 & BitTwiddles.bx00010000) >> 4) | (((b1 & BitTwiddles.bx00010000) >> 4) << 1));
-		        tileBuff[z + 2] = (((b2 & BitTwiddles.bx00100000) >> 5) | (((b1 & BitTwiddles.bx00100000) >> 5) << 1));
-		        tileBuff[z + 1] = (((b2 & BitTwiddles.bx01000000) >> 6) | (((b1 & BitTwiddles.bx01000000) >> 6) << 1));
-		        tileBuff[z] = (((b2 & BitTwiddles.bx10000000) >> 7) | (((b1 & BitTwiddles.bx10000000) >> 7) << 1));
+		        tileBuff[z + 7] = ((b2 & 0x01) | ((b1 & 0x01) << 1));
+		        tileBuff[z + 6] = (((b2 & 0x02) >> 1) | (((b1 & 0x02) >> 1) << 1));
+		        tileBuff[z + 5] = (((b2 & 0x04) >> 2) | (((b1 & 0x04) >> 2) << 1));
+		        tileBuff[z + 4] = (((b2 & 0x08) >> 3) | (((b1 & 0x08) >> 3) << 1));
+		        tileBuff[z + 3] = (((b2 & 0x10) >> 4) | (((b1 & 0x10) >> 4) << 1));
+		        tileBuff[z + 2] = (((b2 & 0x20) >> 5) | (((b1 & 0x20) >> 5) << 1));
+		        tileBuff[z + 1] = (((b2 & 0x40) >> 6) | (((b1 & 0x40) >> 6) << 1));
+		        tileBuff[z] = (((b2 & 0x80) >> 7) | (((b1 & 0x80) >> 7) << 1));
 
 		        int x = (i << 3) + wx - 7;
 		        z = ((line - wy) & 7) << 3;
@@ -234,19 +234,19 @@ public abstract class Display {
 
         for (int i = 0; i < numSpritesToDisplay; i++) {
             // array is sorted in reverse..
-            int sprite = spritesToDraw[spritesToDraw.length - (1 + i)] & BitTwiddles.bx00111111;
+            int sprite = spritesToDraw[spritesToDraw.length - (1 + i)] & 0x3F;
 
             int y = mmu.read(Mmu.OAM + (sprite << 2)) - 16;
             int x = mmu.read(Mmu.OAM + (sprite << 2) + 1) - 8;
             int pattern = mmu.read(Mmu.OAM + (sprite << 2) + 2);
 
             if (height == 15)
-                pattern &= BitTwiddles.bx11111110;
+                pattern &= 0xFE;
 
             int flags = mmu.read(Mmu.OAM + (sprite << 2) + 3);
 
             int palette;
-            if ((flags & BitTwiddles.bx00010000) == 0) {
+            if ((flags & 0x10) == 0) {
                 palette = 1;
             } else {
                 palette = 2;
@@ -256,17 +256,17 @@ public abstract class Display {
                 int b1 = mmu.read(Mmu.VRAM + (pattern << 4) + j);
                 int b2 = mmu.read(Mmu.VRAM + (pattern << 4) + j + 1);
                 //System.out.println(String.format("b1: %d, b2: %d", b1, b2));
-                spriteBuff[(j << 2) + 7] = ((b2 & BitTwiddles.bx00000001) | ((b1 & BitTwiddles.bx00000001) << 1));
-                spriteBuff[(j << 2) + 6] = (((b2 & BitTwiddles.bx00000010) >> 1) | (((b1 & BitTwiddles.bx00000010) >> 1) << 1));
-                spriteBuff[(j << 2) + 5] = (((b2 & BitTwiddles.bx00000100) >> 2) | (((b1 & BitTwiddles.bx00000100) >> 2) << 1));
-                spriteBuff[(j << 2) + 4] = (((b2 & BitTwiddles.bx00001000) >> 3) | (((b1 & BitTwiddles.bx00001000) >> 3) << 1));
-                spriteBuff[(j << 2) + 3] = (((b2 & BitTwiddles.bx00010000) >> 4) | (((b1 & BitTwiddles.bx00010000) >> 4) << 1));
-                spriteBuff[(j << 2) + 2] = (((b2 & BitTwiddles.bx00100000) >> 5) | (((b1 & BitTwiddles.bx00100000) >> 5) << 1));
-                spriteBuff[(j << 2) + 1] = (((b2 & BitTwiddles.bx01000000) >> 6) | (((b1 & BitTwiddles.bx01000000) >> 6) << 1));
-                spriteBuff[(j << 2)] = (((b2 & BitTwiddles.bx10000000) >> 7) | (((b1 & BitTwiddles.bx10000000) >> 7) << 1));
+                spriteBuff[(j << 2) + 7] = ((b2 & 0x01) | ((b1 & 0x01) << 1));
+                spriteBuff[(j << 2) + 6] = (((b2 & 0x02) >> 1) | (((b1 & 0x02) >> 1) << 1));
+                spriteBuff[(j << 2) + 5] = (((b2 & 0x04) >> 2) | (((b1 & 0x04) >> 2) << 1));
+                spriteBuff[(j << 2) + 4] = (((b2 & 0x08) >> 3) | (((b1 & 0x08) >> 3) << 1));
+                spriteBuff[(j << 2) + 3] = (((b2 & 0x10) >> 4) | (((b1 & 0x10) >> 4) << 1));
+                spriteBuff[(j << 2) + 2] = (((b2 & 0x20) >> 5) | (((b1 & 0x20) >> 5) << 1));
+                spriteBuff[(j << 2) + 1] = (((b2 & 0x40) >> 6) | (((b1 & 0x40) >> 6) << 1));
+                spriteBuff[(j << 2)] = (((b2 & 0x80) >> 7) | (((b1 & 0x80) >> 7) << 1));
             }
 
-            if ((flags & BitTwiddles.bx00100000) != 0) {
+            if ((flags & 0x20) != 0) {
                 for (int j = 0; j <= height; j++) { // x-axis flip
                     int t = spriteBuff[(j << 3) + 0];
                     spriteBuff[(j << 3) + 0] = spriteBuff[(j << 3) + 7];
@@ -283,7 +283,7 @@ public abstract class Display {
                 }
             }
 
-            if ((flags & BitTwiddles.bx01000000) != 0) { // y-axis flip
+            if ((flags & 0x40) != 0) { // y-axis flip
                 for (int j = 0; j < 8; j++) {
                     if (height == 7) {  /* Swap 8 pixels high sprites */
                         for (int h = 0; h < 25; h += 8) {
@@ -307,7 +307,7 @@ public abstract class Display {
             for (int j = 0; j < 8; j++) {
                 if (((x + j) >= 0) && ((y + z) >= 0) && ((x + j) < 160) && ((y + z) < 144)) {
                     if (spriteBuff[(z << 3) | j] > 0) { // if inside the screen and not transparant
-                        if (((flags & BitTwiddles.bx10000000) == 0) || (this.getPixel(x + j, y + z) == bgc)) {
+                        if (((flags & 0x80) == 0) || (this.getPixel(x + j, y + z) == bgc)) {
                             if (palette == 1) {
                                 this.setPixel(x + j, y + z, getColorFromPalette(Mmu.OBP0, spriteBuff[(z << 3) | j]));
                             } else {
