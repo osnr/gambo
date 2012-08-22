@@ -47,6 +47,8 @@ public class GamboWeb implements EntryPoint {
 		layoutPanel.add(webEmulator);
 		
 		canvas = webEmulator.getCanvas();
+
+        requestRom("game.gb.b64");
 	}
 	
 	protected void requestRom(String path) {
