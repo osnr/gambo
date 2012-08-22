@@ -1,0 +1,12 @@
+h1 {
+  font-size: 2em;
+  font-weight: bold;
+  color: #777777;
+  margin: 10px 0px 10px;
+  text-align: center;
+}
+
+.emulator {
+	width: 400px;
+	margin: 0 auto;
+}
