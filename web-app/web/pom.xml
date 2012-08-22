@@ -1,0 +1,70 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.gambo</groupId>
+  <artifactId>web</artifactId>
+  <packaging>war</packaging>
+  <version>1</version>
+  <name>gambo.omarrizwan.com</name>
+
+  <properties>
+    <gwt.version>2.4.0</gwt.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.google.gwt</groupId>
+      <artifactId>gwt-user</artifactId>
+      <version>${gwt.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.gambo</groupId>
+      <artifactId>core</artifactId>
+      <version>1</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>gwt-maven-plugin</artifactId>
+        <version>${gwt.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>compile</goal>
+              <goal>generateAsync</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <runTarget>com.gambo.web.client.GamboWeb/GamboWeb.html</runTarget>
+          <draftCompile>true</draftCompile>
+          <optimizationLevel>1</optimizationLevel>
+        </configuration>
+      </plugin>
+
+      <!-- Copy static web files before executing gwt:run -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-war-plugin</artifactId>
+        <version>2.1.1</version>
+        <executions>
+          <execution>
+            <phase>compile</phase>
+            <goals>
+              <goal>exploded</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <webappDirectory>${webappDirectory}</webappDirectory>
+        </configuration>
+      </plugin>
+
+    </plugins>
+  </build>
+
+</project>
