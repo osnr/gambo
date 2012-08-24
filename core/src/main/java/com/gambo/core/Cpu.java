@@ -653,9 +653,7 @@ public abstract class Cpu {
     	return true;
     }
 
-    protected void timingSync() {
-
-    }
+    protected void timingSync() {}
     
 	public void emulate(int initialPC) throws IllegalOperationException {
 		boolean newFrame = true; // is this ok?
@@ -2829,7 +2827,7 @@ public abstract class Cpu {
         this.paused = false;
     }
 
-    protected abstract void log(int opcode, int[] regs);
+    protected void log(int opcode, int[] regs) {}
 
     public boolean isPaused() {
         return this.paused;

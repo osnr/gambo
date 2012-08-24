@@ -53,7 +53,7 @@ public class SaveState implements Serializable {
         this.pc = s.pc;
         this.sp = s.sp;
 
-        this.memory = s.memory.clone(); // is clone needed?
+        this.memory = s.memory; //.clone(); // is clone needed?
 
         this.timaCounter = s.timaCounter;
         this.divCounter = s.divCounter;
@@ -64,27 +64,5 @@ public class SaveState implements Serializable {
 
         this.buttons = s.buttons;
         this.dpad = s.dpad;
-    }
-
-    public void writeToFile(String path) {
-        try {
-            ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(path));
-            out.writeObject(this);
-            out.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-    
-    public void readFromFile(String path) {
-        try {
-            ObjectInputStream in = new ObjectInputStream(new FileInputStream(path));
-            copyFrom((SaveState) in.readObject());
-            in.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
     }
 }
