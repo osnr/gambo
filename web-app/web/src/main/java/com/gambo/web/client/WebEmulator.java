@@ -29,7 +29,18 @@ public class WebEmulator extends Composite {
 		dockPanel.add(canvas, DockPanel.CENTER);
 		dockPanel.setCellHorizontalAlignment(canvas, HasHorizontalAlignment.ALIGN_CENTER);
 		
-		HTML html = new HTML("<p>Works best in Chrome. Click on the Game Boy screen to control.</p>\n<p>Controls: (key -> Game Boy button)</p>\n<ul>\n    <li>z -> A</li>\n    <li>x -> B</li>\n    <li>Enter -> START</li>\n    <li>Shift -> SELECT</li>\n    <li>Arrow keys -> D-PAD</li>\n</ul>", true);
+		HTML html = new HTML("<p>Works best in Chrome. Click on the Game Boy screen to control.</p>\n" +
+                                     "<p>Controls: (key -> Game Boy button)</p>\n" +
+                                     "<ul>\n" +
+                                     "<li>z -> A</li>\n" +
+                                     "<li>x -> B</li>\n" + 
+                                     "<li>Enter -> START</li>\n" +
+                                     "<li>Shift -> SELECT</li>\n" +
+                                     "<li>Arrow keys -> D-PAD</li>\n" +
+                                     "</ul>\n" +
+                                     "Written by <a href=\"http://rsnous.com\">Omar Rizwan</a> and " +
+                                     "<a href=\"https://github.com/tnecniv\">Vincent Pacelli</a> " +
+                                     "(<a href=\"https://github.com/osnr/gambo\">source code</a>).", true);
 		dockPanel.add(html, DockPanel.SOUTH);
 		html.setWidth("400px");
 	}
