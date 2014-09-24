@@ -1,4 +1,4 @@
-Gambo is a Game Boy emulator written in Java.
+Gambo is a Game Boy emulator written in Java by Omar Rizwan and Vincent Pacelli.
 
 ## Web app
 
